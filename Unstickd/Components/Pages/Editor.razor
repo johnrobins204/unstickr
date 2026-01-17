@@ -1,101 +1,368 @@
-@page "/editor"
-@inject StoryState State
-@inject IHttpClientFactory ClientFactory
+@page "/editor/{StoryId:int}"
+@using Blazored.TextEditor
+@using Unstickd.Services
+@using Unstickd.Models
+@using Microsoft.EntityFrameworkCore
+@using Serilog
+@inject AppDbContext DbContext
+@inject StoryState StoryState
+@inject IHttpClientFactory HttpClientFactory
 @rendermode InteractiveServer
 
-<div class="editor-layout">
-    <div class="main-pane">
-        <div class="toolbar-container">
-            <input type="text" class="form-control title-input" @bind="State.Title" placeholder="Story Title..." />
-            <button class="btn btn-primary btn-sm" @onclick="SaveContent">Save State</button>
+<PageTitle>Editor - @StoryState.Title</PageTitle>
+
+<div class="container-fluid h-100 p-0">
+    <div class="row g-0 h-100">
+        <!-- Main Editor Area (8 cols) -->
+        <div class="col-md-8 d-flex flex-column h-100">
+            <!-- Toolbar / Header -->
+            <div class="bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <a href="/" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                    <h5 class="m-0 text-truncate" style="max-width: 400px;">@StoryState.Title</h5>
+                </div>
+                <div>
+                     <span class="text-muted small me-2">@SaveStatus</span>
+                     <button class="btn btn-primary btn-sm" @onclick="SaveContent">
+                         <i class="bi bi-save"></i> Save
+                     </button>
+                </div>
+            </div>
+            
+            <!-- Editor Container -->
+            <div class="flex-grow-1 overflow-hidden d-flex flex-column bg-white">
+                <!-- Wrapper for BlazoredTextEditor to handle height -->
+                <div class="editor-wrapper h-100 d-flex flex-column">
+                    <BlazoredTextEditor @ref="@QuillHtml" Placeholder="Start your adventure...">
+                        <ToolbarContent>
+                            <select class="ql-header">
+                                <option selected=""></option>
+                                <option value="1"></option>
+                                <option value="2"></option>
+                                <option value="3"></option>
+                            </select>
+                            <span class="ql-formats">
+                                <button class="ql-bold"></button>
+                                <button class="ql-italic"></button>
+                                <button class="ql-underline"></button>
+                                <button class="ql-strike"></button>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-list" value="ordered"></button>
+                                <button class="ql-list" value="bullet"></button>
+                            </span>
+                            <span class="ql-formats">
+                                <select class="ql-color"></select>
+                                <select class="ql-background"></select>
+                            </span>
+                        </ToolbarContent>
+                        <EditorContent>
+                            @((MarkupString)InitialContent)
+                        </EditorContent>
+                    </BlazoredTextEditor>
+                </div>
+            </div>
         </div>
 
-        <div class="editor-container">
-            <BlazoredTextEditor @ref="@QuillHtml"
-                                Placeholder="Start writing your masterpiece...">
-                <ToolbarContent>
-                    <select class="ql-header">
-                        <option selected=""></option>
-                        <option value="1"></option>
-                        <option value="2"></option>
-                        <option value="3"></option>
-                        <option value="4"></option>
-                        <option value="5"></option>
-                    </select>
-                    <span class="ql-formats">
-                        <button class="ql-bold"></button>
-                        <button class="ql-italic"></button>
-                        <button class="ql-underline"></button>
-                        <button class="ql-strike"></button>
-                    </span>
-                    <span class="ql-formats">
-                        <select class="ql-color"></select>
-                        <select class="ql-background"></select>
-                    </span>
-                    <span class="ql-formats">
-                        <button class="ql-list" value="ordered"></button>
-                        <button class="ql-list" value="bullet"></button>
-                    </span>
-                    <span class="ql-formats">
-                        <button class="ql-link"></button>
-                    </span>
-                </ToolbarContent>
-                <EditorContent>
-                    @((MarkupString)State.Content)
-                </EditorContent>
-            </BlazoredTextEditor>
-        </div>
-    </div>
+        <!-- AI Tutor / Notebook Sidebar (4 cols) -->
+        <div class="col-md-4 border-start bg-body-tertiary d-flex flex-column h-100">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs nav-fill bg-white border-bottom">
+                <li class="nav-item">
+                    <button class="nav-link @(ActiveTab == "tutor" ? "active" : "")" @onclick="@(() => ActiveTab = "tutor")">
+                        🤖 Tutor
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(ActiveTab == "notebooks" ? "active" : "")" @onclick="@(() => ActiveTab = "notebooks")">
+                        📓 Notebooks
+                    </button>
+                </li>
+            </ul>
 
-    <div class="tutor-pane">
-        <h4>Tutor AI</h4>
-        <div class="tutor-messages">
-             @if (string.IsNullOrWhiteSpace(State.TutorNotes))
-             {
-                 <p class="text-muted">No notes yet. Ask for help!</p>
-             }
-             else
-             {
-                 <div class="alert alert-secondary">
-                     @State.TutorNotes
-                 </div>
-             }
-        </div>
-        
-        <div class="tutor-input">
-            <textarea class="form-control mb-2" 
-                      @bind="Prompt" 
-                      placeholder="Ask the tutor..."></textarea>
-            <button class="btn btn-success w-100" @onclick="AskTutor" disabled="@IsLoading">
-                @if (IsLoading) { <span>Thinking...</span> } else { <span>Ask</span> }
-            </button>
+            <!-- Content Area -->
+            <div class="flex-grow-1 overflow-auto d-flex flex-column">
+                @if (ActiveTab == "tutor")
+                {
+                    <div class="p-3">
+                        @if (IsLoadingAI)
+                        {
+                            <div class="d-flex justify-content-center align-items-center p-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Thinking...</span>
+                                </div>
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(StoryState.TutorNotes))
+                        {
+                            <div class="card border-info mb-3">
+                                <div class="card-header bg-info-subtle text-info-emphasis">Suggestion</div>
+                                <div class="card-body">
+                                    <p class="card-text" style="white-space: pre-wrap;">@StoryState.TutorNotes</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted mt-5">
+                                <p>I'm reading along with you.</p>
+                                <p>Ask me for a prompt!</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (ActiveTab == "notebooks")
+                {
+                    <div class="p-3 h-100">
+                        @if (SelectedNotebook == null)
+                        {
+                            <!-- List of Notebooks -->
+                            <div class="list-group list-group-flush">
+                                @if (StoryState.Notebooks != null)
+                                {
+                                    @foreach (var nb in StoryState.Notebooks)
+                                    {
+                                        <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                                @onclick="() => SelectNotebook(nb)">
+                                            <span><i class="@nb.Icon me-2"></i>@nb.Name</span>
+                                            <span class="badge bg-secondary rounded-pill">@nb.Entities.Count</span>
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        }
+                        else if (SelectedEntity == null)
+                        {
+                            <!-- List of Entities in Notebook -->
+                            <div class="d-flex align-items-center mb-3">
+                                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => SelectedNotebook = null">
+                                    <i class="bi bi-arrow-left"></i>
+                                </button>
+                                <h6 class="m-0 flex-grow-1">@SelectedNotebook.Name</h6>
+                                <button class="btn btn-sm btn-primary" @onclick="CreateEntity">
+                                    <i class="bi bi-plus"></i> New
+                                </button>
+                            </div>
+                            
+                            <div class="list-group">
+                                @foreach (var entity in SelectedNotebook.Entities)
+                                {
+                                    <button class="list-group-item list-group-item-action" @onclick="() => SelectedEntity = entity">
+                                        @entity.Name
+                                    </button>
+                                }
+                                @if (!SelectedNotebook.Entities.Any())
+                                {
+                                    <div class="text-muted text-center small mt-4">No entries yet.</div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Entries for an Entity -->
+                            <div class="d-flex align-items-center mb-3">
+                                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => SelectedEntity = null">
+                                    <i class="bi bi-arrow-left"></i>
+                                </button>
+                                <h6 class="m-0">@SelectedEntity.Name</h6>
+                            </div>
+
+                            <!-- List of Notes -->
+                            <div class="d-flex flex-column gap-3 mb-3">
+                                @foreach(var entry in SelectedEntity.Entries)
+                                {
+                                    <div class="card bg-light border-0">
+                                        <div class="card-body p-2 small">
+                                            @entry.Content
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <!-- Add Note Input -->
+                            <div class="mt-auto">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Add a note..." @bind="NewNoteContent" />
+                                    <button class="btn btn-outline-primary" @onclick="AddNote">Add</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Input Area (Only for Tutor) -->
+            @if (ActiveTab == "tutor")
+            {
+                <div class="p-3 border-top bg-white">
+                    <div class="input-group">
+                        <textarea class="form-control" 
+                                  @bind="Prompt" 
+                                  placeholder="Ask me for a villain..."
+                                  rows="2"></textarea>
+                        <button class="btn btn-success" @onclick="AskTutor" disabled="@IsLoadingAI">
+                            Ask
+                        </button>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
 
+<style>
+    /* Custom override to make Quill fit the container */
+    .ql-container {
+        height: calc(100% - 42px) !important; /* Approx toolbar height */
+        font-family: 'Georgia', serif;
+        font-size: 1.1rem;
+    }
+    .ql-toolbar {
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        background-color: #f8f9fa;
+    }
+    .ql-container.ql-snow {
+        border: none !important;
+    }
+</style>
+
 @code {
+    [Parameter]
+    public int StoryId { get; set; }
+
     BlazoredTextEditor? QuillHtml;
+    string SaveStatus = "Ready";
+    bool IsLoadingAI = false;
     string Prompt = "";
-    bool IsLoading = false;
+    string InitialContent = "";
 
-    protected override void OnInitialized()
+    // Tabs
+    string ActiveTab = "notebooks"; // Default to notebooks per user request ("open a topical notebook")
+    Notebook? SelectedNotebook;
+    NotebookEntity? SelectedEntity;
+    string NewNoteContent = "";
+
+    protected override async Task OnInitializedAsync()
     {
-        // Listen for external state changes if needed
-        State.OnChange += StateHasChanged;
+        try
+        {
+            var story = await DbContext.Stories
+                .Include(s => s.Pages)
+                .Include(s => s.Account)
+                    .ThenInclude(a => a.Notebooks)
+                        .ThenInclude(n => n.Entities)
+                        .ThenInclude(e => e.Entries)
+                .FirstOrDefaultAsync(s => s.Id == StoryId);
+
+            if (story != null)
+            {
+                StoryState.Title = story.Title;
+                // Load global notebooks from the account
+                StoryState.Notebooks = story.Account?.Notebooks.ToList() ?? new List<Notebook>();
+
+                var page = story.Pages.FirstOrDefault(p => p.PageNumber == 1);
+                if (page != null)
+                {
+                    StoryState.Content = page.Content;
+                    InitialContent = page.Content;
+                }
+            }
+            else
+            {
+                Log.Warning("Story {StoryId} not found", StoryId);
+                SaveStatus = "Story Not Found";
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error loading story {StoryId}", StoryId);
+            SaveStatus = "Error Loading";
+        }
     }
 
-    public void Dispose()
+    // ... (SaveContent and AskTutor methods remain same)
+
+    private void SelectNotebook(Notebook nb)
     {
-        State.OnChange -= StateHasChanged;
+        SelectedNotebook = nb;
+        SelectedEntity = null;
     }
+
+    private async Task CreateEntity()
+    {
+        if (SelectedNotebook == null) return;
+        
+        var newEntity = new NotebookEntity 
+        { 
+            Name = "New " + (SelectedNotebook.Name == "Characters" ? "Character" : "Item"), 
+            NotebookId = SelectedNotebook.Id 
+        };
+        
+        DbContext.NotebookEntities.Add(newEntity);
+        await DbContext.SaveChangesAsync();
+        
+        SelectedNotebook.Entities.Add(newEntity); // Local update
+        SelectedEntity = newEntity;
+    }
+
+    private async Task AddNote()
+    {
+        if (SelectedEntity == null || string.IsNullOrWhiteSpace(NewNoteContent)) return;
+
+        var note = new NotebookEntry
+        {
+            Content = NewNoteContent,
+            NotebookEntityId = SelectedEntity.Id,
+            Created = DateTime.Now
+        };
+
+        DbContext.NotebookEntries.Add(note);
+        await DbContext.SaveChangesAsync();
+
+        SelectedEntity.Entries.Add(note); // Local update
+        NewNoteContent = "";
+    }
+
 
     private async Task SaveContent()
     {
-        if (QuillHtml != null)
+        if (QuillHtml == null) return;
+        
+        SaveStatus = "Saving...";
+        try 
         {
-            // Pull content from the JS editor into C# state
-            State.Content = await QuillHtml.GetHTML();
-            State.NotifyStateChanged();
+            string html = await QuillHtml.GetHTML();
+            StoryState.Content = html;
+
+            var story = await DbContext.Stories
+                .Include(s => s.Pages)
+                .FirstOrDefaultAsync(s => s.Id == StoryId);
+
+            if (story != null)
+            {
+                var page = story.Pages.FirstOrDefault(p => p.PageNumber == 1);
+                if (page == null)
+                {
+                    page = new StoryPage { PageNumber = 1, StoryId = StoryId };
+                    story.Pages.Add(page);
+                }
+                
+                page.Content = html;
+                story.LastModified = DateTime.Now;
+                
+                await DbContext.SaveChangesAsync();
+                SaveStatus = "Saved " + DateTime.Now.ToString("t");
+                Log.Information("Saved content for Story {StoryId}", StoryId);
+            }
+        }
+        catch (Exception ex)
+        {
+            SaveStatus = "Error saving";
+            Log.Error(ex, "Error saving Story {StoryId}", StoryId);
         }
     }
 
@@ -103,21 +370,24 @@
     {
         if (string.IsNullOrWhiteSpace(Prompt)) return;
 
-        IsLoading = true;
-        
-        // Save user prompt to notes temporarily or handle a chat history (keeping it simple for now)
-        State.TutorNotes = $"Asking: {Prompt}...";
+        IsLoadingAI = true;
+        // Keep the prompt in the UI? Or clear it? 
+        // Let's clear it to show acceptance.
+        var currentPrompt = Prompt;
+        Prompt = "";
         
         try
         {
-            var client = ClientFactory.CreateClient("LLM");
-            // NOTE: This uses the Ollama API format. 
-            // Depending on your exact Llama3 setup, the JSON structure might vary.
-            // This is a minimal 'generate' example.
+            var client = HttpClientFactory.CreateClient("LLM");
+            
+            // Simple prompt augmentation
+            var context = $"The user is writing a story titled '{StoryState.Title}'. Content snippet: '{Truncate(StoryState.Content, 500)}'.";
+            var fullPrompt = $"System: You are a helpful creative writing coach. Context: {context}. User: {currentPrompt}";
+
             var payload = new 
             { 
                 model = "llama3", 
-                prompt = $"You are a creative writing tutor. {Prompt}",
+                prompt = fullPrompt,
                 stream = false 
             };
             
@@ -126,27 +396,33 @@
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<LlamaResponse>();
-                State.TutorNotes = result?.Response ?? "No response.";
+                StoryState.TutorNotes = result?.Response ?? "No response.";
             }
             else
             {
-                State.TutorNotes = $"Error: {response.ReasonPhrase}";
+                StoryState.TutorNotes = $"Error: {response.ReasonPhrase}. Ensure Ollama is running.";
             }
         }
         catch (Exception ex)
         {
-            State.TutorNotes = $"Connection Error: {ex.Message}";
+            StoryState.TutorNotes = "I couldn't reach the AI brain. Is Ollama running on port 11434?";
+            Log.Error(ex, "LLM Error");
         }
         finally
         {
-            IsLoading = false;
-            //Prompt = ""; // Optionally clear prompt
+            IsLoadingAI = false;
         }
     }
 
-    // Basic response model for Ollama
+    private string Truncate(string val, int max)
+    {
+        if (string.IsNullOrEmpty(val)) return "";
+        return val.Length <= max ? val : val.Substring(0, max);
+    }
+
     private class LlamaResponse
     {
+        // Adjust this property name based on Ollama's actual response JSON (usually 'response')
         public string Response { get; set; } = string.Empty;
     }
 }

@@ -56,6 +56,7 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseStaticFiles(); // Static files FIRST
 app.UseAntiforgery();
 
 app.MapStaticAssets();

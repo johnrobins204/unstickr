@@ -19,8 +19,12 @@
 <body>
     <Routes />
     <ReconnectModal />
+    <!-- QuillJS 1.3.6 (required by Blazored.TextEditor 1.1.3) -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="_content/Blazored.TextEditor/blazored-texteditor.js"></script>
+    <!-- Blazored.TextEditor scripts (order matters: formatter before main) -->
+    <script src="_content/Blazored.TextEditor/quill-blot-formatter.min.js"></script>
+    <script src="_content/Blazored.TextEditor/Blazored-BlazorQuill.js"></script>
+    <!-- Blazor framework (must be last) -->
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 

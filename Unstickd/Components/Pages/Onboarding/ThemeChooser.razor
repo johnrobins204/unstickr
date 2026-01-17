@@ -1,6 +1,7 @@
 @page "/onboarding/themes"
 @using Microsoft.EntityFrameworkCore
 @using Unstickd.Components.Layout
+@using Serilog
 @layout EmptyLayout
 @rendermode InteractiveServer
 @inject AppDbContext DbContext
@@ -9,6 +10,11 @@
 
 <div class="container mt-5">
     <h2 class="text-center mb-4">Choose Your Adventure</h2>
+
+    @if (Age.HasValue)
+    {
+        <p class="text-center text-muted small">Suggested for age @Age</p>
+    }
     
     @if (Themes == null)
     {
@@ -29,8 +35,8 @@
                             @* Placeholder for Sprite *@
                             @if (!string.IsNullOrEmpty(theme.SpritePath))
                             {
-                                <div class="mt-2">
-                                    <small>(Sprite: @theme.SpritePath)</small>
+                                <div class="mt-2 text-muted fst-italic">
+                                    <small>@theme.SpritePath</small>
                                 </div>
                             }
                         </div>
@@ -53,28 +59,83 @@
 </style>
 
 @code {
+    [SupplyParameterFromQuery]
+    public int? Age { get; set; }
+
     private List<Theme>? Themes;
 
     protected override async Task OnInitializedAsync()
     {
-        Themes = await DbContext.Themes.ToListAsync();
+        try 
+        {
+            Log.Information("Loading themes for Age: {Age}", Age);
+            Themes = await DbContext.Themes.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to load themes.");
+            throw; // Let the global boundary catch it
+        }
     }
 
     private async Task SelectTheme(Theme theme)
     {
-        // For now, we'll just log or set state. 
-        // In the full flow, this would create a Story and navigate to the Editor.
-        
-        // Example: Create a new story in memory
-        StoryState.Title = $"My {theme.Name} Adventure";
-        StoryState.Content = $"<p>It was a day like any other in {theme.Name}...</p>";
-        
-        // TODO: Save to DB here (create Story record)
-        
-        // Navigate to Editor (assuming /editor route exists or will exist)
-        // Nav.NavigateTo("/editor"); 
-        
-        Console.WriteLine($"Selected Theme: {theme.Name}");
+        try
+        {
+            Log.Information("User selected theme: {ThemeName}", theme.Name);
+
+            // 1. Create the entities
+            var initialContent = $"<p></p>";
+            
+            // Ensure Account exists (For single user mode, we use ID 1)
+            var accountId = 1;
+
+            // Check if account has notebooks seeded, if not, create them
+            var hasNotebooks = await DbContext.Notebooks.AnyAsync(n => n.AccountId == accountId);
+            if (!hasNotebooks)
+            {
+                DbContext.Notebooks.AddRange(
+                    new Notebook { Name = "Characters", Icon = "bi-person", AccountId = accountId },
+                    new Notebook { Name = "Places", Icon = "bi-geo-alt", AccountId = accountId },
+                    new Notebook { Name = "Spells", Icon = "bi-magic", AccountId = accountId }
+                );
+                await DbContext.SaveChangesAsync();
+            }
+
+            var newStory = new Story
+            {
+                Title = "Untitled Story",
+                ThemeId = theme.Id,
+                AccountId = accountId,
+                Created = DateTime.Now,
+                LastModified = DateTime.Now,
+                Pages = new List<StoryPage>
+                {
+                    new StoryPage 
+                    { 
+                        PageNumber = 1,
+                        Content = initialContent 
+                    }
+                }
+            };
+
+            // 2. Save to DB
+            DbContext.Stories.Add(newStory);
+            await DbContext.SaveChangesAsync();
+            Log.Information("Created new Story Id: {StoryId}", newStory.Id);
+
+            // 3. Update In-Memory State for the session
+            StoryState.Title = newStory.Title;
+            StoryState.Content = initialContent;    
+            
+            // 4. Navigate
+            Nav.NavigateTo($"/editor/{newStory.Id}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to create story for theme {ThemeName}", theme.Name);
+            // Optionally set an error message property to display to the user
+        }
     }
 
     private string GetContrastColor(string hexColor)

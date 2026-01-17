@@ -10,12 +10,26 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Theme> Themes { get; set; }
+    public DbSet<Account> Accounts { get; set; }
     public DbSet<Story> Stories { get; set; }
     public DbSet<StoryPage> Pages { get; set; }
+    public DbSet<Notebook> Notebooks { get; set; }
+    public DbSet<NotebookEntity> NotebookEntities { get; set; }
+    public DbSet<NotebookEntry> NotebookEntries { get; set; }
+    public DbSet<StoryEntityLink> StoryEntityLinks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure Many-to-Many Link Key
+        modelBuilder.Entity<StoryEntityLink>()
+            .HasKey(sl => new { sl.StoryId, sl.NotebookEntityId });
+
+        // Seed Default Account
+        modelBuilder.Entity<Account>().HasData(
+            new Account { Id = 1, Name = "Writer" }
+        );
 
         // Seed 8 Classic Literature Themes
         modelBuilder.Entity<Theme>().HasData(

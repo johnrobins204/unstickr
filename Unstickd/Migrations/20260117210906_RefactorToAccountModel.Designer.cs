@@ -11,8 +11,8 @@ using Unstickd.Data;
 namespace Unstickd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260117191107_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260117210906_RefactorToAccountModel")]
+    partial class RefactorToAccountModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,10 +20,106 @@ namespace Unstickd.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
 
+            modelBuilder.Entity("Unstickd.Models.Account", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Accounts");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Writer"
+                        });
+                });
+
+            modelBuilder.Entity("Unstickd.Models.Notebook", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Notebooks");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.NotebookEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NotebookId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotebookId");
+
+                    b.ToTable("NotebookEntities");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.NotebookEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NotebookEntityId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotebookEntityId");
+
+                    b.ToTable("NotebookEntries");
+                });
+
             modelBuilder.Entity("Unstickd.Models.Story", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AccountId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Created")
@@ -41,9 +137,26 @@ namespace Unstickd.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AccountId");
+
                     b.HasIndex("ThemeId");
 
                     b.ToTable("Stories");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.StoryEntityLink", b =>
+                {
+                    b.Property<int>("StoryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NotebookEntityId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("StoryId", "NotebookEntityId");
+
+                    b.HasIndex("NotebookEntityId");
+
+                    b.ToTable("StoryEntityLinks");
                 });
 
             modelBuilder.Entity("Unstickd.Models.StoryPage", b =>
@@ -198,15 +311,75 @@ namespace Unstickd.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Unstickd.Models.Notebook", b =>
+                {
+                    b.HasOne("Unstickd.Models.Account", "Account")
+                        .WithMany("Notebooks")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.NotebookEntity", b =>
+                {
+                    b.HasOne("Unstickd.Models.Notebook", "Notebook")
+                        .WithMany("Entities")
+                        .HasForeignKey("NotebookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notebook");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.NotebookEntry", b =>
+                {
+                    b.HasOne("Unstickd.Models.NotebookEntity", "NotebookEntity")
+                        .WithMany("Entries")
+                        .HasForeignKey("NotebookEntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NotebookEntity");
+                });
+
             modelBuilder.Entity("Unstickd.Models.Story", b =>
                 {
+                    b.HasOne("Unstickd.Models.Account", "Account")
+                        .WithMany("Stories")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Unstickd.Models.Theme", "Theme")
                         .WithMany()
                         .HasForeignKey("ThemeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Account");
+
                     b.Navigation("Theme");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.StoryEntityLink", b =>
+                {
+                    b.HasOne("Unstickd.Models.NotebookEntity", "NotebookEntity")
+                        .WithMany()
+                        .HasForeignKey("NotebookEntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Unstickd.Models.Story", "Story")
+                        .WithMany("EntityLinks")
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NotebookEntity");
+
+                    b.Navigation("Story");
                 });
 
             modelBuilder.Entity("Unstickd.Models.StoryPage", b =>
@@ -220,8 +393,27 @@ namespace Unstickd.Migrations
                     b.Navigation("Story");
                 });
 
+            modelBuilder.Entity("Unstickd.Models.Account", b =>
+                {
+                    b.Navigation("Notebooks");
+
+                    b.Navigation("Stories");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.Notebook", b =>
+                {
+                    b.Navigation("Entities");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.NotebookEntity", b =>
+                {
+                    b.Navigation("Entries");
+                });
+
             modelBuilder.Entity("Unstickd.Models.Story", b =>
                 {
+                    b.Navigation("EntityLinks");
+
                     b.Navigation("Pages");
                 });
 #pragma warning restore 612, 618

@@ -1,44 +1,151 @@
 ﻿@page "/"
+@using Microsoft.EntityFrameworkCore
+@using Unstickd.Models
 @using Unstickd.Components.Layout
-@layout EmptyLayout
+@using Unstickd.Data
+@inject AppDbContext DbContext
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
-<PageTitle>Unstickd</PageTitle>
+<PageTitle>Unstickd - My Bookcase</PageTitle>
 
-<div class="d-flex flex-column align-items-center justify-content-center vh-100 text-center">
-    <h1 class="display-1 fw-bold mb-4">Unstickd</h1>
-    <p class="lead mb-5">The magical notebook that helps you write.</p>
+@if (ShowAgeGate)
+{
+    @* --- ONBOARDING / AGE GATE --- *@
+    <div class="d-flex flex-column align-items-center justify-content-center vh-100 text-center">
+        <h1 class="display-3 fw-bold mb-4">New Adventure</h1>
+        <p class="lead mb-5">To find the right world for you, we need a date.</p>
 
-    <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
-        <div class="mb-3">
-            <label for="dob" class="form-label">When were you born?</label>
-            <input type="date" id="dob" class="form-control text-center" @bind="DateOfBirth" />
+        <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+            <div class="mb-3">
+                <label for="dob" class="form-label">When were you born?</label>
+                <input type="date" id="dob" class="form-control text-center" @bind="DateOfBirth" />
+            </div>
+            
+            @if (ShowAgeError)
+            {
+                <div class="alert alert-warning">
+                    Please enter a valid date.
+                </div>
+            }
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary btn-lg" @onclick="HandleEnter" disabled="@IsButtonDisabled">
+                    Start Writing
+                </button>
+                @if (HasStories)
+                {
+                    <button class="btn btn-outline-secondary" @onclick="() => ShowAgeGate = false">
+                        Cancel
+                    </button>
+                }
+            </div>
         </div>
         
-        @if (ShowAgeError)
+        <div class="mt-4 text-muted small">
+            <p>We use this to suggest themes. It is not saved.</p>
+        </div>
+    </div>
+}
+else
+{
+    @* --- DASHBOARD --- *@
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 class="display-5 fw-bold">My Bookcase</h1>
+                <p class="text-muted">Welcome back, writer!</p>
+            </div>
+            <button class="btn btn-success btn-lg shadow-sm" @onclick="() => ShowAgeGate = true">
+                <i class="bi bi-plus-circle me-2"></i>New Story
+            </button>
+        </div>
+
+        @if (Stories == null)
         {
-            <div class="alert alert-warning">
-                Please enter a valid date.
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </div>
         }
-
-        <button class="btn btn-primary btn-lg w-100" @onclick="HandleEnter" disabled="@IsButtonDisabled">
-            Start Writing
-        </button>
+        else if (!Stories.Any())
+        {
+            <div class="text-center py-5 bg-light rounded-3">
+                <h3 class="text-muted mb-3">Your bookcase is empty.</h3>
+                <p class="mb-4">Time to start your first adventure!</p>
+                <button class="btn btn-primary btn-lg" @onclick="() => ShowAgeGate = true">
+                    Create a Story
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var story in Stories)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm border-0 story-card">
+                            <div class="card-header border-0 d-flex justify-content-between align-items-center" 
+                                 style="background-color: @(story.Theme?.PrimaryColor ?? "#f8f9fa"); color: white;">
+                                <small class="fw-bold">@story.Theme?.Name</small>
+                                <button class="btn btn-link text-white p-0" title="Delete" @onclick="() => DeleteStory(story)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <div class="card-body d-flex flex-column" @onclick="() => OpenStory(story)" style="cursor: pointer;">
+                                <h5 class="card-title fw-bold text-dark">@story.Title</h5>
+                                <p class="card-text text-muted small flex-grow-1">
+                                    Last edited: @story.LastModified.ToString("MMM dd, yyyy")
+                                </p>
+                            </div>
+                            <div class="card-footer bg-white border-0 text-end">
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => OpenStory(story)">
+                                    Open Book
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
     
-    <div class="mt-4 text-muted small">
-        <p>We ask for your age to suggest the best story themes for you.</p>
-        <p>This information is not saved.</p>
-    </div>
-</div>
+    <style>
+        .story-card { transition: transform 0.2s; }
+        .story-card:hover { transform: translateY(-5px); }
+    </style>
+}
 
 @code {
+    // Dashboard Data
+    private List<Story>? Stories;
+    private bool HasStories => Stories != null && Stories.Any();
+
+    // Onboarding State
+    private bool ShowAgeGate = false;
     private DateOnly? DateOfBirth;
     private bool ShowAgeError = false;
-
     private bool IsButtonDisabled => !DateOfBirth.HasValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStories();
+        
+        // If no stories, default to Age Gate Mode
+        if (!Stories!.Any())
+        {
+            ShowAgeGate = true;
+        }
+    }
+
+    private async Task LoadStories()
+    {
+        Stories = await DbContext.Stories
+            .Include(s => s.Theme)
+            .OrderByDescending(s => s.LastModified)
+            .ToListAsync();
+    }
 
     private void HandleEnter()
     {
@@ -47,19 +154,26 @@
             ShowAgeError = true;
             return;
         }
-
-        var age = CalculateAge(DateOfBirth.Value);
         
-        // Pass age to ThemeChooser via query string or service? 
-        // For now, let's just navigate. We can expand filtering logic later.
+        var age = DateTime.Now.Year - DateOfBirth.Value.Year;
+        if (DateOfBirth.Value > DateOnly.FromDateTime(DateTime.Now.AddYears(-age))) age--;
+        
         Nav.NavigateTo($"/onboarding/themes?age={age}");
     }
 
-    private int CalculateAge(DateOnly dob)
+    private void OpenStory(Story story)
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var age = today.Year - dob.Year;
-        if (dob > today.AddYears(-age)) age--;
-        return age;
+        Nav.NavigateTo($"/editor/{story.Id}");
+    }
+
+    private async Task DeleteStory(Story story)
+    {
+        // Simple client-side confirm (using JS interop would be better, but keeping it native C# for speed here)
+        // For MVP, we'll just delete. 
+        // In a real app involving kids, a "Are you sure?" modal is crucial.
+        
+        DbContext.Stories.Remove(story);
+        await DbContext.SaveChangesAsync();
+        await LoadStories(); // Refresh list
     }
 }

@@ -1,3 +1,5 @@
+using Unstickd.Models;
+
 namespace Unstickd.Services;
 
 public class StoryState
@@ -13,6 +15,8 @@ public class StoryState
 
     // Event to notify components of changes (useful if multiple components display this data)
     public event Action? OnChange;
-
     public void NotifyStateChanged() => OnChange?.Invoke();
+
+    // Notebooks (In-Memory for faster access in session)
+    public List<Notebook> Notebooks { get; set; } = new List<Notebook>();
 }
