@@ -81,3 +81,27 @@ Global Notebooks implemented. Architecture supports multi-story entity sharing.
 2. Implement UI for linking specific Entities to a Story context.
 3. Dashboard: List existing stories.
 
+## Session 7: Notebooks & Entities MVP
+- [x] **Hierarchy Refinement**:
+    - Implemented `NotebookType` (Characters, Places, Recipes, etc.).
+    - Seeded generic types (Icon + Name).
+    - Updated `NotebookEntry` to include `StoryId` (Provenance/Context).
+- [x] **UI Enhancements**:
+    - **Notebook Creation**: Added shelf management to create new notebooks by Type or Custom Name.
+    - **Entity Creation**: Implemented named entity creation with **Auto-Link** logic (automatically links new entity to current story).
+    - **Display**: Added "Link" toggle (Bookmark icon) to manage which entities appear in the current story context.
+    - **Context Awareness**: Notebook entries now display the Story Title if they were created within a specific story context.
+- [x] **Bug Fixes**:
+    - Resolved UI list duplication issue (EF tracking vs Manual list add).
+    - Fixed build errors related to property renaming (`StoryEntityLinks`).
+
+## Current State
+MVP for "World Building" is active. Users can create global entities, link them to specific stories, and add context-aware notes.
+
+## Next Steps
+1. Dashboard: List existing stories (revisiting this).
+2. AI Tutor: Update prompt context to include "Linked Entities" (e.g., "Here is my cast...").
+3. Polish: "Load Existing Story" navigation.
+2. Implement UI for linking specific Entities to a Story context.
+3. Dashboard: List existing stories.
+

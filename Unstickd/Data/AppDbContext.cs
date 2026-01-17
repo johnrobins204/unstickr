@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<NotebookEntity> NotebookEntities { get; set; }
     public DbSet<NotebookEntry> NotebookEntries { get; set; }
     public DbSet<StoryEntityLink> StoryEntityLinks { get; set; }
+    public DbSet<NotebookType> NotebookTypes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,17 @@ public class AppDbContext : DbContext
         // Seed Default Account
         modelBuilder.Entity<Account>().HasData(
             new Account { Id = 1, Name = "Writer" }
+        );
+
+        // Seed Notebook Types
+        modelBuilder.Entity<NotebookType>().HasData(
+            new NotebookType { Id = 1, Name = "Characters", Icon = "bi-person", IsSystemDefault = true },
+            new NotebookType { Id = 2, Name = "Places", Icon = "bi-geo-alt", IsSystemDefault = true },
+            new NotebookType { Id = 3, Name = "Spells", Icon = "bi-magic", IsSystemDefault = true },
+            new NotebookType { Id = 4, Name = "Recipes", Icon = "bi-egg-fried", IsSystemDefault = true },
+            new NotebookType { Id = 5, Name = "Creatures", Icon = "bi-bug", IsSystemDefault = true },
+            new NotebookType { Id = 6, Name = "Items", Icon = "bi-box-seam", IsSystemDefault = true },
+            new NotebookType { Id = 7, Name = "Lore", Icon = "bi-book", IsSystemDefault = true }
         );
 
         // Seed 8 Classic Literature Themes

@@ -19,4 +19,7 @@ public class StoryState
 
     // Notebooks (In-Memory for faster access in session)
     public List<Notebook> Notebooks { get; set; } = new List<Notebook>();
+    
+    // IDs of entities relevant to this specific story
+    public HashSet<int> LinkedEntityIds { get; set; } = new HashSet<int>();
 }

@@ -118,6 +118,34 @@
                     <div class="p-3 h-100">
                         @if (SelectedNotebook == null)
                         {
+                            <div class="mb-3">
+                                <button class="btn btn-outline-primary w-100" @onclick="() => IsCreatingNotebook = !IsCreatingNotebook">
+                                    <i class="bi bi-plus-lg"></i> Add Notebook
+                                </button>
+                            </div>
+
+                            @if (IsCreatingNotebook) 
+                            {
+                                <div class="card p-3 mb-3 bg-light shadow-sm">
+                                    <label class="form-label small fw-bold">Notebook Type</label>
+                                    <select class="form-select w-100 mb-2" @bind="NewNotebookTypeId">
+                                        <option value="0">Choose...</option>
+                                        @foreach(var t in AvailableTypes)
+                                        {
+                                            <option value="@t.Id">@t.Name</option>
+                                        }
+                                        <option value="-1">Custom...</option>
+                                    </select>
+                                    
+                                    @if (NewNotebookTypeId == -1) 
+                                    {
+                                        <input @bind="CustomNotebookName" placeholder="Name (e.g. Ships)" class="form-control mb-2" />
+                                    }
+                                    
+                                    <button class="btn btn-primary btn-sm w-100" @onclick="CreateNotebook">Create Shelf</button>
+                                </div>
+                            }
+
                             <!-- List of Notebooks -->
                             <div class="list-group list-group-flush">
                                 @if (StoryState.Notebooks != null)
@@ -141,17 +169,46 @@
                                     <i class="bi bi-arrow-left"></i>
                                 </button>
                                 <h6 class="m-0 flex-grow-1">@SelectedNotebook.Name</h6>
-                                <button class="btn btn-sm btn-primary" @onclick="CreateEntity">
-                                    <i class="bi bi-plus"></i> New
+                                <button class="btn btn-sm @(IsCreatingEntity ? "btn-secondary" : "btn-primary")" 
+                                        @onclick="() => IsCreatingEntity = !IsCreatingEntity">
+                                    <i class="bi @(IsCreatingEntity ? "bi-x-lg" : "bi-plus-lg")"></i> 
+                                    @(IsCreatingEntity ? "Cancel" : "New")
                                 </button>
                             </div>
+
+                            @if (IsCreatingEntity)
+                            {
+                                <div class="card p-3 mb-3 bg-light shadow-sm">
+                                    <label class="form-label small fw-bold">Name</label>
+                                    <input @bind="NewEntityName" 
+                                           class="form-control mb-2" 
+                                           placeholder="e.g. Gandalf" 
+                                           @onkeyup="@(e => e.Key == "Enter" ? CreateEntity() : Task.CompletedTask)" 
+                                           autofocus />
+                                    <button class="btn btn-primary btn-sm w-100" @onclick="CreateEntity">Create & Link</button>
+                                </div>
+                            }
                             
                             <div class="list-group">
                                 @foreach (var entity in SelectedNotebook.Entities)
                                 {
-                                    <button class="list-group-item list-group-item-action" @onclick="() => SelectedEntity = entity">
-                                        @entity.Name
-                                    </button>
+                                    var isLinked = StoryState.LinkedEntityIds.Contains(entity.Id);
+                                    <div class="list-group-item list-group-item-action p-0 d-flex">
+                                        <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3" 
+                                                @onclick="() => SelectedEntity = entity">
+                                            @if (isLinked)
+                                            {
+                                                <i class="bi bi-link-45deg text-primary me-2"></i>
+                                            }
+                                            @entity.Name
+                                        </button>
+                                        <button class="btn btn-link text-secondary p-3 border-start"
+                                                title="@(isLinked ? "Unlink from Story" : "Link to Story")"
+                                                @onclick="() => ToggleEntityLink(entity)"
+                                                @onclick:stopPropagation="true">
+                                            <i class="bi @(isLinked ? "bi-bookmark-check-fill text-primary" : "bi-bookmark")"></i>
+                                        </button>
+                                    </div>
                                 }
                                 @if (!SelectedNotebook.Entities.Any())
                                 {
@@ -175,6 +232,12 @@
                                 {
                                     <div class="card bg-light border-0">
                                         <div class="card-body p-2 small">
+                                            @if (entry.Story != null)
+                                            {
+                                                <div class="text-xs text-muted mb-1">
+                                                    <i class="bi bi-book me-1"></i>@entry.Story.Title
+                                                </div>
+                                            }
                                             @entry.Content
                                         </div>
                                     </div>
@@ -246,16 +309,26 @@
     NotebookEntity? SelectedEntity;
     string NewNoteContent = "";
 
+    // Notebook Creation
+    bool IsCreatingNotebook = false;
+    List<NotebookType> AvailableTypes = new();
+    int NewNotebookTypeId;
+    string CustomNotebookName = "";
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            AvailableTypes = await DbContext.NotebookTypes.ToListAsync();
+            
             var story = await DbContext.Stories
                 .Include(s => s.Pages)
+                .Include(s => s.EntityLinks)
                 .Include(s => s.Account)
                     .ThenInclude(a => a.Notebooks)
                         .ThenInclude(n => n.Entities)
                         .ThenInclude(e => e.Entries)
+                            .ThenInclude(entry => entry.Story)
                 .FirstOrDefaultAsync(s => s.Id == StoryId);
 
             if (story != null)
@@ -263,6 +336,11 @@
                 StoryState.Title = story.Title;
                 // Load global notebooks from the account
                 StoryState.Notebooks = story.Account?.Notebooks.ToList() ?? new List<Notebook>();
+                
+                // Load linked entities
+                StoryState.LinkedEntityIds = story.EntityLinks
+                    .Select(l => l.NotebookEntityId)
+                    .ToHashSet();
 
                 var page = story.Pages.FirstOrDefault(p => p.PageNumber == 1);
                 if (page != null)
@@ -292,21 +370,114 @@
         SelectedEntity = null;
     }
 
+    private async Task CreateNotebook()
+    {
+        if (NewNotebookTypeId == 0) return;
+
+        string name = "";
+        string icon = "bi-journal";
+
+        if (NewNotebookTypeId == -1)
+        {
+             if (string.IsNullOrWhiteSpace(CustomNotebookName)) return;
+             name = CustomNotebookName;
+        }
+        else 
+        {
+            var type = AvailableTypes.FirstOrDefault(t => t.Id == NewNotebookTypeId);
+            if (type != null)
+            {
+                name = type.Name;
+                icon = type.Icon;
+            }
+        }
+        
+        if (string.IsNullOrWhiteSpace(name)) return; // Safety check
+        
+        var story = await DbContext.Stories.FindAsync(StoryId);
+        if (story == null) return;
+        
+        var newNotebook = new Notebook 
+        { 
+            Name = name, 
+            Icon = icon,
+            AccountId = story.AccountId 
+        };
+
+        DbContext.Notebooks.Add(newNotebook);
+        await DbContext.SaveChangesAsync();
+
+        StoryState.Notebooks.Add(newNotebook);
+        IsCreatingNotebook = false;
+        NewNotebookTypeId = 0;
+        CustomNotebookName = "";
+    }
+
+    // Entity Creation
+    bool IsCreatingEntity = false;
+    string NewEntityName = "";
+
     private async Task CreateEntity()
     {
-        if (SelectedNotebook == null) return;
+        if (SelectedNotebook == null || string.IsNullOrWhiteSpace(NewEntityName)) return;
         
+        // 1. Create the Entity in the Global Notebook
         var newEntity = new NotebookEntity 
         { 
-            Name = "New " + (SelectedNotebook.Name == "Characters" ? "Character" : "Item"), 
+            Name = NewEntityName, 
             NotebookId = SelectedNotebook.Id 
         };
         
         DbContext.NotebookEntities.Add(newEntity);
-        await DbContext.SaveChangesAsync();
+        await DbContext.SaveChangesAsync(); // Auto-saves immediately
         
-        SelectedNotebook.Entities.Add(newEntity); // Local update
-        SelectedEntity = newEntity;
+        // 2. Automatically Link to the Current Story
+        var link = new StoryEntityLink
+        {
+            StoryId = StoryId,
+            NotebookEntityId = newEntity.Id
+        };
+        DbContext.StoryEntityLinks.Add(link);
+        await DbContext.SaveChangesAsync();
+
+        // 3. Update Local State
+        // Note: EF Core Fixup often handles adding to SelectedNotebook.Entities automatically since it's tracked.
+        // We only explicitly track the Link ID for the UI toggle.
+        if (!SelectedNotebook.Entities.Contains(newEntity))
+        {
+            SelectedNotebook.Entities.Add(newEntity);
+        }
+        StoryState.LinkedEntityIds.Add(newEntity.Id);
+        
+        IsCreatingEntity = false;
+        NewEntityName = "";
+    }
+
+    private async Task ToggleEntityLink(NotebookEntity entity)
+    {
+        if (StoryState.LinkedEntityIds.Contains(entity.Id))
+        {
+            var link = await DbContext.StoryEntityLinks
+                .FirstOrDefaultAsync(l => l.StoryId == StoryId && l.NotebookEntityId == entity.Id);
+            
+            if (link != null)
+            {
+                DbContext.StoryEntityLinks.Remove(link);
+                await DbContext.SaveChangesAsync();
+            }
+            StoryState.LinkedEntityIds.Remove(entity.Id);
+        }
+        else
+        {
+            var link = new StoryEntityLink
+            {
+                StoryId = StoryId, 
+                NotebookEntityId = entity.Id
+            };
+            DbContext.StoryEntityLinks.Add(link);
+            await DbContext.SaveChangesAsync();
+            StoryState.LinkedEntityIds.Add(entity.Id);
+        }
     }
 
     private async Task AddNote()
@@ -317,8 +488,12 @@
         {
             Content = NewNoteContent,
             NotebookEntityId = SelectedEntity.Id,
-            Created = DateTime.Now
+            Created = DateTime.Now,
+            StoryId = StoryId // Capture context!
         };
+
+        // If we want to display the story name immediately without reload, we need to fake the navigation property
+        note.Story = await DbContext.Stories.FindAsync(StoryId);
 
         DbContext.NotebookEntries.Add(note);
         await DbContext.SaveChangesAsync();
