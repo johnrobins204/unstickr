@@ -5,7 +5,10 @@ namespace Unstickd.Services;
 public class StoryState
 {
     // Basic story data held in memory per user session
+    public int StoryId { get; set; }
     public string Title { get; set; } = "Untitled Story";
+    public int CurrentPageNumber { get; set; } = 1;
+    public int TotalPages { get; set; } = 1;
     
     // HTML content from the Rich Text Editor
     public string Content { get; set; } = "<p>Once upon a time...</p>";

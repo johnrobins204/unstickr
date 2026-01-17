@@ -102,6 +102,24 @@ MVP for "World Building" is active. Users can create global entities, link them 
 1. Dashboard: List existing stories (revisiting this).
 2. AI Tutor: Update prompt context to include "Linked Entities" (e.g., "Here is my cast...").
 3. Polish: "Load Existing Story" navigation.
+
+## Session 8: The Pagination Update
+- [x] **Core Requirement**: Implemented `FR-2.1` (Page-Based Architecture).
+- [x] **Backend**:
+    - Updated `StoryPage` to include `LastModified`.
+    - Refactored `StoryState` to track `CurrentPageNumber` and `TotalPages`.
+- [x] **UI Implementation**:
+    - Added navigation controls (Prev, Next, New Page).
+    - Resized Editor to accommodate footer controls.
+- [x] **Stability Fix**:
+    - Resolved `TypeError: removeChild` crash on page navigation by decoupling `InitialContent` from `LoadHTMLContent`.
+
+## Current State
+User can write multi-page stories. Navigation works preserving state.
+
+## Next Steps
+1. **Passive AI**: Implement the inactivity timer (10s idle -> trigger AI).
+2. **Dashboard**: Ensure "Continue Story" loads the correct page/state.
 2. Implement UI for linking specific Entities to a Story context.
 3. Dashboard: List existing stories.
 

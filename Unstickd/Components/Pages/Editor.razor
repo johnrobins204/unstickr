@@ -63,6 +63,36 @@
                         </EditorContent>
                     </BlazoredTextEditor>
                 </div>
+
+                <!-- Pagination Controls -->
+                <div class="card-footer bg-transparent border-top-0 pt-2 pb-0">
+                    <div class="row align-items-center">
+                        <div class="col-4 text-start">
+                            <button class="btn btn-sm btn-outline-secondary" 
+                                    disabled="@(StoryState.CurrentPageNumber <= 1)"
+                                    @onclick="PreviousPage">
+                                <i class="bi bi-arrow-left"></i> Prev
+                            </button>
+                        </div>
+                        <div class="col-4 text-center">
+                            <small class="text-muted fw-bold">Page @StoryState.CurrentPageNumber of @StoryState.TotalPages</small>
+                        </div>
+                        <div class="col-4 text-end">
+                            @if (StoryState.CurrentPageNumber < StoryState.TotalPages)
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="NextPage">
+                                    Next <i class="bi bi-arrow-right"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-primary" @onclick="AddNewPage">
+                                    <i class="bi bi-plus-lg"></i> New Page
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -278,7 +308,7 @@
 <style>
     /* Custom override to make Quill fit the container */
     .ql-container {
-        height: calc(100% - 42px) !important; /* Approx toolbar height */
+        height: calc(100% - 85px) !important; /* Approx toolbar height + pagination */
         font-family: 'Georgia', serif;
         font-size: 1.1rem;
     }
@@ -334,6 +364,13 @@
             if (story != null)
             {
                 StoryState.Title = story.Title;
+                StoryState.StoryId = story.Id;
+                
+                // Pagination Setup
+                StoryState.TotalPages = story.Pages.Count;
+                if (StoryState.TotalPages == 0) StoryState.TotalPages = 1; // Safety
+                StoryState.CurrentPageNumber = 1;
+
                 // Load global notebooks from the account
                 StoryState.Notebooks = story.Account?.Notebooks.ToList() ?? new List<Notebook>();
                 
@@ -513,31 +550,89 @@
             string html = await QuillHtml.GetHTML();
             StoryState.Content = html;
 
-            var story = await DbContext.Stories
-                .Include(s => s.Pages)
-                .FirstOrDefaultAsync(s => s.Id == StoryId);
-
+            var story = await DbContext.Stories.Include(s => s.Pages)
+                                     .FirstOrDefaultAsync(s => s.Id == StoryId);
+            
             if (story != null)
             {
-                var page = story.Pages.FirstOrDefault(p => p.PageNumber == 1);
+                var page = story.Pages.FirstOrDefault(p => p.PageNumber == StoryState.CurrentPageNumber);
                 if (page == null)
                 {
-                    page = new StoryPage { PageNumber = 1, StoryId = StoryId };
+                    page = new StoryPage 
+                    { 
+                        PageNumber = StoryState.CurrentPageNumber, 
+                        Content = html 
+                    };
                     story.Pages.Add(page);
                 }
+                else
+                {
+                    page.Content = html;
+                    page.LastModified = DateTime.Now;
+                }
                 
-                page.Content = html;
                 story.LastModified = DateTime.Now;
-                
                 await DbContext.SaveChangesAsync();
+                
                 SaveStatus = "Saved " + DateTime.Now.ToString("t");
-                Log.Information("Saved content for Story {StoryId}", StoryId);
             }
         }
         catch (Exception ex)
         {
-            SaveStatus = "Error saving";
-            Log.Error(ex, "Error saving Story {StoryId}", StoryId);
+            Log.Error(ex, "Error saving content");
+            SaveStatus = "Error Saving";
+        }
+    }
+
+    private async Task PreviousPage() => await ChangePage(StoryState.CurrentPageNumber - 1);
+    private async Task NextPage() => await ChangePage(StoryState.CurrentPageNumber + 1);
+
+    private async Task AddNewPage()
+    {
+        await SaveContent(); // Save current page first
+        
+        // Optimistic update
+        StoryState.TotalPages++;
+        StoryState.CurrentPageNumber = StoryState.TotalPages;
+        
+        // Clear editor for new page
+        StoryState.Content = "";
+        // Do NOT update InitialContent here to prevent Blazor re-render crash
+        await QuillHtml.LoadHTMLContent(""); 
+
+        // Create the page record immediately
+        var newPage = new StoryPage 
+        { 
+            StoryId = StoryId, 
+            PageNumber = StoryState.TotalPages, 
+            Content = "" 
+        };
+        DbContext.Pages.Add(newPage);
+        await DbContext.SaveChangesAsync();
+    }
+
+    private async Task ChangePage(int targetPage)
+    {
+        if (targetPage < 1 || targetPage > StoryState.TotalPages) return;
+
+        // 1. Save Current Page
+        await SaveContent();
+
+        // 2. Load Target Page
+        var page = await DbContext.Pages
+            .FirstOrDefaultAsync(p => p.StoryId == StoryId && p.PageNumber == targetPage);
+
+        StoryState.CurrentPageNumber = targetPage;
+        
+        // 3. Update Editor
+        // Note: QuillJS specific logic. LoadHTMLContent handles the DOM set.
+        string contentToLoad = page?.Content ?? "";
+        StoryState.Content = contentToLoad;
+        // Do NOT update InitialContent here to prevent Blazor re-render crash
+        
+        if (QuillHtml != null)
+        {
+            await QuillHtml.LoadHTMLContent(contentToLoad);
         }
     }
 
