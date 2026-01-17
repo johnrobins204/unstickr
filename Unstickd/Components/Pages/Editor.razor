@@ -1,0 +1,152 @@
+@page "/editor"
+@inject StoryState State
+@inject IHttpClientFactory ClientFactory
+@rendermode InteractiveServer
+
+<div class="editor-layout">
+    <div class="main-pane">
+        <div class="toolbar-container">
+            <input type="text" class="form-control title-input" @bind="State.Title" placeholder="Story Title..." />
+            <button class="btn btn-primary btn-sm" @onclick="SaveContent">Save State</button>
+        </div>
+
+        <div class="editor-container">
+            <BlazoredTextEditor @ref="@QuillHtml"
+                                Placeholder="Start writing your masterpiece...">
+                <ToolbarContent>
+                    <select class="ql-header">
+                        <option selected=""></option>
+                        <option value="1"></option>
+                        <option value="2"></option>
+                        <option value="3"></option>
+                        <option value="4"></option>
+                        <option value="5"></option>
+                    </select>
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                        <button class="ql-strike"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <select class="ql-color"></select>
+                        <select class="ql-background"></select>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-link"></button>
+                    </span>
+                </ToolbarContent>
+                <EditorContent>
+                    @((MarkupString)State.Content)
+                </EditorContent>
+            </BlazoredTextEditor>
+        </div>
+    </div>
+
+    <div class="tutor-pane">
+        <h4>Tutor AI</h4>
+        <div class="tutor-messages">
+             @if (string.IsNullOrWhiteSpace(State.TutorNotes))
+             {
+                 <p class="text-muted">No notes yet. Ask for help!</p>
+             }
+             else
+             {
+                 <div class="alert alert-secondary">
+                     @State.TutorNotes
+                 </div>
+             }
+        </div>
+        
+        <div class="tutor-input">
+            <textarea class="form-control mb-2" 
+                      @bind="Prompt" 
+                      placeholder="Ask the tutor..."></textarea>
+            <button class="btn btn-success w-100" @onclick="AskTutor" disabled="@IsLoading">
+                @if (IsLoading) { <span>Thinking...</span> } else { <span>Ask</span> }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    BlazoredTextEditor? QuillHtml;
+    string Prompt = "";
+    bool IsLoading = false;
+
+    protected override void OnInitialized()
+    {
+        // Listen for external state changes if needed
+        State.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= StateHasChanged;
+    }
+
+    private async Task SaveContent()
+    {
+        if (QuillHtml != null)
+        {
+            // Pull content from the JS editor into C# state
+            State.Content = await QuillHtml.GetHTML();
+            State.NotifyStateChanged();
+        }
+    }
+
+    private async Task AskTutor()
+    {
+        if (string.IsNullOrWhiteSpace(Prompt)) return;
+
+        IsLoading = true;
+        
+        // Save user prompt to notes temporarily or handle a chat history (keeping it simple for now)
+        State.TutorNotes = $"Asking: {Prompt}...";
+        
+        try
+        {
+            var client = ClientFactory.CreateClient("LLM");
+            // NOTE: This uses the Ollama API format. 
+            // Depending on your exact Llama3 setup, the JSON structure might vary.
+            // This is a minimal 'generate' example.
+            var payload = new 
+            { 
+                model = "llama3", 
+                prompt = $"You are a creative writing tutor. {Prompt}",
+                stream = false 
+            };
+            
+            var response = await client.PostAsJsonAsync("api/generate", payload);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LlamaResponse>();
+                State.TutorNotes = result?.Response ?? "No response.";
+            }
+            else
+            {
+                State.TutorNotes = $"Error: {response.ReasonPhrase}";
+            }
+        }
+        catch (Exception ex)
+        {
+            State.TutorNotes = $"Connection Error: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            //Prompt = ""; // Optionally clear prompt
+        }
+    }
+
+    // Basic response model for Ollama
+    private class LlamaResponse
+    {
+        public string Response { get; set; } = string.Empty;
+    }
+}

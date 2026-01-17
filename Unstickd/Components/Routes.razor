@@ -1,0 +1,23 @@
+﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        <ErrorBoundary @ref="_errorBoundary">
+            <ChildContent>
+                <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+                <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            </ChildContent>
+            <ErrorContent Context="ex">
+                <div class="alert alert-danger m-5 shadow border-danger">
+                    <h4 class="text-danger">⚠️ Unstickd Encountered a Problem</h4>
+                    <p>It's not you, it's us. The error has been logged.</p>
+                    <p class="small text-muted">@ex.Message</p>
+                    <button class="btn btn-outline-danger" @onclick="() => _errorBoundary?.Recover()">Try Again</button>
+                    <a href="/" class="btn btn-primary ms-2">Go Home</a>
+                </div>
+            </ErrorContent>
+        </ErrorBoundary>
+    </Found>
+</Router>
+
+@code {
+    private ErrorBoundary? _errorBoundary;
+}

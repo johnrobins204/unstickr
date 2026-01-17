@@ -1,0 +1,88 @@
+@page "/onboarding/themes"
+@using Microsoft.EntityFrameworkCore
+@using Unstickd.Components.Layout
+@layout EmptyLayout
+@rendermode InteractiveServer
+@inject AppDbContext DbContext
+@inject NavigationManager Nav
+@inject StoryState StoryState
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Choose Your Adventure</h2>
+    
+    @if (Themes == null)
+    {
+        <p class="text-center">Loading worlds...</p>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            @foreach (var theme in Themes)
+            {
+                <div class="col">
+                    <div class="card h-100 theme-card" 
+                         style="background-color: @theme.PrimaryColor; border-color: @theme.SecondaryColor; cursor: pointer;"
+                         @onclick="() => SelectTheme(theme)">
+                        <div class="card-body text-center" style="color: @GetContrastColor(theme.PrimaryColor)">
+                            <h5 class="card-title" style="font-family: '@theme.FontName', sans-serif">@theme.Name</h5>
+                            <p class="card-text small">@theme.Description</p>
+                            @* Placeholder for Sprite *@
+                            @if (!string.IsNullOrEmpty(theme.SpritePath))
+                            {
+                                <div class="mt-2">
+                                    <small>(Sprite: @theme.SpritePath)</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .theme-card {
+        transition: transform 0.2s;
+        border-width: 3px;
+    }
+    .theme-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+</style>
+
+@code {
+    private List<Theme>? Themes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Themes = await DbContext.Themes.ToListAsync();
+    }
+
+    private async Task SelectTheme(Theme theme)
+    {
+        // For now, we'll just log or set state. 
+        // In the full flow, this would create a Story and navigate to the Editor.
+        
+        // Example: Create a new story in memory
+        StoryState.Title = $"My {theme.Name} Adventure";
+        StoryState.Content = $"<p>It was a day like any other in {theme.Name}...</p>";
+        
+        // TODO: Save to DB here (create Story record)
+        
+        // Navigate to Editor (assuming /editor route exists or will exist)
+        // Nav.NavigateTo("/editor"); 
+        
+        Console.WriteLine($"Selected Theme: {theme.Name}");
+    }
+
+    private string GetContrastColor(string hexColor)
+    {
+        // Simple heuristic for text color (black or white) based on background
+        // Real implementation would parse hex and calculate luminance.
+        // For safe fallback, returning 'inherit' or a specific logic.
+        // For now, let's just return 'black' or 'white' based on a simple check or just black.
+        return "#000000"; 
+    }
+}

@@ -1,0 +1,61 @@
+.editor-layout {
+    display: flex;
+    height: calc(100vh - 80px); /* Adjust based on top bar height */
+    gap: 1rem;
+}
+
+.main-pane {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    /* Ensure editor takes available height */
+    min-height: 0; 
+}
+
+.toolbar-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.title-input {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Contains the editor */
+    background: white;
+    border-radius: 4px;
+}
+
+/* Helper to make Quill expand */
+::deep .ql-container {
+    flex: 1;
+    font-size: 1.1rem;
+    font-family: 'Georgia', serif; /* Nice writing font */
+}
+
+.tutor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-left: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.tutor-messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.tutor-input textarea {
+    resize: none;
+    height: 80px;
+}

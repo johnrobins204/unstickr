@@ -1,0 +1,65 @@
+﻿@page "/"
+@using Unstickd.Components.Layout
+@layout EmptyLayout
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Unstickd</PageTitle>
+
+<div class="d-flex flex-column align-items-center justify-content-center vh-100 text-center">
+    <h1 class="display-1 fw-bold mb-4">Unstickd</h1>
+    <p class="lead mb-5">The magical notebook that helps you write.</p>
+
+    <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+        <div class="mb-3">
+            <label for="dob" class="form-label">When were you born?</label>
+            <input type="date" id="dob" class="form-control text-center" @bind="DateOfBirth" />
+        </div>
+        
+        @if (ShowAgeError)
+        {
+            <div class="alert alert-warning">
+                Please enter a valid date.
+            </div>
+        }
+
+        <button class="btn btn-primary btn-lg w-100" @onclick="HandleEnter" disabled="@IsButtonDisabled">
+            Start Writing
+        </button>
+    </div>
+    
+    <div class="mt-4 text-muted small">
+        <p>We ask for your age to suggest the best story themes for you.</p>
+        <p>This information is not saved.</p>
+    </div>
+</div>
+
+@code {
+    private DateOnly? DateOfBirth;
+    private bool ShowAgeError = false;
+
+    private bool IsButtonDisabled => !DateOfBirth.HasValue;
+
+    private void HandleEnter()
+    {
+        if (!DateOfBirth.HasValue || DateOfBirth.Value > DateOnly.FromDateTime(DateTime.Now))
+        {
+            ShowAgeError = true;
+            return;
+        }
+
+        var age = CalculateAge(DateOfBirth.Value);
+        
+        // Pass age to ThemeChooser via query string or service? 
+        // For now, let's just navigate. We can expand filtering logic later.
+        Nav.NavigateTo($"/onboarding/themes?age={age}");
+    }
+
+    private int CalculateAge(DateOnly dob)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var age = today.Year - dob.Year;
+        if (dob > today.AddYears(-age)) age--;
+        return age;
+    }
+}
