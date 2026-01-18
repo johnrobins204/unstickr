@@ -178,3 +178,22 @@ The application is feature-complete for the Prototype phase. Users can Create, W
 1. **QA & Search**: Verify full search functionality across notebooks.
 2. **Notebook Types**: Verify "Create Shelf" functionality works with all defined types.
 3. **Deployment**: Package for local installation.
+
+## Session 14: Refactoring to Continuous Flow & Accessibility
+- [x] **Architecture Shift**: Moved from strict "StoryPage" rows to a single Content blob per Story.
+    - **Rationale**: Accessibility and writing flow. Splitting text into arbitrary 500-word chunks broke screen readers and interrupted thought process.
+    - **Migration**: Added logic to concatenate legacy StoryPages into Story.Content on load.
+- [x] **Visual Pager**: Implemented CSS Columns (column-width: 35vw) to simulate a book spread.
+    - Users write in one long stream, but visually see pages side-by-side.
+    - Horizontal scrolling via JS (scrollBy) replaces database paging interactions.
+- [x] **Component Refactoring**: Decoupled the Editor monolith.
+    - **NotebookPanel**: Moved to an Offcanvas sidebar for better focus.
+    - **TutorPanel**: Moved to a floating Chat Bubble overlay (Alice) that expands on demand.
+    - **Notebooks.razor**: Created standalone management page.
+- [x] **Optimization**:
+    - **Large Pastes**: Fixed layout thrashing when pasting rich text (like Wikipedia) by constraining images (max-width: 100%) and preventing break-inside calculations.
+    - **Layout**: Tightened borders and viewport width (80vw) for better fit on standard displays.
+
+## Current State
+The Editor is now a focused, distraction-free "Book Reader" style interface. The complex state management of Pages is gone, replaced by a simple HTML blob, making the app much more robust and standard-compliant.
+

@@ -2,54 +2,54 @@
 
 This project is a modern **.NET 10 Blazor Web App** using **Interactive Server** render mode and the new **.slnx** solution format. It is a creative writing tool designed for local prototyping.
 
-## 🏗 Big Picture Architecture
-- **Framework**: .NET 10.0 (Preview/Latest).
-- **Hosting Model**: Server-Side Rendering (Interactive Server).
-- **Deployment**: Localhost only. No Authentication implementation required.
-- **Project Structure**:
-    - **`Unstickd/`**: Main Blazor Web App project.
-    - **`Components/`**: Contains UI components.
-        - **`Pages/`**: Routable pages (e.g., `Editor.razor` `Home.razor`, `Counter.razor`).
-        - **`Layout/`**: Shared layouts (e.g., `MainLayout.razor`, `NavMenu.razor`).
-        - **`Routes.razor`**: Main routing configuration.
-        - **`App.razor`**: Root component.
-- **Core Services**:
-    - **LLM**: Connects to local Ollama instance (`http://localhost:11434`) via Named HttpClient "LLM".
-    - **Database**: SQLite with Entity Framework Core (`Microsoft.EntityFrameworkCore.Sqlite`).
-    - **State**: In-memory Scoped service (`StoryState`) to persist data during session navigation.
+## 🏗 Architecture & State Management
+- **Hosting**: Server-Side Rendering (Interactive Server, WebSocket-based).
+- **Persistence Strategy**:
+    - **Database**: SQLite accessed via **Entity Framework Core**. This is the definitive source of truth.
+    - **Session State**: `StoryState` (Scoped Service) acts as a transient data buffer for the active user session. Do **NOT** rely on it for long-term storage; always commit critical changes to `AppDbContext`.
+- **Data Model**:
+    - **Hierarchy**: `Account` owns `Notebooks` and `Stories`.
+    - **Notebooks**: Global resource containing `Entities` (Characters, Places) and `Entries` (Notes).
+    - **Stories**: Composed of `StoryPages`. Can "link" to Notebook Entities via `StoryEntityLink`.
+    - **Themes**: Cosmetic overlays associated with Accounts/Stories.
 
-## 💻 Tech Stack & Libraries
-- **Language**: C# 13+ / .NET 10.
-- **Rich Text**: `Blazored.TextEditor` (QuillJS wrapper).
-    - *Note*: Requires QuillJS CDN links in `App.razor`.
-- **Database**: Entity Framework Core + SQLite.
-- **Styling**: Bootstrap 5 + Scoped CSS (`.razor.css`).
+## 🧩 Key Components
+- **`Editor.razor`**: The core workspace.
+    - **Left Pane**: Wrapper around `Blazored.TextEditor` (QuillJS).
+    - **Right Pane**: Tabbed interface for **Notebooks** (Linkable entities) and **Tutor** (AI Chat).
+    - **Saving Logic**: Manual save button triggers `SaveContent` -> updates `StoryPage` in DB.
+- **`AppDbContext`**:
+    - Pre-seeded with `NotebookType` (Classic categories like Spells, Recipes) and `Theme` (Visual styles).
+- **`StoryState.cs`**:
+    - Holds volatile UI state: `CurrentPageNumber`, `Content` (HTML buffer), `LinkedEntityIds`.
 
-## 🧩 Key Components & Patterns
-- **`StoryState.cs`**: 
-    - Scoped service that acts as the "Source of Truth" for the active session.
-    - Holds `Title`, `Content` (HTML), and `TutorNotes`.
-    - Components subscribe to `OnChange` for updates.
-- **`Editor.razor`**:
-    - **Split View**: Left side Rich Text Editor, Right side AI Tutor.
-    - **Logic**: Saves HTML content back to `StoryState`.
-    - **AI**: Sends prompts to Ollama and updates `TutorNotes`.
-- **`App.razor`**:
-    - Must contain `<link>` and `<script>` tags for QuillJS and Blazored.TextEditor.
+## 🤖 LLM Integration
+- **Client**: Use the named HttpClient **"LLM"** (`IHttpClientFactory.CreateClient("LLM")`).
+    - Base Address: `http://localhost:11434` (Ollama).
+    - Timeout: 5 minutes (Long-running generation).
+- **Pattern**:
+    - UI must remain responsive. Use async/await and loading indicators (`IsLoadingAI`).
+    - Responses usually populate a "Tutor" chat or notes area, not the main story text directly.
 
-## 🛠 Developer Workflow
+## 🛠 Developer Patterns & workflows
+- **Rich Text Handling**:
+    - **Library**: `Blazored.TextEditor`.
+    - **Caveat**: **No two-way binding**. You must manually call `await QuillHtml.GetHTML()` to read and `LoadHTML()` to write.
+- **JavaScript Interop**: 
+    - Keep it simple. Use standard `window.confirm` and `window.prompt` via `IJSRuntime` for quick user inputs/validations.
+    - Use `downloadFile` function in `_Layout` or `App` for exports.
+- **Logging**:
+    - Use **Serilog**. Logs are written to `logs/unstickd-YYYYMMDD.txt`.
+- **Navigation**:
+    - Project disables navigation exceptions: `<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>`.
+
+## ⚠️ Important Implementation Details
+1. **Scoped CSS**: Prefer scoped styles (`.razor.css`) over global CSS.
+2. **Async Everywhere**: All DB operations and LLM calls must be async.
+3. **Pagination**: Stories are chunked into `StoryPage` entities. The logic mimics a physical book (Page 1, Page 2...).
+4. **Theme System**: Themes control fonts, colors, and background via CSS variables or inline styles injected dynamically.
+
+## 🚀 Common Commands
 - **Run**: `dotnet run --project Unstickd/Unstickd.csproj`
-- **Ports**: `https://localhost:7180`, `http://localhost:5112`.
-- **LLM Setup**: Ensure Ollama is running (`ollama run llama3` or similar) on port 11434 before testing AI features.
-
-## ⚠️ Critical Implementation Details
-- **Interactive Server State**: 
-    - `StoryState` is **Scoped**, meaning it resets if the user refreshes the browser (WebSocket disconnect).
-    - Data persistence to SQLite is logical next step (currently in-memory).
-- **LLM Integration**:
-    - Uses named HttpClient "LLM".
-    - Asynchronous UI: When calling the LLM, ensure the UI remains responsive (loading states).
-- **Text Editor**:
-    - `BlazoredTextEditor` relies on JS Interop. Access content via `await QuillHtml.GetHTML()`. 
-    - Do not try to bind `@bind-Value` directly; use manual save methods.
-- **Navigation Lock**: Project uses `BlazorDisableThrowNavigationException` in `.csproj`.
+- **Watch**: `dotnet watch --project Unstickd/Unstickd.csproj`
+- **Migrations**: `dotnet ef migrations add <Name> --project Unstickd/Unstickd.csproj`
