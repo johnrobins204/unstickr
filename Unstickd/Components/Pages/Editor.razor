@@ -2,11 +2,11 @@
 @using Blazored.TextEditor
 @using Unstickd.Services
 @using Unstickd.Models
+@using Unstickd.Components.EditorPanels
 @using Microsoft.EntityFrameworkCore
 @using Serilog
 @inject AppDbContext DbContext
 @inject StoryState StoryState
-@inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 @rendermode InteractiveServer
@@ -14,419 +14,101 @@
 <PageTitle>Editor - @StoryState.Title</PageTitle>
 
 <div class="container-fluid h-100 p-0">
-    <div class="row g-0 h-100">
-        <!-- Main Editor Area (8 cols) -->
-        <div class="col-md-8 d-flex flex-column h-100">
-            <!-- Toolbar / Header -->
-            <div class="bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <a href="/" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-house"></i> Home
-                    </a>
-                    <h5 class="m-0 text-truncate" style="max-width: 400px;">@StoryState.Title</h5>
-                    <a href="/onboarding/themes?StoryId=@StoryId" class="btn btn-sm btn-light text-muted ms-2" title="Change Theme">
-                        <i class="bi bi-palette"></i>
-                    </a>
-                </div>
-                <div class="d-flex align-items-center">
-                     <span class="text-muted small me-2">@SaveStatus</span>
-                     
-                     <div class="dropdown me-2">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-download"></i> Export
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><button class="dropdown-item" @onclick='() => ExportStory("html")'>Export as HTML</button></li>
-                            <li><button class="dropdown-item" @onclick='() => ExportStory("txt")'>Export as Text</button></li>
-                        </ul>
-                     </div>
-
-                     <button class="btn btn-primary btn-sm" @onclick="SaveContent">
-                         <i class="bi bi-save"></i> Save
-                     </button>
-                </div>
+    <div class="d-flex flex-column h-100">
+        <!-- Toolbar / Header -->
+        <div class="bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <a href="/" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                <h5 class="m-0 text-truncate" style="max-width: 400px;">@StoryState.Title</h5>
+                <a href="/onboarding/themes?StoryId=@StoryId" class="btn btn-sm btn-light text-muted ms-2" title="Change Theme">
+                    <i class="bi bi-palette"></i>
+                </a>
             </div>
             
-            <!-- Editor Container -->
-            <div class="flex-grow-1 overflow-hidden d-flex flex-column bg-white">
-                <!-- Wrapper for BlazoredTextEditor to handle height -->
-                <div class="editor-wrapper h-100 d-flex flex-column">
-                    <BlazoredTextEditor @ref="@QuillHtml" Placeholder="Start your adventure...">
-                        <ToolbarContent>
+            <div class="d-flex align-items-center">
+                <span class="text-muted small me-2">@SaveStatus</span>
+                <button class="btn btn-sm btn-outline-info me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#notebookOffcanvas" aria-controls="notebookOffcanvas">
+                    <i class="bi bi-journal-bookmark-fill"></i> Notebooks
+                </button>
+                <button class="btn btn-primary btn-sm" @onclick="SaveContent">
+                    <i class="bi bi-save"></i> Save
+                </button>
+            </div>
+        </div>
+
+        <!-- Editor Container: Continuous Column Scroll -->
+        <div class="flex-grow-1 bg-light d-flex align-items-center justify-content-center overflow-hidden position-relative">
+            <!-- Scroll Logic Left/Right -->
+            <button class="btn btn-link nav-arrow start-0" @onclick="ScrollLeft">
+                <i class="bi bi-chevron-left display-4 text-secondary opacity-50"></i>
+            </button>
+            
+            <!-- Book Container -->
+            <div id="book-viewport" class="book-viewport shadow-lg bg-white">
+                <BlazoredTextEditor @ref="@QuillHtml" 
+                                    Placeholder="Once upon a time..."
+                                    Theme="snow"
+                                    DebugLevel="error">
+                    <ToolbarContent>
+                        <span class="ql-formats">
                             <select class="ql-header">
                                 <option selected=""></option>
                                 <option value="1"></option>
                                 <option value="2"></option>
-                                <option value="3"></option>
                             </select>
-                            <span class="ql-formats">
-                                <button class="ql-bold"></button>
-                                <button class="ql-italic"></button>
-                                <button class="ql-underline"></button>
-                                <button class="ql-strike"></button>
-                            </span>
-                            <span class="ql-formats">
-                                <button class="ql-list" value="ordered"></button>
-                                <button class="ql-list" value="bullet"></button>
-                            </span>
-                            <span class="ql-formats">
-                                <select class="ql-color"></select>
-                                <select class="ql-background"></select>
-                            </span>
-                        </ToolbarContent>
-                        <EditorContent>
-                            @((MarkupString)InitialContent)
-                        </EditorContent>
-                    </BlazoredTextEditor>
-                </div>
-
-                <!-- Pagination Controls -->
-                <div class="card-footer bg-transparent border-top-0 pt-2 pb-0">
-                    <div class="row align-items-center">
-                        <div class="col-4 text-start">
-                            <button class="btn btn-sm btn-outline-secondary" 
-                                    disabled="@(StoryState.CurrentPageNumber <= 1)"
-                                    @onclick="PreviousPage">
-                                <i class="bi bi-arrow-left"></i> Prev
-                            </button>
-                        </div>
-                        <div class="col-4 text-center">
-                            <small class="text-muted fw-bold">Page @StoryState.CurrentPageNumber of @StoryState.TotalPages</small>
-                        </div>
-                        <div class="col-4 text-end">
-                            @if (StoryState.CurrentPageNumber < StoryState.TotalPages)
-                            {
-                                <button class="btn btn-sm btn-outline-primary" @onclick="NextPage">
-                                    Next <i class="bi bi-arrow-right"></i>
-                                </button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-sm btn-primary" @onclick="AddNewPage">
-                                    <i class="bi bi-plus-lg"></i> New Page
-                                </button>
-                            }
-                        </div>
-                    </div>
-                </div>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-clean"></button>
+                        </span>
+                    </ToolbarContent>
+                    <EditorContent>
+                        @((MarkupString)InitialContent)
+                    </EditorContent>
+                </BlazoredTextEditor>
             </div>
+
+            <button class="btn btn-link nav-arrow end-0" @onclick="ScrollRight">
+                <i class="bi bi-chevron-right display-4 text-secondary opacity-50"></i>
+            </button>
         </div>
-
-        <!-- AI Tutor / Notebook Sidebar (4 cols) -->
-        <div class="col-md-4 border-start bg-body-tertiary d-flex flex-column h-100">
-            <!-- Tabs -->
-            <ul class="nav nav-tabs nav-fill bg-white border-bottom">
-                <li class="nav-item">
-                    <button class="nav-link @(ActiveTab == "tutor" ? "active" : "")" @onclick="@(() => ActiveTab = "tutor")">
-                        🤖 Tutor
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link @(ActiveTab == "notebooks" ? "active" : "")" @onclick="@(() => ActiveTab = "notebooks")">
-                        📓 Notebooks
-                    </button>
-                </li>
-            </ul>
-
-            <!-- Content Area -->
-            <div class="flex-grow-1 overflow-auto d-flex flex-column">
-                @if (ActiveTab == "tutor")
-                {
-                    <div class="p-3">
-                        @if (IsLoadingAI)
-                        {
-                            <div class="d-flex justify-content-center align-items-center p-3">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Thinking...</span>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <!-- Unified AI Display -->
-                            <div class="text-center mt-5">
-                                <!-- Always show Image based on State -->
-                                <div class="mb-3 p-3 position-relative" style="cursor: pointer;" @onclick="HandleTutorClick" title="@GetTutorTooltip()">
-                                    <img src="@GetTutorImage()" alt="Tutor" style="height: 120px; width: auto; transition: all 0.3s ease;" />
-                                </div>
-
-                                <!-- Display Logic: Note vs Standard Text -->
-                                @if (!string.IsNullOrEmpty(StoryState.TutorNotes))
-                                {
-                                    <div class="card border-info mb-3 slide-up-animation">
-                                        <div class="card-header bg-info-subtle text-info-emphasis d-flex justify-content-between align-items-center py-1">
-                                            <small class="fw-bold">Alice says:</small>
-                                            <button type="button" class="btn-close btn-sm" aria-label="Close" @onclick="DismissTutorNote"></button>
-                                        </div>
-                                        <div class="card-body p-2">
-                                            <p class="card-text small" style="white-space: pre-wrap;">@StoryState.TutorNotes</p>
-                                        </div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <!-- Standard State Text -->
-                                    @if (CurrentTutorState == TutorState.Idle)
-                                    {
-                                        <div class="text-muted fade-in-animation">
-                                            <p>I'm reading along with you.</p>
-                                        </div>
-                                    }
-                                    else if (CurrentTutorState == TutorState.LookingUp)
-                                    {
-                                        <div class="text-primary fade-in-animation">
-                                            <p class="fw-bold">It looks like you are thinking hard.</p>
-                                        </div>
-                                    }
-                                    else if (CurrentTutorState == TutorState.OfferingHelp)
-                                    {
-                                        <div class="text-success fade-in-animation">
-                                            <p class="fw-bold">If you want an idea, I can share one with you ...</p>
-                                            <button class="btn btn-sm btn-outline-success" @onclick="() => { StoryState.TutorNotes = string.Empty; OnHintClick(); }">
-                                                Get a hint
-                                            </button>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        }
-                    </div>
-                }
-                else if (ActiveTab == "notebooks")
-                {
-                    <div class="p-3 h-100">
-                        @if (SelectedNotebook == null)
-                        {
-                            <div class="mb-3">
-                                <button class="btn btn-outline-primary w-100" @onclick="() => IsCreatingNotebook = !IsCreatingNotebook">
-                                    <i class="bi bi-plus-lg"></i> Add Notebook
-                                </button>
-                            </div>
-
-                            @if (IsCreatingNotebook) 
-                            {
-                                <div class="card p-3 mb-3 bg-light shadow-sm">
-                                    <label class="form-label small fw-bold">Notebook Type</label>
-                                    <select class="form-select w-100 mb-2" @bind="NewNotebookTypeId">
-                                        <option value="0">Choose...</option>
-                                        @foreach(var t in AvailableTypes)
-                                        {
-                                            <option value="@t.Id">@t.Name</option>
-                                        }
-                                        <option value="-1">Custom...</option>
-                                    </select>
-                                    
-                                    @if (NewNotebookTypeId == -1) 
-                                    {
-                                        <input @bind="CustomNotebookName" placeholder="Name (e.g. Ships)" class="form-control mb-2" />
-                                    }
-                                    
-                                    <button class="btn btn-primary btn-sm w-100" @onclick="CreateNotebook">Create Shelf</button>
-                                </div>
-                            }
-
-                        <!-- List of Notebooks -->
-                            <div class="list-group list-group-flush">
-                                @if (StoryState.Notebooks != null)
-                                {
-                                    @foreach (var nb in StoryState.Notebooks)
-                                    {
-                                        <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
-                                            <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3 d-flex justify-content-between align-items-center"
-                                                    @onclick="() => SelectNotebook(nb)">
-                                                <span><i class="@nb.Icon me-2"></i>@nb.Name</span>
-                                                <span class="badge bg-secondary rounded-pill">@nb.Entities.Count</span>
-                                            </button>
-                                            
-                                             <!-- Action Buttons: Reveal on Hover -->
-                                            <div class="d-flex border-start action-buttons">
-                                                <button class="btn btn-link text-secondary p-3 border-end"
-                                                        title="Rename Notebook"
-                                                        @onclick="() => RenameNotebook(nb)"
-                                                        @onclick:stopPropagation="true">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button class="btn btn-link text-danger p-3"
-                                                        title="Delete Notebook"
-                                                        @onclick="() => DeleteNotebook(nb)"
-                                                        @onclick:stopPropagation="true">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        }
-                        else if (SelectedEntity == null)
-                        {
-                            <!-- List of Entities in Notebook -->
-                            <div class="d-flex align-items-center mb-3">
-                                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => SelectedNotebook = null">
-                                    <i class="bi bi-arrow-left"></i>
-                                </button>
-                                <h6 class="m-0 flex-grow-1">@SelectedNotebook.Name</h6>
-                                <button class="btn btn-sm @(IsCreatingEntity ? "btn-secondary" : "btn-primary")" 
-                                        @onclick="() => IsCreatingEntity = !IsCreatingEntity">
-                                    <i class="bi @(IsCreatingEntity ? "bi-x-lg" : "bi-plus-lg")"></i> 
-                                    @(IsCreatingEntity ? "Cancel" : "New")
-                                </button>
-                            </div>
-
-                            @if (IsCreatingEntity)
-                            {
-                                <div class="card p-3 mb-3 bg-light shadow-sm">
-                                    <label class="form-label small fw-bold">Name</label>
-                                    <input @bind="NewEntityName" 
-                                           class="form-control mb-2" 
-                                           placeholder="e.g. Gandalf" 
-                                           @onkeyup="@(e => e.Key == "Enter" ? CreateEntity() : Task.CompletedTask)" 
-                                           autofocus />
-                                    <button class="btn btn-primary btn-sm w-100" @onclick="CreateEntity">Create & Link</button>
-                                </div>
-                            }
-                            
-                            <div class="list-group">
-                                @foreach (var entity in SelectedNotebook.Entities)
-                                {
-                                    var isLinked = StoryState.LinkedEntityIds.Contains(entity.Id);
-                                    <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
-                                        <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3" 
-                                                @onclick="() => SelectedEntity = entity">
-                                            @if (isLinked)
-                                            {
-                                                <i class="bi bi-link-45deg text-primary me-2"></i>
-                                            }
-                                            @entity.Name
-                                        </button>
-                                        
-                                        <!-- Action Buttons: Reveal on Hover -->
-                                        <div class="d-flex border-start action-buttons">
-                                            <button class="btn btn-link text-secondary p-3 border-end"
-                                                    title="Rename Entity"
-                                                    @onclick="() => RenameEntity(entity)"
-                                                    @onclick:stopPropagation="true">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-link text-danger p-3"
-                                                    title="Delete Entity"
-                                                    @onclick="() => DeleteEntity(entity)"
-                                                    @onclick:stopPropagation="true">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            <button class="btn btn-link text-secondary p-3 border-start"
-                                                    title="@(isLinked ? "Unlink from Story" : "Link to Story")"
-                                                    @onclick="() => ToggleEntityLink(entity)"
-                                                    @onclick:stopPropagation="true">
-                                                <i class="bi @(isLinked ? "bi-bookmark-check-fill text-primary" : "bi-bookmark")"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                }
-                                @if (!SelectedNotebook.Entities.Any())
-                                {
-                                    <div class="text-muted text-center small mt-4">No entries yet.</div>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <!-- Entries for an Entity -->
-                            <div class="d-flex align-items-center mb-3">
-                                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => SelectedEntity = null">
-                                    <i class="bi bi-arrow-left"></i>
-                                </button>
-                                <h6 class="m-0">@SelectedEntity.Name</h6>
-                            </div>
-
-                            <!-- List of Notes -->
-                            <div class="d-flex flex-column gap-3 mb-3">
-                                @foreach(var entry in SelectedEntity.Entries)
-                                {
-                                    <div class="card bg-light border-0">
-                                        <div class="card-body p-2 small">
-                                            @if (entry.Story != null)
-                                            {
-                                                <div class="text-xs text-muted mb-1">
-                                                    <i class="bi bi-book me-1"></i>@entry.Story.Title
-                                                </div>
-                                            }
-                                            @entry.Content
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                            
-                            <!-- Add Note Input -->
-                            <div class="mt-auto">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Add a note..." @bind="NewNoteContent" />
-                                    <button class="btn btn-outline-primary" @onclick="AddNote">Add</button>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-
-            <!-- Input Area (Only for Tutor) -->
-            @if (ActiveTab == "tutor")
-            {
-                <div class="p-3 border-top bg-white">
-                    <div class="input-group">
-                        <textarea class="form-control" 
-                                  @bind="Prompt" 
-                                  placeholder="Ask me for a villain..."
-                                  rows="2"></textarea>
-                        <button class="btn btn-success" @onclick="AskTutor" disabled="@IsLoadingAI">
-                            Ask
-                        </button>
-                    </div>
-                </div>
-            }
+        
+        <div class="card-footer bg-light border-top p-1 text-center text-muted small">
+            Continuous Flow &bull; @WordCount words
         </div>
     </div>
 </div>
 
-<style>
-    /* Custom override to make Quill fit the container */
-    .ql-container {
-        height: calc(100% - 85px) !important; /* Approx toolbar height + pagination */
-        font-family: 'Georgia', serif;
-        font-size: 1.1rem;
-    }
-    .ql-toolbar {
-        border-top: none !important;
-        border-left: none !important;
-        border-right: none !important;
-        background-color: #f8f9fa;
-    }
-    .ql-container.ql-snow {
-        border: none !important;
-    }
-</style>
+<!-- Offcanvas Notebooks -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="notebookOffcanvas" style="width: 400px;">
+  <div class="offcanvas-header bg-light border-bottom py-2">
+    <h5 class="offcanvas-title"><i class="bi bi-journal-bookmark me-2"></i>Notebooks</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0 overflow-hidden">
+    <NotebookPanel StoryId="StoryId" />
+  </div>
+</div>
+
+<TutorPanel CurrentAccount="CurrentAccount" />
 
 @code {
-    [Parameter]
-    public int StoryId { get; set; }
+    [Parameter] public int StoryId { get; set; }
 
     BlazoredTextEditor? QuillHtml;
     string SaveStatus = "Ready";
-    bool IsLoadingAI = false;
-    string Prompt = "";
     string InitialContent = "";
-
-    // Tabs
-    string ActiveTab = "notebooks"; // Default to notebooks per user request ("open a topical notebook")
-    Notebook? SelectedNotebook;
-    NotebookEntity? SelectedEntity;
-    string NewNoteContent = "";
-
-    // Notebook Creation
-    bool IsCreatingNotebook = false;
-    List<NotebookType> AvailableTypes = new();
-    int NewNotebookTypeId;
-    string CustomNotebookName = "";
+    int WordCount = 0;
 
     private Account? CurrentAccount;
 
@@ -434,18 +116,11 @@
     {
         try
         {
-            AvailableTypes = await DbContext.NotebookTypes.ToListAsync();
-            
             var story = await DbContext.Stories
-                .Include(s => s.Pages)
+                .Include(s => s.Account).ThenInclude(acc => acc.ActiveTheme)
+                .Include(s => s.Pages) // Load pages for migration if needed
                 .Include(s => s.EntityLinks)
-                .Include(s => s.Account) // Account now holds the theme preference
-                    .ThenInclude(acc => acc.ActiveTheme) // Load the theme via Account
-                .Include(s => s.Account)
-                    .ThenInclude(a => a.Notebooks)
-                        .ThenInclude(n => n.Entities)
-                        .ThenInclude(e => e.Entries)
-                            .ThenInclude(entry => entry.Story)
+                .Include(s => s.Account).ThenInclude(a => a.Notebooks).ThenInclude(n => n.Entities).ThenInclude(e => e.Entries)
                 .FirstOrDefaultAsync(s => s.Id == StoryId);
 
             if (story != null)
@@ -454,42 +129,29 @@
                 StoryState.Title = story.Title;
                 StoryState.StoryId = story.Id;
                 
-                // Load Theme from Account, not Story
                 if (story.Account?.ActiveTheme != null)
                 {
                     StoryState.CurrentTheme = story.Account.ActiveTheme;
                     StoryState.NotifyStateChanged(); 
                 }
                 
-                // Pagination Setup
-                
-                // Pagination Setup
-                StoryState.TotalPages = story.Pages.Count;
-                if (StoryState.TotalPages == 0) StoryState.TotalPages = 1; // Safety
-                
-                // Smart Resume: Find the most recently modified page
-                var lastActivePage = story.Pages.OrderByDescending(p => p.LastModified).FirstOrDefault();
-                StoryState.CurrentPageNumber = lastActivePage?.PageNumber ?? 1;
-
-                // Load global notebooks from the account
-                StoryState.Notebooks = story.Account?.Notebooks.ToList() ?? new List<Notebook>();
-                
-                // Load linked entities
-                StoryState.LinkedEntityIds = story.EntityLinks
-                    .Select(l => l.NotebookEntityId)
-                    .ToHashSet();
-
-                var page = story.Pages.FirstOrDefault(p => p.PageNumber == StoryState.CurrentPageNumber);
-                if (page != null)
+                // MIGRATION LOGIC: If Content is empty but Pages exist, combine them
+                if (string.IsNullOrEmpty(story.Content) && story.Pages.Any())
                 {
-                    StoryState.Content = page.Content;
-                    InitialContent = page.Content;
+                    Log.Information("Migrating Pages to Continuous Content for Story {Id}", StoryId);
+                    var combined = string.Join("", story.Pages.OrderBy(p => p.PageNumber).Select(p => p.Content));
+                    story.Content = combined;
+                    // Do not save yet, wait for explicit save? Or save now?
+                    // Let's save now to persist migration.
+                    DbContext.Stories.Update(story);
+                    await DbContext.SaveChangesAsync();
                 }
-            }
-            else
-            {
-                Log.Warning("Story {StoryId} not found", StoryId);
-                SaveStatus = "Story Not Found";
+
+                InitialContent = story.Content;
+                StoryState.Content = story.Content;
+                
+                StoryState.Notebooks = story.Account?.Notebooks.ToList() ?? new List<Notebook>();
+                StoryState.LinkedEntityIds = story.EntityLinks.Select(l => l.NotebookEntityId).ToHashSet();
             }
         }
         catch (Exception ex)
@@ -499,206 +161,15 @@
         }
     }
 
-    // ... (SaveContent and AskTutor methods remain same)
-
-    private void SelectNotebook(Notebook nb)
+    private async Task ScrollRight()
     {
-        SelectedNotebook = nb;
-        SelectedEntity = null;
+        // Simple JS scroll by viewport width
+        await JS.InvokeVoidAsync("eval", "document.getElementById('book-viewport').scrollBy({ left: window.innerWidth * 0.8, behavior: 'smooth' })");
     }
 
-    private async Task CreateNotebook()
+    private async Task ScrollLeft()
     {
-        if (NewNotebookTypeId == 0) return;
-
-        string name = "";
-        string icon = "bi-journal";
-
-        if (NewNotebookTypeId == -1)
-        {
-             if (string.IsNullOrWhiteSpace(CustomNotebookName)) return;
-             name = CustomNotebookName;
-        }
-        else 
-        {
-            var type = AvailableTypes.FirstOrDefault(t => t.Id == NewNotebookTypeId);
-            if (type != null)
-            {
-                name = type.Name;
-                icon = type.Icon;
-            }
-        }
-        
-        if (string.IsNullOrWhiteSpace(name)) return; // Safety check
-        
-        var story = await DbContext.Stories.FindAsync(StoryId);
-        if (story == null) return;
-        
-        var newNotebook = new Notebook 
-        { 
-            Name = name, 
-            Icon = icon,
-            AccountId = story.AccountId 
-        };
-
-        DbContext.Notebooks.Add(newNotebook);
-        await DbContext.SaveChangesAsync();
-
-        StoryState.Notebooks.Add(newNotebook);
-        IsCreatingNotebook = false;
-        NewNotebookTypeId = 0;
-        CustomNotebookName = "";
-    }
-
-    // Entity Creation
-    bool IsCreatingEntity = false;
-    string NewEntityName = "";
-
-    private async Task CreateEntity()
-    {
-        if (SelectedNotebook == null || string.IsNullOrWhiteSpace(NewEntityName)) return;
-        
-        // 1. Create the Entity in the Global Notebook
-        var newEntity = new NotebookEntity 
-        { 
-            Name = NewEntityName, 
-            NotebookId = SelectedNotebook.Id 
-        };
-        
-        DbContext.NotebookEntities.Add(newEntity);
-        await DbContext.SaveChangesAsync(); // Auto-saves immediately
-        
-        // 2. Automatically Link to the Current Story
-        var link = new StoryEntityLink
-        {
-            StoryId = StoryId,
-            NotebookEntityId = newEntity.Id
-        };
-        DbContext.StoryEntityLinks.Add(link);
-        await DbContext.SaveChangesAsync();
-
-        // 3. Update Local State
-        // Note: EF Core Fixup often handles adding to SelectedNotebook.Entities automatically since it's tracked.
-        // We only explicitly track the Link ID for the UI toggle.
-        if (!SelectedNotebook.Entities.Contains(newEntity))
-        {
-            SelectedNotebook.Entities.Add(newEntity);
-        }
-        StoryState.LinkedEntityIds.Add(newEntity.Id);
-        
-        IsCreatingEntity = false;
-        NewEntityName = "";
-    }
-
-    private async Task ToggleEntityLink(NotebookEntity entity)
-    {
-        if (StoryState.LinkedEntityIds.Contains(entity.Id))
-        {
-            var link = await DbContext.StoryEntityLinks
-                .FirstOrDefaultAsync(l => l.StoryId == StoryId && l.NotebookEntityId == entity.Id);
-            
-            if (link != null)
-            {
-                DbContext.StoryEntityLinks.Remove(link);
-                await DbContext.SaveChangesAsync();
-            }
-            StoryState.LinkedEntityIds.Remove(entity.Id);
-        }
-        else
-        {
-            var link = new StoryEntityLink
-            {
-                StoryId = StoryId, 
-                NotebookEntityId = entity.Id
-            };
-            DbContext.StoryEntityLinks.Add(link);
-            await DbContext.SaveChangesAsync();
-            StoryState.LinkedEntityIds.Add(entity.Id);
-        }
-    }
-
-    private async Task AddNote()
-    {
-        if (SelectedEntity == null || string.IsNullOrWhiteSpace(NewNoteContent)) return;
-
-        var note = new NotebookEntry
-        {
-            Content = NewNoteContent,
-            NotebookEntityId = SelectedEntity.Id,
-            Created = DateTime.Now,
-            StoryId = StoryId // Capture context!
-        };
-
-        // If we want to display the story name immediately without reload, we need to fake the navigation property
-        note.Story = await DbContext.Stories.FindAsync(StoryId);
-
-        DbContext.NotebookEntries.Add(note);
-        await DbContext.SaveChangesAsync();
-
-        SelectedEntity.Entries.Add(note); // Local update
-        NewNoteContent = "";
-    }
-
-    private async Task DeleteNotebook(Notebook nb)
-    {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete notebook '{nb.Name}'? This cannot be undone.");
-        if (!confirmed) return;
-
-        DbContext.Notebooks.Remove(nb);
-        await DbContext.SaveChangesAsync();
-        StoryState.Notebooks.Remove(nb);
-        
-        if (SelectedNotebook == nb)
-        {
-            SelectedNotebook = null;
-            SelectedEntity = null;
-        }
-    }
-
-    private async Task RenameNotebook(Notebook nb)
-    {
-        string newName = await JS.InvokeAsync<string>("prompt", "Rename Notebook:", nb.Name);
-        if (!string.IsNullOrWhiteSpace(newName) && newName != nb.Name)
-        {
-            nb.Name = newName;
-            DbContext.Notebooks.Update(nb); // Explicit update
-            await DbContext.SaveChangesAsync();
-        }
-    }
-
-    private async Task DeleteEntity(NotebookEntity entity)
-    {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{entity.Name}'?");
-        if (!confirmed) return;
-
-        DbContext.NotebookEntities.Remove(entity);
-        await DbContext.SaveChangesAsync();
-        
-        if (SelectedNotebook != null && SelectedNotebook.Entities.Contains(entity))
-        {
-            SelectedNotebook.Entities.Remove(entity);
-        }
-        
-        if (StoryState.LinkedEntityIds.Contains(entity.Id))
-        {
-            StoryState.LinkedEntityIds.Remove(entity.Id);
-        }
-
-        if (SelectedEntity == entity)
-        {
-            SelectedEntity = null;
-        }
-    }
-
-    private async Task RenameEntity(NotebookEntity entity)
-    {
-        string newName = await JS.InvokeAsync<string>("prompt", "Rename Entity:", entity.Name);
-        if (!string.IsNullOrWhiteSpace(newName) && newName != entity.Name)
-        {
-            entity.Name = newName;
-            DbContext.NotebookEntities.Update(entity);
-            await DbContext.SaveChangesAsync();
-        }
+        await JS.InvokeVoidAsync("eval", "document.getElementById('book-viewport').scrollBy({ left: -(window.innerWidth * 0.8), behavior: 'smooth' })");
     }
 
     private async Task SaveContent()
@@ -710,31 +181,18 @@
         {
             string html = await QuillHtml.GetHTML();
             StoryState.Content = html;
+            
+            // Basic word count
+            string text = await QuillHtml.GetText();
+            WordCount = string.IsNullOrWhiteSpace(text) ? 0 : text.Split(new[] { ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
 
-            var story = await DbContext.Stories.Include(s => s.Pages)
-                                     .FirstOrDefaultAsync(s => s.Id == StoryId);
+            var story = await DbContext.Stories.FindAsync(StoryId);
             
             if (story != null)
             {
-                var page = story.Pages.FirstOrDefault(p => p.PageNumber == StoryState.CurrentPageNumber);
-                if (page == null)
-                {
-                    page = new StoryPage 
-                    { 
-                        PageNumber = StoryState.CurrentPageNumber, 
-                        Content = html 
-                    };
-                    story.Pages.Add(page);
-                }
-                else
-                {
-                    page.Content = html;
-                    page.LastModified = DateTime.Now;
-                }
-                
+                story.Content = html;
                 story.LastModified = DateTime.Now;
                 await DbContext.SaveChangesAsync();
-                
                 SaveStatus = "Saved " + DateTime.Now.ToString("t");
             }
         }
@@ -745,299 +203,7 @@
         }
     }
 
-    private async Task ExportStory(string format)
-    {
-        // 1. Save current page first to ensure latest edits are included
-        await SaveContent();
-
-        // 2. Fetch full story content
-        var pages = await DbContext.Pages
-            .Where(p => p.StoryId == StoryId)
-            .OrderBy(p => p.PageNumber)
-            .ToListAsync();
-
-        var sb = new System.Text.StringBuilder();
-        
-        if (format == "html")
-        {
-            sb.AppendLine($"<html><head><title>{StoryState.Title}</title>");
-            sb.AppendLine("<style>body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; } .chapter { margin-bottom: 2rem; }</style>");
-            sb.AppendLine("</head><body>");
-            sb.AppendLine($"<h1>{StoryState.Title}</h1>");
-            foreach(var page in pages)
-            {
-                sb.AppendLine($"<div class='chapter'>");
-                sb.AppendLine(page.Content);
-                sb.AppendLine("</div><hr/>");
-            }
-            sb.AppendLine("</body></html>");
-            
-            var fileName = $"{StoryState.Title}.html";
-            await JS.InvokeVoidAsync("downloadFile", fileName, "text/html", sb.ToString());
-        }
-        else if (format == "txt")
-        {
-            sb.AppendLine(StoryState.Title.ToUpper());
-            sb.AppendLine(new string('=', StoryState.Title.Length));
-            sb.AppendLine();
-            
-            foreach(var page in pages)
-            {
-                // Basic HTML stripping
-                var text = System.Text.RegularExpressions.Regex.Replace(page.Content ?? "", "<br\\s*/?>", "\n");
-                text = System.Text.RegularExpressions.Regex.Replace(text, "</p>", "\n");
-                text = System.Text.RegularExpressions.Regex.Replace(text, "<.*?>", "");
-                text = System.Web.HttpUtility.HtmlDecode(text);
-                
-                sb.AppendLine(text);
-                sb.AppendLine("\n-------------------\n");
-            }
-            
-            var fileName = $"{StoryState.Title}.txt";
-            await JS.InvokeVoidAsync("downloadFile", fileName, "text/plain", sb.ToString());
-        }
-    }
-
-    private async Task PreviousPage() => await ChangePage(StoryState.CurrentPageNumber - 1);
-    private async Task NextPage() => await ChangePage(StoryState.CurrentPageNumber + 1);
-
-    private async Task AddNewPage()
-    {
-        await SaveContent(); // Save current page first
-        
-        // Optimistic update
-        StoryState.TotalPages++;
-        StoryState.CurrentPageNumber = StoryState.TotalPages;
-        
-        // Clear editor for new page
-        StoryState.Content = "";
-        // Do NOT update InitialContent here to prevent Blazor re-render crash
-        await QuillHtml.LoadHTMLContent(""); 
-
-        // Create the page record immediately
-        var newPage = new StoryPage 
-        { 
-            StoryId = StoryId, 
-            PageNumber = StoryState.TotalPages, 
-            Content = "" 
-        };
-        DbContext.Pages.Add(newPage);
-        await DbContext.SaveChangesAsync();
-    }
-
-    private async Task ChangePage(int targetPage)
-    {
-        if (targetPage < 1 || targetPage > StoryState.TotalPages) return;
-
-        // 1. Save Current Page
-        await SaveContent();
-
-        // 2. Load Target Page
-        var page = await DbContext.Pages
-            .FirstOrDefaultAsync(p => p.StoryId == StoryId && p.PageNumber == targetPage);
-
-        StoryState.CurrentPageNumber = targetPage;
-        
-        // 3. Update Editor
-        // Note: QuillJS specific logic. LoadHTMLContent handles the DOM set.
-        string contentToLoad = page?.Content ?? "";
-        StoryState.Content = contentToLoad;
-        // Do NOT update InitialContent here to prevent Blazor re-render crash
-        
-        if (QuillHtml != null)
-        {
-            await QuillHtml.LoadHTMLContent(contentToLoad);
-        }
-    }
-
-    private async Task AskTutor()
-    {
-        if (string.IsNullOrWhiteSpace(Prompt)) return;
-
-        IsLoadingAI = true;
-        // Keep the prompt in the UI? Or clear it? 
-        // Let's clear it to show acceptance.
-        var currentPrompt = Prompt;
-        Prompt = "";
-        
-        try
-        {
-            var client = HttpClientFactory.CreateClient("LLM");
-            if (CurrentAccount != null && !string.IsNullOrWhiteSpace(CurrentAccount.OllamaUrl))
-            {
-                // Override default URL if user specified one
-                client.BaseAddress = new Uri(CurrentAccount.OllamaUrl);
-            }
-
-            var modelName = CurrentAccount?.OllamaModel;
-            if (string.IsNullOrWhiteSpace(modelName)) modelName = "llama3";
-            
-            // Simple prompt augmentation
-            var context = $"The user is writing a story titled '{StoryState.Title}'. Content snippet: '{Truncate(StoryState.Content, 500)}'.";
-            var fullPrompt = $"System: You are a helpful creative writing coach. Context: {context}. User: {currentPrompt}";
-
-            var payload = new 
-            { 
-                model = modelName, 
-                prompt = fullPrompt,
-                stream = false 
-            };
-            
-            var response = await client.PostAsJsonAsync("api/generate", payload);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<LlamaResponse>();
-                StoryState.TutorNotes = result?.Response ?? "No response.";
-            }
-            else
-            {
-                StoryState.TutorNotes = $"Error: {response.ReasonPhrase}. Ensure Ollama is running.";
-            }
-        }
-        catch (Exception ex)
-        {
-            StoryState.TutorNotes = "I couldn't reach the AI brain. Is Ollama running on port 11434?";
-            Log.Error(ex, "LLM Error");
-        }
-        finally
-        {
-            IsLoadingAI = false;
-        }
-    }
-
-    private string Truncate(string val, int max)
-    {
-        if (string.IsNullOrEmpty(val)) return "";
-        return val.Length <= max ? val : val.Substring(0, max);
-    }
-
-    private class LlamaResponse
-    {
-        // Adjust this property name based on Ollama's actual response JSON (usually 'response')
-        public string Response { get; set; } = string.Empty;
-    }
-
-    // --- Inactivity Timer Implementation ---
-    private DotNetObjectReference<Editor>? objRef;
-    
-    // Explicitly tracking inactivity state
-    private enum TutorState { Idle, LookingUp, OfferingHelp }
-    private TutorState CurrentTutorState = TutorState.Idle;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            objRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("inactivityTimer.initialize", objRef);
-        }
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    [JSInvokable]
-    public void OnActivityDetected()
-    {
-        if (CurrentTutorState != TutorState.Idle)
-        {
-            CurrentTutorState = TutorState.Idle;
-            StateHasChanged();
-        }
-    }
-
-    [JSInvokable]
-    public void OnInactivityStage1()
-    {
-        if (CurrentTutorState != TutorState.LookingUp && CurrentTutorState != TutorState.OfferingHelp)
-        {
-            CurrentTutorState = TutorState.LookingUp;
-            StateHasChanged();
-        }
-    }
-
-    [JSInvokable]
-    public void OnInactivityStage2()
-    {
-        if (CurrentTutorState != TutorState.OfferingHelp)
-        {
-            CurrentTutorState = TutorState.OfferingHelp;
-            StateHasChanged();
-        }
-    }
-
-    private void DismissTutorNote()
-    {
-        StoryState.TutorNotes = "";
-        // If we dismiss the note, we assume the user is back in control, or at least done with the advice.
-        // We do not force Idle here; let inactivity logic handle if they are still idle.
-    }
-
-    private bool IsGlancingUp = false;
-
-    private string GetTutorImage()
-    {
-        if (IsGlancingUp) return "images/tutor_lookup.png";
-
-        return CurrentTutorState switch
-        {
-            TutorState.Idle => "images/tutor_reading.png",
-            TutorState.LookingUp => "images/tutor_lookup.png",
-            TutorState.OfferingHelp => "images/tutor_help.png",
-            _ => "images/tutor_reading.png"
-        };
-    }
-
-    private string GetTutorTooltip()
-    {
-        return CurrentTutorState switch
-        {
-            TutorState.Idle => "Click for encouragement",
-            TutorState.LookingUp => "Click for a nudge",
-            TutorState.OfferingHelp => "Click for a hint",
-            _ => ""
-        };
-    }
-
-    private async Task HandleTutorClick()
-    {
-        var actionState = CurrentTutorState;
-        
-        // 1. Perform the Logic (get text)
-        if (actionState == TutorState.Idle) OnIdleClick();
-        else if (actionState == TutorState.LookingUp) OnNudgeClick();
-        else if (actionState == TutorState.OfferingHelp) OnHintClick();
-
-        // 2. Momentary Glance Up (Visual Feedback Only)
-        // Satisfies: "briefly looks up for 500ms... without triggering AI tool state change"
-        IsGlancingUp = true;
-        StateHasChanged();
-        
-        await Task.Delay(500);
-        
-        IsGlancingUp = false;
-        StateHasChanged();
-    }
-
-    private void OnIdleClick()
-    {
-         StoryState.TutorNotes = "Start by writing one more sentence. You can do it.";
-    }
-
-    private void OnNudgeClick()
-    {
-         StoryState.TutorNotes = "Subtle Nudge: Try using one of your 5 senses. What do they smell or hear right now?";
-    }
-
-    private void OnHintClick()
-    {
-         StoryState.TutorNotes = "Focused Hint: What would your hero hear if they listened very carefully right now?";
-    }
-
     public async ValueTask DisposeAsync()
     {
-        try {
-            await JS.InvokeVoidAsync("inactivityTimer.dispose");
-            objRef?.Dispose();
-        } catch {}
     }
 }

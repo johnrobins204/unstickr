@@ -1,0 +1,48 @@
+@page "/notebooks"
+@using Unstickd.Models
+@using Unstickd.Services
+@using Unstickd.Data
+@using Unstickd.Components.EditorPanels
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext DbContext
+@inject StoryState StoryState
+
+<PageTitle>Unstickd - Notebooks</PageTitle>
+
+<div class="container-fluid h-100 p-0 d-flex flex-column">
+    <div class="bg-light border-bottom p-3 d-flex justify-content-between align-items-center">
+        <h3 class="m-0"><i class="bi bi-journal-album me-2"></i>My Notebooks</h3>
+        <p class="text-muted m-0 small">Manage your world-building database</p>
+    </div>
+
+    <div class="flex-grow-1 overflow-hidden">
+        <div class="container h-100 py-3">
+             <div class="card h-100 shadow-sm">
+                 <div class="card-body p-0 h-100">
+                    <NotebookPanel StoryId="0" />
+                 </div>
+             </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Load global notebooks for Account 1
+        // In a real multi-user app, we'd get the actual user ID
+        int accountId = 1;
+        
+        var notebooks = await DbContext.Notebooks
+            .Where(n => n.AccountId == accountId)
+            .Include(n => n.Entities)
+                .ThenInclude(e => e.Entries)
+                    .ThenInclude(entry => entry.Story)
+            .ToListAsync();
+            
+        StoryState.Notebooks = notebooks;
+        
+        // Clear linkage (since we are not in a story)
+        StoryState.LinkedEntityIds.Clear();
+    }
+}

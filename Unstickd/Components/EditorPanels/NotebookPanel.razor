@@ -1,0 +1,407 @@
+@using Unstickd.Services
+@using Unstickd.Models
+@using Unstickd.Data
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext DbContext
+@inject StoryState StoryState
+@inject IJSRuntime JS
+
+<div class="p-3 h-100 d-flex flex-column">
+    @if (SelectedNotebook == null)
+    {
+        <div class="mb-3">
+            <button class="btn btn-outline-primary w-100" @onclick="() => IsCreatingNotebook = !IsCreatingNotebook">
+                <i class="bi bi-plus-lg"></i> Add Notebook
+            </button>
+        </div>
+
+        @if (IsCreatingNotebook) 
+        {
+            <div class="card p-3 mb-3 bg-light shadow-sm">
+                <label class="form-label small fw-bold">Notebook Type</label>
+                <select class="form-select w-100 mb-2" @bind="NewNotebookTypeId">
+                    <option value="0">Choose...</option>
+                    @foreach(var t in AvailableTypes)
+                    {
+                        <option value="@t.Id">@t.Name</option>
+                    }
+                    <option value="-1">Custom...</option>
+                </select>
+                
+                @if (NewNotebookTypeId == -1) 
+                {
+                    <input @bind="CustomNotebookName" placeholder="Name (e.g. Ships)" class="form-control mb-2" />
+                }
+                
+                <button class="btn btn-primary btn-sm w-100" @onclick="CreateNotebook">Create Shelf</button>
+            </div>
+        }
+
+        <!-- List of Notebooks -->
+        <div class="list-group list-group-flush flex-grow-1 overflow-auto">
+            @if (StoryState.Notebooks != null)
+            {
+                @foreach (var nb in StoryState.Notebooks)
+                {
+                    <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
+                        <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3 d-flex justify-content-between align-items-center"
+                                @onclick="() => SelectNotebook(nb)">
+                            <span><i class="@nb.Icon me-2"></i>@nb.Name</span>
+                            <span class="badge bg-secondary rounded-pill">@nb.Entities.Count</span>
+                        </button>
+                        
+                            <!-- Action Buttons: Reveal on Hover -->
+                        <div class="d-flex border-start action-buttons">
+                            <button class="btn btn-link text-secondary p-3 border-end"
+                                    title="Rename Notebook"
+                                    @onclick="() => RenameNotebook(nb)"
+                                    @onclick:stopPropagation="true">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-link text-danger p-3"
+                                    title="Delete Notebook"
+                                    @onclick="() => DeleteNotebook(nb)"
+                                    @onclick:stopPropagation="true">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else if (SelectedEntity == null)
+    {
+        <!-- List of Entities in Notebook -->
+        <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => SelectedNotebook = null">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <h6 class="m-0 flex-grow-1">@SelectedNotebook.Name</h6>
+            <button class="btn btn-sm @(IsCreatingEntity ? "btn-secondary" : "btn-primary")" 
+                    @onclick="() => IsCreatingEntity = !IsCreatingEntity">
+                <i class="bi @(IsCreatingEntity ? "bi-x-lg" : "bi-plus-lg")"></i> 
+                @(IsCreatingEntity ? "Cancel" : "New")
+            </button>
+        </div>
+
+        @if (IsCreatingEntity)
+        {
+            <div class="card p-3 mb-3 bg-light shadow-sm">
+                <label class="form-label small fw-bold">Name</label>
+                <input @bind="NewEntityName" 
+                        class="form-control mb-2" 
+                        placeholder="e.g. Gandalf" 
+                        @onkeyup="@(e => e.Key == "Enter" ? CreateEntity() : Task.CompletedTask)" 
+                        autofocus />
+                <button class="btn btn-primary btn-sm w-100" @onclick="CreateEntity">Create & Link</button>
+            </div>
+        }
+        
+        <div class="list-group flex-grow-1 overflow-auto">
+            @foreach (var entity in SelectedNotebook.Entities)
+            {
+                var isLinked = StoryState.LinkedEntityIds.Contains(entity.Id);
+                <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
+                    <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3" 
+                            @onclick="() => SelectedEntity = entity">
+                        @if (isLinked)
+                        {
+                            <i class="bi bi-link-45deg text-primary me-2"></i>
+                        }
+                        @entity.Name
+                    </button>
+                    
+                    <!-- Action Buttons: Reveal on Hover -->
+                    <div class="d-flex border-start action-buttons">
+                        <button class="btn btn-link text-secondary p-3 border-end"
+                                title="Rename Entity"
+                                @onclick="() => RenameEntity(entity)"
+                                @onclick:stopPropagation="true">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-link text-danger p-3"
+                                title="Delete Entity"
+                                @onclick="() => DeleteEntity(entity)"
+                                @onclick:stopPropagation="true">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        @if (StoryId > 0)
+                        {
+                        <button class="btn btn-link text-secondary p-3 border-start"
+                                title="@(isLinked ? "Unlink from Story" : "Link to Story")"
+                                @onclick="() => ToggleEntityLink(entity)"
+                                @onclick:stopPropagation="true">
+                            <i class="bi @(isLinked ? "bi-bookmark-check-fill text-primary" : "bi-bookmark")"></i>
+                        </button>
+                        }
+                    </div>
+                </div>
+            }
+            @if (!SelectedNotebook.Entities.Any())
+            {
+                <div class="text-muted text-center small mt-4">No entries yet.</div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Entries for an Entity -->
+        <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => SelectedEntity = null">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <h6 class="m-0">@SelectedEntity.Name</h6>
+        </div>
+
+        <!-- List of Notes -->
+        <div class="d-flex flex-column gap-3 mb-3 flex-grow-1 overflow-auto">
+            @foreach(var entry in SelectedEntity.Entries)
+            {
+                <div class="card bg-light border-0">
+                    <div class="card-body p-2 small">
+                        @if (entry.Story != null)
+                        {
+                            <div class="text-xs text-muted mb-1">
+                                <i class="bi bi-book me-1"></i>@entry.Story.Title
+                            </div>
+                        }
+                        @entry.Content
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <!-- Add Note Input -->
+        <div class="mt-auto">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Add a note..." @bind="NewNoteContent" />
+                <button class="btn btn-outline-primary" @onclick="AddNote">Add</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int StoryId { get; set; }
+
+    // State
+    Notebook? SelectedNotebook;
+    NotebookEntity? SelectedEntity;
+    string NewNoteContent = "";
+    
+    // Notebook Creation
+    bool IsCreatingNotebook = false;
+    List<NotebookType> AvailableTypes = new();
+    int NewNotebookTypeId;
+    string CustomNotebookName = "";
+
+    // Entity Creation
+    bool IsCreatingEntity = false;
+    string NewEntityName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        AvailableTypes = await DbContext.NotebookTypes.ToListAsync();
+    }
+
+    private void SelectNotebook(Notebook nb)
+    {
+        SelectedNotebook = nb;
+        SelectedEntity = null;
+    }
+
+    private async Task CreateNotebook()
+    {
+        if (NewNotebookTypeId == 0) return;
+
+        string name = "";
+        string icon = "bi-journal";
+
+        if (NewNotebookTypeId == -1)
+        {
+             if (string.IsNullOrWhiteSpace(CustomNotebookName)) return;
+             name = CustomNotebookName;
+        }
+        else 
+        {
+            var type = AvailableTypes.FirstOrDefault(t => t.Id == NewNotebookTypeId);
+            if (type != null)
+            {
+                name = type.Name;
+                icon = type.Icon;
+            }
+        }
+        
+        if (string.IsNullOrWhiteSpace(name)) return;
+        
+        int accountId = 1; // Default for global mode
+        if (StoryId > 0)
+        {
+            var story = await DbContext.Stories.FindAsync(StoryId);
+            if (story != null) accountId = story.AccountId;
+        }
+        
+        var newNotebook = new Notebook 
+        { 
+            Name = name, 
+            Icon = icon,
+            AccountId = accountId 
+        };
+
+        DbContext.Notebooks.Add(newNotebook);
+        await DbContext.SaveChangesAsync();
+
+        StoryState.Notebooks.Add(newNotebook);
+        IsCreatingNotebook = false;
+        NewNotebookTypeId = 0;
+        CustomNotebookName = "";
+    }
+
+    private async Task CreateEntity()
+    {
+        if (SelectedNotebook == null || string.IsNullOrWhiteSpace(NewEntityName)) return;
+        
+        var newEntity = new NotebookEntity 
+        { 
+            Name = NewEntityName, 
+            NotebookId = SelectedNotebook.Id 
+        };
+        
+        DbContext.NotebookEntities.Add(newEntity);
+        await DbContext.SaveChangesAsync();
+        
+        if (StoryId > 0)
+        {
+            var link = new StoryEntityLink
+            {
+                StoryId = StoryId,
+                NotebookEntityId = newEntity.Id
+            };
+            DbContext.StoryEntityLinks.Add(link);
+            await DbContext.SaveChangesAsync();
+            StoryState.LinkedEntityIds.Add(newEntity.Id);
+        }
+
+        if (!SelectedNotebook.Entities.Contains(newEntity))
+        {
+            SelectedNotebook.Entities.Add(newEntity);
+        }
+        
+        IsCreatingEntity = false;
+        NewEntityName = "";
+    }
+
+    private async Task ToggleEntityLink(NotebookEntity entity)
+    {
+        if (StoryState.LinkedEntityIds.Contains(entity.Id))
+        {
+            var link = await DbContext.StoryEntityLinks
+                .FirstOrDefaultAsync(l => l.StoryId == StoryId && l.NotebookEntityId == entity.Id);
+            
+            if (link != null)
+            {
+                DbContext.StoryEntityLinks.Remove(link);
+                await DbContext.SaveChangesAsync();
+            }
+            StoryState.LinkedEntityIds.Remove(entity.Id);
+        }
+        else
+        {
+            var link = new StoryEntityLink
+            {
+                StoryId = StoryId, 
+                NotebookEntityId = entity.Id
+            };
+            DbContext.StoryEntityLinks.Add(link);
+            await DbContext.SaveChangesAsync();
+            StoryState.LinkedEntityIds.Add(entity.Id);
+        }
+    }
+
+    private async Task AddNote()
+    {
+        if (SelectedEntity == null || string.IsNullOrWhiteSpace(NewNoteContent)) return;
+
+        var note = new NotebookEntry
+        {
+            Content = NewNoteContent,
+            NotebookEntityId = SelectedEntity.Id,
+            Created = DateTime.Now,
+            StoryId = StoryId > 0 ? StoryId : null 
+        };
+
+        if (StoryId > 0)
+        {
+            note.Story = await DbContext.Stories.FindAsync(StoryId);
+        }
+
+        DbContext.NotebookEntries.Add(note);
+        await DbContext.SaveChangesAsync();
+
+        SelectedEntity.Entries.Add(note);
+        NewNoteContent = "";
+    }
+
+    private async Task DeleteNotebook(Notebook nb)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete notebook '{nb.Name}'? This cannot be undone.");
+        if (!confirmed) return;
+
+        DbContext.Notebooks.Remove(nb);
+        await DbContext.SaveChangesAsync();
+        StoryState.Notebooks.Remove(nb);
+        
+        if (SelectedNotebook == nb)
+        {
+            SelectedNotebook = null;
+            SelectedEntity = null;
+        }
+    }
+
+    private async Task RenameNotebook(Notebook nb)
+    {
+        string newName = await JS.InvokeAsync<string>("prompt", "Rename Notebook:", nb.Name);
+        if (!string.IsNullOrWhiteSpace(newName) && newName != nb.Name)
+        {
+            nb.Name = newName;
+            DbContext.Notebooks.Update(nb); 
+            await DbContext.SaveChangesAsync();
+        }
+    }
+
+    private async Task DeleteEntity(NotebookEntity entity)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{entity.Name}'?");
+        if (!confirmed) return;
+
+        DbContext.NotebookEntities.Remove(entity);
+        await DbContext.SaveChangesAsync();
+        
+        if (SelectedNotebook != null && SelectedNotebook.Entities.Contains(entity))
+        {
+            SelectedNotebook.Entities.Remove(entity);
+        }
+        
+        if (StoryState.LinkedEntityIds.Contains(entity.Id))
+        {
+            StoryState.LinkedEntityIds.Remove(entity.Id);
+        }
+
+        if (SelectedEntity == entity)
+        {
+            SelectedEntity = null;
+        }
+    }
+
+    private async Task RenameEntity(NotebookEntity entity)
+    {
+        string newName = await JS.InvokeAsync<string>("prompt", "Rename Entity:", entity.Name);
+        if (!string.IsNullOrWhiteSpace(newName) && newName != entity.Name)
+        {
+            entity.Name = newName;
+            DbContext.NotebookEntities.Update(entity);
+            await DbContext.SaveChangesAsync();
+        }
+    }
+}

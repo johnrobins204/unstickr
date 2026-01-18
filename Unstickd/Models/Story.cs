@@ -10,6 +10,11 @@ public class Story
     public int AccountId { get; set; }
     public Account? Account { get; set; }
 
+    // New Continuous Content Field
+    public string Content { get; set; } = "";
+
+    // Deprecated but kept for migration history if needed, 
+    // though we will eventually drop StoryPage table
     public ICollection<StoryPage> Pages { get; set; } = new List<StoryPage>();
     public ICollection<StoryEntityLink> EntityLinks { get; set; } = new List<StoryEntityLink>();
 }
