@@ -61,6 +61,9 @@
 @code {
     [SupplyParameterFromQuery]
     public int? Age { get; set; }
+    
+    [SupplyParameterFromQuery]
+    public int? StoryId { get; set; }
 
     private List<Theme>? Themes;
 
@@ -68,7 +71,7 @@
     {
         try 
         {
-            Log.Information("Loading themes for Age: {Age}", Age);
+            Log.Information("Loading themes for Age: {Age}, StoryId: {StoryId}", Age, StoryId);
             Themes = await DbContext.Themes.ToListAsync();
         }
         catch (Exception ex)
@@ -84,57 +87,50 @@
         {
             Log.Information("User selected theme: {ThemeName}", theme.Name);
 
-            // 1. Create the entities
-            var initialContent = $"<p></p>";
-            
-            // Ensure Account exists (For single user mode, we use ID 1)
-            var accountId = 1;
-
-            // Check if account has notebooks seeded, if not, create them
-            var hasNotebooks = await DbContext.Notebooks.AnyAsync(n => n.AccountId == accountId);
-            if (!hasNotebooks)
+            if (StoryId.HasValue)
             {
-                DbContext.Notebooks.AddRange(
-                    new Notebook { Name = "Characters", Icon = "bi-person", AccountId = accountId },
-                    new Notebook { Name = "Places", Icon = "bi-geo-alt", AccountId = accountId },
-                    new Notebook { Name = "Spells", Icon = "bi-magic", AccountId = accountId }
-                );
-                await DbContext.SaveChangesAsync();
-            }
-
-            var newStory = new Story
-            {
-                Title = "Untitled Story",
-                ThemeId = theme.Id,
-                AccountId = accountId,
-                Created = DateTime.Now,
-                LastModified = DateTime.Now,
-                Pages = new List<StoryPage>
+                // Update Account's Theme preference
+                var account = await DbContext.Accounts.FirstOrDefaultAsync(a => a.Id == 1);
+                if (account != null)
                 {
-                    new StoryPage 
-                    { 
-                        PageNumber = 1,
-                        Content = initialContent 
-                    }
+                    account.ActiveThemeId = theme.Id;
+                    await DbContext.SaveChangesAsync();
                 }
-            };
 
-            // 2. Save to DB
-            DbContext.Stories.Add(newStory);
-            await DbContext.SaveChangesAsync();
-            Log.Information("Created new Story Id: {StoryId}", newStory.Id);
+                // Navigate back to Editor
+                Nav.NavigateTo($"/editor/{StoryId}");
+            }
+            else 
+            {
+                // Used during onboarding flow (no story ID yet)
+                // 1. Set Preference
+                var account = await DbContext.Accounts.FirstOrDefaultAsync(a => a.Id == 1);
+                if (account != null)
+                {
+                    account.ActiveThemeId = theme.Id;
+                }
 
-            // 3. Update In-Memory State for the session
-            StoryState.Title = newStory.Title;
-            StoryState.Content = initialContent;    
-            
-            // 4. Navigate
-            Nav.NavigateTo($"/editor/{newStory.Id}");
+                // 2. Create the Story
+                var newStory = new Story 
+                { 
+                    Title = "New Adventure", 
+                    Created = DateTime.Now,
+                    AccountId = 1 
+                };
+                
+                DbContext.Stories.Add(newStory);
+                await DbContext.SaveChangesAsync();
+
+                // 3. Add Page 1
+                DbContext.Pages.Add(new StoryPage { StoryId = newStory.Id, PageNumber = 1, Content = "" });
+                await DbContext.SaveChangesAsync();
+
+                Nav.NavigateTo($"/editor/{newStory.Id}");
+            }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to create story for theme {ThemeName}", theme.Name);
-            // Optionally set an error message property to display to the user
+            Log.Error(ex, "Failed to apply theme {ThemeName}", theme.Name);
         }
     }
 

@@ -23,11 +23,24 @@ namespace Unstickd.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ActiveThemeId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("OllamaModel")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OllamaUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ActiveThemeId");
 
                     b.ToTable("Accounts");
 
@@ -35,7 +48,9 @@ namespace Unstickd.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Writer"
+                            Name = "Writer",
+                            OllamaModel = "llama3",
+                            OllamaUrl = "http://localhost:11434"
                         });
                 });
 
@@ -203,9 +218,6 @@ namespace Unstickd.Migrations
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ThemeId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -213,8 +225,6 @@ namespace Unstickd.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
-
-                    b.HasIndex("ThemeId");
 
                     b.ToTable("Stories");
                 });
@@ -389,6 +399,15 @@ namespace Unstickd.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Unstickd.Models.Account", b =>
+                {
+                    b.HasOne("Unstickd.Models.Theme", "ActiveTheme")
+                        .WithMany()
+                        .HasForeignKey("ActiveThemeId");
+
+                    b.Navigation("ActiveTheme");
+                });
+
             modelBuilder.Entity("Unstickd.Models.Notebook", b =>
                 {
                     b.HasOne("Unstickd.Models.Account", "Account")
@@ -436,15 +455,7 @@ namespace Unstickd.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Unstickd.Models.Theme", "Theme")
-                        .WithMany()
-                        .HasForeignKey("ThemeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Account");
-
-                    b.Navigation("Theme");
                 });
 
             modelBuilder.Entity("Unstickd.Models.StoryEntityLink", b =>

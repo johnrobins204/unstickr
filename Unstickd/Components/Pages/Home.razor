@@ -3,8 +3,12 @@
 @using Unstickd.Models
 @using Unstickd.Components.Layout
 @using Unstickd.Data
+@using Unstickd.Services
+@using Serilog
 @inject AppDbContext DbContext
 @inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject StoryState StoryState
 @rendermode InteractiveServer
 
 <PageTitle>Unstickd - My Bookcase</PageTitle>
@@ -56,9 +60,14 @@ else
                 <h1 class="display-5 fw-bold">My Bookcase</h1>
                 <p class="text-muted">Welcome back, writer!</p>
             </div>
-            <button class="btn btn-success btn-lg shadow-sm" @onclick="() => ShowAgeGate = true">
-                <i class="bi bi-plus-circle me-2"></i>New Story
-            </button>
+            <div class="d-flex gap-2">
+                <a href="/settings" class="btn btn-outline-secondary btn-lg shadow-sm" title="Settings">
+                    <i class="bi bi-gear"></i>
+                </a>
+                <button class="btn btn-success btn-lg shadow-sm" @onclick="() => ShowAgeGate = true">
+                    <i class="bi bi-plus-circle me-2"></i>New Story
+                </button>
+            </div>
         </div>
 
         @if (Stories == null)
@@ -86,9 +95,8 @@ else
                 {
                     <div class="col">
                         <div class="card h-100 shadow-sm border-0 story-card">
-                            <div class="card-header border-0 d-flex justify-content-between align-items-center" 
-                                 style="background-color: @(story.Theme?.PrimaryColor ?? "#f8f9fa"); color: white;">
-                                <small class="fw-bold">@story.Theme?.Name</small>
+                            <div class="card-header border-0 d-flex justify-content-between align-items-center bg-secondary text-white">
+                                <small class="fw-bold">Story</small>
                                 <button class="btn btn-link text-white p-0" title="Delete" @onclick="() => DeleteStory(story)">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -142,12 +150,11 @@ else
     private async Task LoadStories()
     {
         Stories = await DbContext.Stories
-            .Include(s => s.Theme)
             .OrderByDescending(s => s.LastModified)
             .ToListAsync();
     }
 
-    private void HandleEnter()
+    private async Task HandleEnter()
     {
         if (!DateOfBirth.HasValue || DateOfBirth.Value > DateOnly.FromDateTime(DateTime.Now))
         {
@@ -158,7 +165,71 @@ else
         var age = DateTime.Now.Year - DateOfBirth.Value.Year;
         if (DateOfBirth.Value > DateOnly.FromDateTime(DateTime.Now.AddYears(-age))) age--;
         
-        Nav.NavigateTo($"/onboarding/themes?age={age}");
+        // --- NEW WORKFLOW: Create Story Directly ---
+        try 
+        {
+            await CreateStory(age);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to create story during onboarding");
+            // In a real app, show error UI
+        }
+    }
+
+    private async Task CreateStory(int userAge)
+    {
+         // 1. Get a Default Theme (First one available, or specific "Standard" logic)
+         var defaultTheme = await DbContext.Themes.FirstOrDefaultAsync();
+         if (defaultTheme == null)
+         {
+             // Fallback if no themes seeded? Should not happen in prod.
+             // We can proceed with null if we make property nullable, but let's assume one exists.
+             // Or throw
+             throw new Exception("No themes available in database.");
+         }
+
+        // 2. Ensure Account exists (For single user mode, we use ID 1)
+        var accountId = 1;
+        var hasNotebooks = await DbContext.Notebooks.AnyAsync(n => n.AccountId == accountId);
+        if (!hasNotebooks)
+        {
+            DbContext.Notebooks.AddRange(
+                new Notebook { Name = "Characters", Icon = "bi-person", AccountId = accountId },
+                new Notebook { Name = "Places", Icon = "bi-geo-alt", AccountId = accountId },
+                new Notebook { Name = "Spells", Icon = "bi-magic", AccountId = accountId }
+            );
+            await DbContext.SaveChangesAsync();
+        }
+
+        // 3. Create Story
+        var initialContent = $"<p></p>";
+        var newStory = new Story
+        {
+            Title = "Untitled Story",
+            AccountId = accountId,
+            Created = DateTime.Now,
+            LastModified = DateTime.Now,
+            Pages = new List<StoryPage>
+            {
+                new StoryPage 
+                { 
+                    PageNumber = 1,
+                    Content = initialContent 
+                }
+            }
+        };
+
+        DbContext.Stories.Add(newStory);
+        await DbContext.SaveChangesAsync();
+        Log.Information("Created new Story Id: {StoryId} via Quick Onboarding", newStory.Id);
+
+        // 4. Update In-Memory State
+        StoryState.Title = newStory.Title;
+        StoryState.Content = initialContent;    
+        
+        // 5. Navigate to Editor
+        Nav.NavigateTo($"/editor/{newStory.Id}");
     }
 
     private void OpenStory(Story story)
@@ -168,10 +239,9 @@ else
 
     private async Task DeleteStory(Story story)
     {
-        // Simple client-side confirm (using JS interop would be better, but keeping it native C# for speed here)
-        // For MVP, we'll just delete. 
-        // In a real app involving kids, a "Are you sure?" modal is crucial.
-        
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{story.Title}'?");
+        if (!confirmed) return;
+
         DbContext.Stories.Remove(story);
         await DbContext.SaveChangesAsync();
         await LoadStories(); // Refresh list

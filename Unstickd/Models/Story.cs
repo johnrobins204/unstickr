@@ -7,9 +7,6 @@ public class Story
     public DateTime Created { get; set; } = DateTime.Now;
     public DateTime LastModified { get; set; } = DateTime.Now;
 
-    public int ThemeId { get; set; }
-    public Theme? Theme { get; set; }
-
     public int AccountId { get; set; }
     public Account? Account { get; set; }
 

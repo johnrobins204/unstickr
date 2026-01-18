@@ -25,4 +25,7 @@ public class StoryState
     
     // IDs of entities relevant to this specific story
     public HashSet<int> LinkedEntityIds { get; set; } = new HashSet<int>();
+
+    // Current Theme for Dynamic Styling
+    public Theme? CurrentTheme { get; set; }
 }

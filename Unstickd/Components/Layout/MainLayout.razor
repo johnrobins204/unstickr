@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@using Unstickd.Services
+@inject StoryState StoryState
 
-<div class="page">
+<div class="page" style="@ThemeStyles">
     <div class="sidebar">
         <NavMenu />
     </div>
@@ -17,8 +19,62 @@
     </main>
 </div>
 
+<!-- Dynamic Theme Styles -->
+@if (StoryState.CurrentTheme != null)
+{
+    <style>
+        :root {
+            --theme-primary: @StoryState.CurrentTheme.PrimaryColor;
+            --theme-secondary: @StoryState.CurrentTheme.SecondaryColor;
+            --theme-font: '@StoryState.CurrentTheme.FontName', sans-serif;
+            --theme-bg: @(StoryState.CurrentTheme.BackgroundTexture.StartsWith("#") ? StoryState.CurrentTheme.BackgroundTexture : "url('" + StoryState.CurrentTheme.BackgroundTexture + "')");
+        }
+
+        body {
+            font-family: var(--theme-font);
+            background: var(--theme-bg);
+        }
+
+        .btn-primary {
+            background-color: var(--theme-primary);
+            border-color: var(--theme-secondary);
+        }
+
+        .text-primary {
+            color: var(--theme-primary) !important;
+        }
+
+        .sidebar {
+            background-image: linear-gradient(180deg, var(--theme-primary) 0%, var(--theme-secondary) 70%);
+        }
+
+        /* NavMenu Overrides */
+        .nav-item a {
+            color: rgba(255,255,255,0.8) !important;
+        }
+        .nav-item a:hover, .nav-item a.active {
+            color: white !important;
+            background-color: rgba(255,255,255,0.1) !important;
+        }
+    </style>
+}
+
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private string ThemeStyles => "";
+
+    protected override void OnInitialized()
+    {
+        StoryState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        StoryState.OnChange -= StateHasChanged;
+    }
+}

@@ -117,9 +117,64 @@ MVP for "World Building" is active. Users can create global entities, link them 
 ## Current State
 User can write multi-page stories. Navigation works preserving state.
 
-## Next Steps
-1. **Passive AI**: Implement the inactivity timer (10s idle -> trigger AI).
-2. **Dashboard**: Ensure "Continue Story" loads the correct page/state.
-2. Implement UI for linking specific Entities to a Story context.
-3. Dashboard: List existing stories.
+## Session 9: Research & Rationales ("The Passive AI")
+- [x] **Literature Review**: Paused coding to conduct UX research for the child-specific AI interaction.
+- [x] **Documentation**: Created `rationales.md` detailing the psychological basis for:
+    - **Locus of Control**: Why the AI must be passive.
+    - **Generative Pauses**: Why inactivity is necessary for creativity.
+    - **The 30-Second Rule**: Why the timer delay is set high to avoid interruption.
+- [x] **Algorithm Design**: Defined the "Context-Sensitive Inactivity Trigger".
+    - Base Logic: 15s (Look Up) -> 30s (Offer Help).
+    - **Punctuation Multiplier**: If the last character was a sentence terminator (. ? !), double the wait time (30s/60s) to respect "closing thought" cognitive load.
 
+## Session 10: Implementing Passive Interventions
+- [x] **Client-Side Logic**: Created `wwwroot/js/inactivity.js`.
+    - Handles keypress monitoring.
+    - Implements the "Punctuation Multiplier" logic locally to reduce server chatter.
+    - Optimized Interop: Only notifies C# of activity if a timeout was previously triggered.
+- [x] **Blazor Integration**: Updated `Editor.razor`.
+    - Implemented `TutorState` (Idle, LookingUp, OfferingHelp).
+    - Wired `[JSInvokable]` methods to receive timer events.
+    - Updated UI to display visual cues (Eyeglasses, Lightbulb) based on state.
+- [x] **Proactive AI**: Updated the "Offer Help" state to include a "Get a hint" button that pre-populates a context-aware prompt ("I need a small idea to continue...").
+
+## Current State
+The "Passive AI" system is fully implemented. The editor now "watches" the user and offers escalating levels of support based on inactivity, respecting the cognitive rhythm of writing.
+
+## Session 11: Passive AI Refinement
+- [x] **Visual Assets**: Integrated custom graphics for Alice (Reading, Alert, Help) into `wwwroot/images`.
+- [x] **Timer Logic Refinement**: Tighted `inactivity.js` to ONLY respond to keystrokes in the `.ql-editor`. Mouse clicks and sidebar interactions no longer reset the timer, satisfying the strict "writing time" requirement.
+- [x] **Transient Interactions**: Implemented "Brief Glance" logic (`IsGlancingUp`). Clicking Alice for help triggers a 500ms visual acknowledgment (She looks up) but does NOT change the underlying Activity State, preserving the "Passive" contract.
+- [x] **UI Polish**: Persistent Avatar display stacked above interaction notes.
+
+## Session 12: Dashboard & Resume Improvements
+- [x] **Smart Resume**: Updated `Editor.razor` to automatically open the story on the **last modified page** (calculated from `Pages.OrderByDescending(LastModified)`). This fixes the user experience of "losing place" in a multi-page story.
+- [x] **Deletion Safety**: Added JavaScript confirmation to the "Delete Story" button in `Home.razor` to prevent accidental data loss.
+- [x] **Dashboard Verified**: Confirmed `Home.razor` already implements the full "My Bookcase" card view with theme styling and sorting.
+
+## Session 13: Feature Completeness (Notebooks, Settings, Themes)
+- [x] **Notebook Management**: 
+    - Implemented **Delete** and **Rename** functionality for Notebooks and Entities.
+    - Added JavaScript-based confirmation dialogs to prevent accidental data loss.
+- [x] **Export System**: 
+    - Implemented `ExportStory(string format)` in `Editor.razor`.
+    - Added JavaScript `downloadFile` helper to support client-side file generation.
+    - Supported Formats:
+        - **HTML**: Formatted download with simple CSS.
+        - **TXT**: Plain text download (HTML stripped via Regex).
+- [x] **Configuration Module**:
+    - Created `Account` table columns (`OllamaUrl`, `OllamaModel`) to support flexible AI backends.
+    - Implemented global `/settings` page for user configuration.
+    - Fixed `appsettings.json` vs Database configuration priority references.
+- [x] **Dynamic Theming System (Refactor)**:
+    - **Architecture**: Decoupled Theme from specific Stories. Moved `ActiveThemeId` to `Account` level.
+    - **Logic**: User preference now persists globally; opening a Pirate story doesn't force Pirate UI if the user prefers Wonderland.
+    - **Implementation**: `MainLayout.razor` now dynamically injects a `<style>` block based on `StoryState.CurrentTheme`, reskinning the entire application (Backgrounds, Buttons, Fonts) in real-time.
+
+## Current State
+The application is feature-complete for the Prototype phase. Users can Create, Write, Organize (Notebooks), Customize (Themes/Settings), and Export their work.
+
+## Next Steps
+1. **QA & Search**: Verify full search functionality across notebooks.
+2. **Notebook Types**: Verify "Create Shelf" functionality works with all defined types.
+3. **Deployment**: Package for local installation.

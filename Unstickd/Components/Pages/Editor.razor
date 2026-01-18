@@ -7,6 +7,8 @@
 @inject AppDbContext DbContext
 @inject StoryState StoryState
 @inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 @rendermode InteractiveServer
 
 <PageTitle>Editor - @StoryState.Title</PageTitle>
@@ -22,9 +24,23 @@
                         <i class="bi bi-house"></i> Home
                     </a>
                     <h5 class="m-0 text-truncate" style="max-width: 400px;">@StoryState.Title</h5>
+                    <a href="/onboarding/themes?StoryId=@StoryId" class="btn btn-sm btn-light text-muted ms-2" title="Change Theme">
+                        <i class="bi bi-palette"></i>
+                    </a>
                 </div>
-                <div>
+                <div class="d-flex align-items-center">
                      <span class="text-muted small me-2">@SaveStatus</span>
+                     
+                     <div class="dropdown me-2">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><button class="dropdown-item" @onclick='() => ExportStory("html")'>Export as HTML</button></li>
+                            <li><button class="dropdown-item" @onclick='() => ExportStory("txt")'>Export as Text</button></li>
+                        </ul>
+                     </div>
+
                      <button class="btn btn-primary btn-sm" @onclick="SaveContent">
                          <i class="bi bi-save"></i> Save
                      </button>
@@ -125,20 +141,53 @@
                                 </div>
                             </div>
                         }
-                        else if (!string.IsNullOrEmpty(StoryState.TutorNotes))
-                        {
-                            <div class="card border-info mb-3">
-                                <div class="card-header bg-info-subtle text-info-emphasis">Suggestion</div>
-                                <div class="card-body">
-                                    <p class="card-text" style="white-space: pre-wrap;">@StoryState.TutorNotes</p>
-                                </div>
-                            </div>
-                        }
                         else
                         {
-                            <div class="text-center text-muted mt-5">
-                                <p>I'm reading along with you.</p>
-                                <p>Ask me for a prompt!</p>
+                            <!-- Unified AI Display -->
+                            <div class="text-center mt-5">
+                                <!-- Always show Image based on State -->
+                                <div class="mb-3 p-3 position-relative" style="cursor: pointer;" @onclick="HandleTutorClick" title="@GetTutorTooltip()">
+                                    <img src="@GetTutorImage()" alt="Tutor" style="height: 120px; width: auto; transition: all 0.3s ease;" />
+                                </div>
+
+                                <!-- Display Logic: Note vs Standard Text -->
+                                @if (!string.IsNullOrEmpty(StoryState.TutorNotes))
+                                {
+                                    <div class="card border-info mb-3 slide-up-animation">
+                                        <div class="card-header bg-info-subtle text-info-emphasis d-flex justify-content-between align-items-center py-1">
+                                            <small class="fw-bold">Alice says:</small>
+                                            <button type="button" class="btn-close btn-sm" aria-label="Close" @onclick="DismissTutorNote"></button>
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <p class="card-text small" style="white-space: pre-wrap;">@StoryState.TutorNotes</p>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Standard State Text -->
+                                    @if (CurrentTutorState == TutorState.Idle)
+                                    {
+                                        <div class="text-muted fade-in-animation">
+                                            <p>I'm reading along with you.</p>
+                                        </div>
+                                    }
+                                    else if (CurrentTutorState == TutorState.LookingUp)
+                                    {
+                                        <div class="text-primary fade-in-animation">
+                                            <p class="fw-bold">It looks like you are thinking hard.</p>
+                                        </div>
+                                    }
+                                    else if (CurrentTutorState == TutorState.OfferingHelp)
+                                    {
+                                        <div class="text-success fade-in-animation">
+                                            <p class="fw-bold">If you want an idea, I can share one with you ...</p>
+                                            <button class="btn btn-sm btn-outline-success" @onclick="() => { StoryState.TutorNotes = string.Empty; OnHintClick(); }">
+                                                Get a hint
+                                            </button>
+                                        </div>
+                                    }
+                                }
                             </div>
                         }
                     </div>
@@ -176,17 +225,35 @@
                                 </div>
                             }
 
-                            <!-- List of Notebooks -->
+                        <!-- List of Notebooks -->
                             <div class="list-group list-group-flush">
                                 @if (StoryState.Notebooks != null)
                                 {
                                     @foreach (var nb in StoryState.Notebooks)
                                     {
-                                        <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                                                @onclick="() => SelectNotebook(nb)">
-                                            <span><i class="@nb.Icon me-2"></i>@nb.Name</span>
-                                            <span class="badge bg-secondary rounded-pill">@nb.Entities.Count</span>
-                                        </button>
+                                        <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
+                                            <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3 d-flex justify-content-between align-items-center"
+                                                    @onclick="() => SelectNotebook(nb)">
+                                                <span><i class="@nb.Icon me-2"></i>@nb.Name</span>
+                                                <span class="badge bg-secondary rounded-pill">@nb.Entities.Count</span>
+                                            </button>
+                                            
+                                             <!-- Action Buttons: Reveal on Hover -->
+                                            <div class="d-flex border-start action-buttons">
+                                                <button class="btn btn-link text-secondary p-3 border-end"
+                                                        title="Rename Notebook"
+                                                        @onclick="() => RenameNotebook(nb)"
+                                                        @onclick:stopPropagation="true">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-link text-danger p-3"
+                                                        title="Delete Notebook"
+                                                        @onclick="() => DeleteNotebook(nb)"
+                                                        @onclick:stopPropagation="true">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     }
                                 }
                             </div>
@@ -223,7 +290,7 @@
                                 @foreach (var entity in SelectedNotebook.Entities)
                                 {
                                     var isLinked = StoryState.LinkedEntityIds.Contains(entity.Id);
-                                    <div class="list-group-item list-group-item-action p-0 d-flex">
+                                    <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
                                         <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3" 
                                                 @onclick="() => SelectedEntity = entity">
                                             @if (isLinked)
@@ -232,12 +299,28 @@
                                             }
                                             @entity.Name
                                         </button>
-                                        <button class="btn btn-link text-secondary p-3 border-start"
-                                                title="@(isLinked ? "Unlink from Story" : "Link to Story")"
-                                                @onclick="() => ToggleEntityLink(entity)"
-                                                @onclick:stopPropagation="true">
-                                            <i class="bi @(isLinked ? "bi-bookmark-check-fill text-primary" : "bi-bookmark")"></i>
-                                        </button>
+                                        
+                                        <!-- Action Buttons: Reveal on Hover -->
+                                        <div class="d-flex border-start action-buttons">
+                                            <button class="btn btn-link text-secondary p-3 border-end"
+                                                    title="Rename Entity"
+                                                    @onclick="() => RenameEntity(entity)"
+                                                    @onclick:stopPropagation="true">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-link text-danger p-3"
+                                                    title="Delete Entity"
+                                                    @onclick="() => DeleteEntity(entity)"
+                                                    @onclick:stopPropagation="true">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            <button class="btn btn-link text-secondary p-3 border-start"
+                                                    title="@(isLinked ? "Unlink from Story" : "Link to Story")"
+                                                    @onclick="() => ToggleEntityLink(entity)"
+                                                    @onclick:stopPropagation="true">
+                                                <i class="bi @(isLinked ? "bi-bookmark-check-fill text-primary" : "bi-bookmark")"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 }
                                 @if (!SelectedNotebook.Entities.Any())
@@ -345,6 +428,8 @@
     int NewNotebookTypeId;
     string CustomNotebookName = "";
 
+    private Account? CurrentAccount;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -354,6 +439,8 @@
             var story = await DbContext.Stories
                 .Include(s => s.Pages)
                 .Include(s => s.EntityLinks)
+                .Include(s => s.Account) // Account now holds the theme preference
+                    .ThenInclude(acc => acc.ActiveTheme) // Load the theme via Account
                 .Include(s => s.Account)
                     .ThenInclude(a => a.Notebooks)
                         .ThenInclude(n => n.Entities)
@@ -363,13 +450,26 @@
 
             if (story != null)
             {
+                CurrentAccount = story.Account;
                 StoryState.Title = story.Title;
                 StoryState.StoryId = story.Id;
+                
+                // Load Theme from Account, not Story
+                if (story.Account?.ActiveTheme != null)
+                {
+                    StoryState.CurrentTheme = story.Account.ActiveTheme;
+                    StoryState.NotifyStateChanged(); 
+                }
+                
+                // Pagination Setup
                 
                 // Pagination Setup
                 StoryState.TotalPages = story.Pages.Count;
                 if (StoryState.TotalPages == 0) StoryState.TotalPages = 1; // Safety
-                StoryState.CurrentPageNumber = 1;
+                
+                // Smart Resume: Find the most recently modified page
+                var lastActivePage = story.Pages.OrderByDescending(p => p.LastModified).FirstOrDefault();
+                StoryState.CurrentPageNumber = lastActivePage?.PageNumber ?? 1;
 
                 // Load global notebooks from the account
                 StoryState.Notebooks = story.Account?.Notebooks.ToList() ?? new List<Notebook>();
@@ -379,7 +479,7 @@
                     .Select(l => l.NotebookEntityId)
                     .ToHashSet();
 
-                var page = story.Pages.FirstOrDefault(p => p.PageNumber == 1);
+                var page = story.Pages.FirstOrDefault(p => p.PageNumber == StoryState.CurrentPageNumber);
                 if (page != null)
                 {
                     StoryState.Content = page.Content;
@@ -539,6 +639,67 @@
         NewNoteContent = "";
     }
 
+    private async Task DeleteNotebook(Notebook nb)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete notebook '{nb.Name}'? This cannot be undone.");
+        if (!confirmed) return;
+
+        DbContext.Notebooks.Remove(nb);
+        await DbContext.SaveChangesAsync();
+        StoryState.Notebooks.Remove(nb);
+        
+        if (SelectedNotebook == nb)
+        {
+            SelectedNotebook = null;
+            SelectedEntity = null;
+        }
+    }
+
+    private async Task RenameNotebook(Notebook nb)
+    {
+        string newName = await JS.InvokeAsync<string>("prompt", "Rename Notebook:", nb.Name);
+        if (!string.IsNullOrWhiteSpace(newName) && newName != nb.Name)
+        {
+            nb.Name = newName;
+            DbContext.Notebooks.Update(nb); // Explicit update
+            await DbContext.SaveChangesAsync();
+        }
+    }
+
+    private async Task DeleteEntity(NotebookEntity entity)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{entity.Name}'?");
+        if (!confirmed) return;
+
+        DbContext.NotebookEntities.Remove(entity);
+        await DbContext.SaveChangesAsync();
+        
+        if (SelectedNotebook != null && SelectedNotebook.Entities.Contains(entity))
+        {
+            SelectedNotebook.Entities.Remove(entity);
+        }
+        
+        if (StoryState.LinkedEntityIds.Contains(entity.Id))
+        {
+            StoryState.LinkedEntityIds.Remove(entity.Id);
+        }
+
+        if (SelectedEntity == entity)
+        {
+            SelectedEntity = null;
+        }
+    }
+
+    private async Task RenameEntity(NotebookEntity entity)
+    {
+        string newName = await JS.InvokeAsync<string>("prompt", "Rename Entity:", entity.Name);
+        if (!string.IsNullOrWhiteSpace(newName) && newName != entity.Name)
+        {
+            entity.Name = newName;
+            DbContext.NotebookEntities.Update(entity);
+            await DbContext.SaveChangesAsync();
+        }
+    }
 
     private async Task SaveContent()
     {
@@ -581,6 +742,59 @@
         {
             Log.Error(ex, "Error saving content");
             SaveStatus = "Error Saving";
+        }
+    }
+
+    private async Task ExportStory(string format)
+    {
+        // 1. Save current page first to ensure latest edits are included
+        await SaveContent();
+
+        // 2. Fetch full story content
+        var pages = await DbContext.Pages
+            .Where(p => p.StoryId == StoryId)
+            .OrderBy(p => p.PageNumber)
+            .ToListAsync();
+
+        var sb = new System.Text.StringBuilder();
+        
+        if (format == "html")
+        {
+            sb.AppendLine($"<html><head><title>{StoryState.Title}</title>");
+            sb.AppendLine("<style>body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; } .chapter { margin-bottom: 2rem; }</style>");
+            sb.AppendLine("</head><body>");
+            sb.AppendLine($"<h1>{StoryState.Title}</h1>");
+            foreach(var page in pages)
+            {
+                sb.AppendLine($"<div class='chapter'>");
+                sb.AppendLine(page.Content);
+                sb.AppendLine("</div><hr/>");
+            }
+            sb.AppendLine("</body></html>");
+            
+            var fileName = $"{StoryState.Title}.html";
+            await JS.InvokeVoidAsync("downloadFile", fileName, "text/html", sb.ToString());
+        }
+        else if (format == "txt")
+        {
+            sb.AppendLine(StoryState.Title.ToUpper());
+            sb.AppendLine(new string('=', StoryState.Title.Length));
+            sb.AppendLine();
+            
+            foreach(var page in pages)
+            {
+                // Basic HTML stripping
+                var text = System.Text.RegularExpressions.Regex.Replace(page.Content ?? "", "<br\\s*/?>", "\n");
+                text = System.Text.RegularExpressions.Regex.Replace(text, "</p>", "\n");
+                text = System.Text.RegularExpressions.Regex.Replace(text, "<.*?>", "");
+                text = System.Web.HttpUtility.HtmlDecode(text);
+                
+                sb.AppendLine(text);
+                sb.AppendLine("\n-------------------\n");
+            }
+            
+            var fileName = $"{StoryState.Title}.txt";
+            await JS.InvokeVoidAsync("downloadFile", fileName, "text/plain", sb.ToString());
         }
     }
 
@@ -649,6 +863,14 @@
         try
         {
             var client = HttpClientFactory.CreateClient("LLM");
+            if (CurrentAccount != null && !string.IsNullOrWhiteSpace(CurrentAccount.OllamaUrl))
+            {
+                // Override default URL if user specified one
+                client.BaseAddress = new Uri(CurrentAccount.OllamaUrl);
+            }
+
+            var modelName = CurrentAccount?.OllamaModel;
+            if (string.IsNullOrWhiteSpace(modelName)) modelName = "llama3";
             
             // Simple prompt augmentation
             var context = $"The user is writing a story titled '{StoryState.Title}'. Content snippet: '{Truncate(StoryState.Content, 500)}'.";
@@ -656,7 +878,7 @@
 
             var payload = new 
             { 
-                model = "llama3", 
+                model = modelName, 
                 prompt = fullPrompt,
                 stream = false 
             };
@@ -694,5 +916,128 @@
     {
         // Adjust this property name based on Ollama's actual response JSON (usually 'response')
         public string Response { get; set; } = string.Empty;
+    }
+
+    // --- Inactivity Timer Implementation ---
+    private DotNetObjectReference<Editor>? objRef;
+    
+    // Explicitly tracking inactivity state
+    private enum TutorState { Idle, LookingUp, OfferingHelp }
+    private TutorState CurrentTutorState = TutorState.Idle;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("inactivityTimer.initialize", objRef);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    [JSInvokable]
+    public void OnActivityDetected()
+    {
+        if (CurrentTutorState != TutorState.Idle)
+        {
+            CurrentTutorState = TutorState.Idle;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnInactivityStage1()
+    {
+        if (CurrentTutorState != TutorState.LookingUp && CurrentTutorState != TutorState.OfferingHelp)
+        {
+            CurrentTutorState = TutorState.LookingUp;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnInactivityStage2()
+    {
+        if (CurrentTutorState != TutorState.OfferingHelp)
+        {
+            CurrentTutorState = TutorState.OfferingHelp;
+            StateHasChanged();
+        }
+    }
+
+    private void DismissTutorNote()
+    {
+        StoryState.TutorNotes = "";
+        // If we dismiss the note, we assume the user is back in control, or at least done with the advice.
+        // We do not force Idle here; let inactivity logic handle if they are still idle.
+    }
+
+    private bool IsGlancingUp = false;
+
+    private string GetTutorImage()
+    {
+        if (IsGlancingUp) return "images/tutor_lookup.png";
+
+        return CurrentTutorState switch
+        {
+            TutorState.Idle => "images/tutor_reading.png",
+            TutorState.LookingUp => "images/tutor_lookup.png",
+            TutorState.OfferingHelp => "images/tutor_help.png",
+            _ => "images/tutor_reading.png"
+        };
+    }
+
+    private string GetTutorTooltip()
+    {
+        return CurrentTutorState switch
+        {
+            TutorState.Idle => "Click for encouragement",
+            TutorState.LookingUp => "Click for a nudge",
+            TutorState.OfferingHelp => "Click for a hint",
+            _ => ""
+        };
+    }
+
+    private async Task HandleTutorClick()
+    {
+        var actionState = CurrentTutorState;
+        
+        // 1. Perform the Logic (get text)
+        if (actionState == TutorState.Idle) OnIdleClick();
+        else if (actionState == TutorState.LookingUp) OnNudgeClick();
+        else if (actionState == TutorState.OfferingHelp) OnHintClick();
+
+        // 2. Momentary Glance Up (Visual Feedback Only)
+        // Satisfies: "briefly looks up for 500ms... without triggering AI tool state change"
+        IsGlancingUp = true;
+        StateHasChanged();
+        
+        await Task.Delay(500);
+        
+        IsGlancingUp = false;
+        StateHasChanged();
+    }
+
+    private void OnIdleClick()
+    {
+         StoryState.TutorNotes = "Start by writing one more sentence. You can do it.";
+    }
+
+    private void OnNudgeClick()
+    {
+         StoryState.TutorNotes = "Subtle Nudge: Try using one of your 5 senses. What do they smell or hear right now?";
+    }
+
+    private void OnHintClick()
+    {
+         StoryState.TutorNotes = "Focused Hint: What would your hero hear if they listened very carefully right now?";
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try {
+            await JS.InvokeVoidAsync("inactivityTimer.dispose");
+            objRef?.Dispose();
+        } catch {}
     }
 }
