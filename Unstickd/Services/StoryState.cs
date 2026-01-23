@@ -2,13 +2,18 @@ using Unstickd.Models;
 
 namespace Unstickd.Services;
 
+public class TutorSession
+{
+    public TutorMode CurrentMode { get; set; } = TutorMode.Idle;
+    public List<string> History { get; set; } = new();
+    public string? LastJsonStatus { get; set; }
+}
+
 public class StoryState
 {
     // Basic story data held in memory per user session
     public int StoryId { get; set; }
     public string Title { get; set; } = "Untitled Story";
-    public int CurrentPageNumber { get; set; } = 1;
-    public int TotalPages { get; set; } = 1;
     
     // HTML content from the Rich Text Editor
     public string Content { get; set; } = "<p>Once upon a time...</p>";
@@ -28,4 +33,10 @@ public class StoryState
 
     // Current Theme for Dynamic Styling
     public Theme? CurrentTheme { get; set; }
+
+    // AI Tutor Mode
+    // ...moved to Unstickd.Models.TutorEnums.cs...
+
+    public TutorSession TutorSession { get; set; } = new();
+    public string Genre { get; set; } = "General";
 }

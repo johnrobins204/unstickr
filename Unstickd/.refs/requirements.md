@@ -20,6 +20,10 @@ The child **never** directly prompts the AI. The system observes inactivity and 
 ### Rule 2: No Ghostwriting
 The AI **never** generates story prose. It only asks leading questions using Socratic teaching methods.
 
+### Rule 3: Separation of Powers
+- **Drafting**: The child writes in flow state (Passive AI).
+- **Reviewing**: The AI points out vocabulary or style improvements only during explicitly triggered review modes (Learning Mode).
+
 ---
 
 ## 📋 Functional Requirements
@@ -36,7 +40,7 @@ The AI **never** generates story prose. It only asks leading questions using Soc
   - Color palette (CSS variables)
   - Font family
   - Pixel-art Unstickr sprite
-  - Optional story starter template
+  - UI Skinning (Backgrounds, Borders, Icons)
 - Selection triggers visual transition (see UI Requirements)
 
 ### 2. Story Editor (The Notebook)
@@ -59,9 +63,14 @@ The AI **never** generates story prose. It only asks leading questions using Soc
 - Future: Page-flip animation
 
 ### 3. The Unstickr (AI Tutor)
-**FR-3.1: Inactivity Detection**
-- JavaScript monitors keyboard activity in editor
-- If idle > 10 seconds → Trigger Unstickr
+**FR-3.1: Activity & Affect Detection**
+- JavaScript monitors keyboard, mouse, and text entry patterns.
+- **Triggers**:
+  - **Inactivity**: Idle > 10-30 seconds.
+  - **Rage Clicks**: >3 clicks on same coordinates < 1s.
+  - **Button Mashing**: High-velocity random keystrokes followed by deletion.
+  - **Repetition**: Frequency of non-stop-words > threshold.
+- Outcome: Triggers `TutorState.OfferingHelp` immediately or sets `ReviewIntent`.
 
 **FR-3.2: Visual Presentation**
 - Pixel-art character animates/glows to draw attention
@@ -76,6 +85,19 @@ The AI **never** generates story prose. It only asks leading questions using Soc
   3. **GeminiTutorService**: (Placeholder) Calls Google API
 - Configuration: Switch via `appsettings.json` (`"TutorProvider": "Mock"`)
 - System Prompt: Explicitly forbids generating prose; only questions
+
+**FR-3.4: Spark Protocol (The Electric Starter)**
+- **Trigger**: `Story.Length == 0` (Blank Page).
+- **Process**: "Divergent -> Convergent" brainstorming loop (max 4 turns).
+  1. Sensory Question (The Wish)
+  2. Attribute Narrowing (The Vibe)
+  3. Scenario Prompt (The Scenario)
+- **Output**: JSON `{"status": "READY_TO_WRITE"}` triggers "Spark Handoff".
+
+**FR-3.5: Review Protocol (The Learning Loop)**
+- **Trigger**: User opts-in or Affect Detection flags `ReviewIntent`.
+- **Orthographic Coaching**: Identifies rule broken (e.g., "Bossy-E") and offers rules, not just corrections.
+- **Style Coaching**: Quotes famous authors from `Story.Genre` to suggest vocabulary improvements (e.g., "Doyle called it an 'immense hound'").
 
 ### 4. Notebook Entities (Character/Place Management)
 **FR-4.1: Global "Toy Box"**
@@ -138,6 +160,50 @@ The AI **never** generates story prose. It only asks leading questions using Soc
   - Font family changes
 - Duration: ~1.5 seconds
 
+### 7. The Library (Reader)
+**FR-7.1: Reader Interface**
+- Distraction-free reading view separate from Editor.
+- Typography: Large serif font (e.g., Merriweather).
+- Content: Public Domain Corpus texts defined in `Corpus_Definition.json`.
+
+**FR-7.2: Text Pinning**
+- Interaction: Select text -> "Pin" -> Target Notebook.
+- Result: Creates `NotebookEntry` (Type: Quote) with metadata (SourceBook, Author).
+
+**FR-7.3: Book Unlock System**
+- Trigger: `Story.Status` = Completed.
+- Logic: Unlock book matching `Story.Genre` / `Story.Archetype`.
+- Visual: Celebration Modal.
+
+### 8. Creative Tools
+**FR-8.1: The Blender**
+- Interface for mixing story elements (Characters, Settings, Themes).
+
+**FR-8.2: Spark Handoff**
+- Logic: Transitions from Spark Protocol to Editor.
+- Action: Creates temporary "Idea" entry, dismisses Tutor, focuses Editor.
+
+**FR-8.3: RAG Bridge**
+- Static `Corpus_Definition.json` maps weak words to genre-specific strong words and provides full text for Reader.
+
+### 9. Teacher Tools (The Classroom)
+**FR-9.1: Assignment Architecture**
+- **Data Model**: `Assignment` is a specialized `NotebookEntry` (Type: `Assignment`).
+- **Content**: Prompt text, Grading Rubric (Optional), Resource Links.
+- **Context Injection**: Allows defining a "Target Corpus" (e.g., "Use vocab from 'Sea Wolf'") and "Custom Nudges" (System Prompt overrides).
+
+**FR-9.2: The Split-View Workspace**
+- **Layout**: When opening an Assignment, the Editor enters "Workshop Mode".
+- **Left Pane**: The Assignment details (Always visible).
+- **Right Pane**: The Student's Draft.
+- **Goal**: Constant reference to the prompt without switching tabs.
+
+**FR-9.3: Adaptive Tuning (The Thermostat)**
+- **Role**: Teachers (not students).
+- **Controls**: "Patience" slider (Idle Timeout: 5s - 60s).
+- **Semantics**: "Faster" (More help) vs "Slower" (More independence).
+- **Security**: Settings are behind a simple "Teacher Gate" (e.g., Math problem or PIN).
+
 ---
 
 ## 🎨 UI/UX Requirements
@@ -171,7 +237,7 @@ The AI **never** generates story prose. It only asks leading questions using Soc
 ### TECH-2: Architecture
 - **State Management**: Scoped `StoryState` service for in-session persistence
 - **Service Layer**: Abstracted `ITutorService` for swappable LLM backends
-- **Client-Side JS**: Inactivity detection, animation triggers
+- **Client-Side JS**: Inactivity detection, animation triggers, **Input Pattern Analysis (Rage/Mashing)**.
 
 ### TECH-3: Data Model
 ```
@@ -192,7 +258,7 @@ NotebookEntries
   - Id (PK)
   - Name
   - Description
-  - Type (Character|Place|Custom)
+  - Type (Character|Place|Custom|Quote|Assignment)
   - Metadata (JSON)
 
 StoryReferences (Join Table)
@@ -229,6 +295,11 @@ Themes
 - Advanced continuity tracking (character death/revival logic)
 - Custom theme creation (user-defined palettes)
 - Export to PDF/EPUB
+- **Post-MVP**:
+  - The RAG "Mentor" Engine (Vector DB)
+  - The "Publisher" Engine (Print-on-Demand)
+  - Blueprint Data Seeding
+  - Advanced Analytics
 
 ---
 

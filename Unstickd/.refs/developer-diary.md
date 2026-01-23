@@ -197,3 +197,22 @@ The application is feature-complete for the Prototype phase. Users can Create, W
 ## Current State
 The Editor is now a focused, distraction-free "Book Reader" style interface. The complex state management of Pages is gone, replaced by a simple HTML blob, making the app much more robust and standard-compliant.
 
+## Session 15: The Spark Protocol (FR-3.4)
+- [x] **State Management**:
+    - Introduced `TutorMode` enum (Idle, Chat, SparkProtocol, ReviewMode).
+    - Added `TutorSession` to `StoryState` to track conversation history and current mode.
+- [x] **Service Layer**:
+    - Created `TutorOrchestrator` to handle multi-turn AI interactions, moving logic out of UI components.
+    - Implemented the "Spark Protocol" state machine: Sensory Question -> Attribute Narrowing -> Scenario -> Handoff.
+- [x] **AI Logic**:
+    - Implemented JSON parsing for detecting `READY_TO_WRITE` signal from the LLM.
+    - Wired up `TutorPanel.razor` to delegates "Get a hint" interactions to the Orchestrator.
+
+## Current State
+The AI is no longer just a stateless text generator. It now supports structured pedagogic protocols ("The Spark") that guide the user through a brainstorming loop before handing control back for writing.
+
+## Next Steps
+1. Polish the Spark Protocol prompts (Prompt Engineering).
+2. Implement the "Review Protocol" (FR-3.5).
+3. Add visual indicators for the current "Mode" in the Tutor Panel.
+

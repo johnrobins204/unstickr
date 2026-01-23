@@ -33,6 +33,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // State Management
 builder.Services.AddScoped<StoryState>();
+builder.Services.AddScoped<TutorOrchestrator>();
 
 // LLM Integration Service
 builder.Services.AddHttpClient("LLM", client => 

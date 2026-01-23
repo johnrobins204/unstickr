@@ -17,4 +17,6 @@ public class Story
     // though we will eventually drop StoryPage table
     public ICollection<StoryPage> Pages { get; set; } = new List<StoryPage>();
     public ICollection<StoryEntityLink> EntityLinks { get; set; } = new List<StoryEntityLink>();
+
+    public string Genre { get; set; } = "General";
 }

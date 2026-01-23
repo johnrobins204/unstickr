@@ -4,6 +4,7 @@
 @inject StoryState StoryState
 @inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
+@inject TutorOrchestrator TutorOrchestrator
 @implements IAsyncDisposable
 @using Serilog
 
@@ -211,10 +212,27 @@
 
     private async Task OnHintClick()
     {
-        Prompt = "Give me a creative hint or plot twist for the current story.";
-        await AskTutor();
+        StoryState.TutorSession.CurrentMode = TutorMode.SparkProtocol;
+        var response = await TutorOrchestrator.RunSparkProtocolAsync();
+        StoryState.TutorNotes = response;
+        // If Spark Protocol signals READY_TO_WRITE, clear TutorNotes and reset mode
+        if (StoryState.TutorSession.LastJsonStatus == "READY_TO_WRITE")
+        {
+            StoryState.TutorNotes = "You're ready to start writing!";
+            StoryState.TutorSession.CurrentMode = TutorMode.Idle;
+            StoryState.TutorSession.History.Clear();
+        }
+        StateHasChanged();
     }
-    
+
+    private async Task RunReview(ReviewType type)
+    {
+        StoryState.TutorSession.CurrentMode = TutorMode.ReviewMode;
+        var response = await TutorOrchestrator.RunReviewProtocolAsync(type);
+        StoryState.TutorNotes = response;
+        StateHasChanged();
+    }
+
     // --- JS Interop Methods matching inactivity.js ---
 
     [JSInvokable]
