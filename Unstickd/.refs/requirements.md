@@ -8,7 +8,7 @@ Unstickd is a child-focused creative writing tool that uses AI to provide passiv
 ## 👤 Target User
 - **Primary**: Children (age-gated via Date of Birth)
 - **Use Case**: Creative writing practice with gentle AI guidance
-- **Environment**: Localhost only (no authentication required)
+- **Environment**: Localhost (requires Internet connection for AI features)
 
 ---
 
@@ -79,11 +79,10 @@ The AI **never** generates story prose. It only asks leading questions using Soc
 - Questions are contextual to current page content
 
 **FR-3.3: LLM Service Abstraction**
-- Interface: `ITutorService` with three implementations:
+- Interface: `ITutorService` with implementations:
   1. **MockTutorService**: Returns pre-written Socratic questions
-  2. **OllamaTutorService**: Calls local Llama3 (http://localhost:11434)
-  3. **GeminiTutorService**: (Placeholder) Calls Google API
-- Configuration: Switch via `appsettings.json` (`"TutorProvider": "Mock"`)
+  2. **CohereTutorService**: Calls Cohere API (Chat & Reasoning endpoints)
+- Configuration: Switch via `appsettings.json` (`"TutorProvider": "Cohere"`)
 - System Prompt: Explicitly forbids generating prose; only questions
 
 **FR-3.4: Spark Protocol (The Electric Starter)**
@@ -204,6 +203,37 @@ The AI **never** generates story prose. It only asks leading questions using Soc
 - **Semantics**: "Faster" (More help) vs "Slower" (More independence).
 - **Security**: Settings are behind a simple "Teacher Gate" (e.g., Math problem or PIN).
 
+### 10. Workflow & Process (The Journey)
+**FR-10.1: Curriculum Stages**
+- **Description**: Formalizes the "Plan, Draft, Revise, Edit" workflow compliant with MB curriculum standards.
+- **Planner Mode**: Activates structural tools (Outliner, Mind Map).
+- **Draft Mode**: Focuses on flow (Editor, Passive AI).
+- **Revise/Edit Mode**: Focuses on details (Spellcheck, Style Review, Active AI).
+
+**FR-10.2: Student-Led Scaffolding (The Blueprint)**
+- **Context**: Invite the student to output an outline during the Planning stage.
+- **Intervention**: Pedagogically sound prompts aid in organizing the story based on Genre/Archetype.
+    - *Example*: "Adventure stories often start by introducing the hero's weakness. Do you want to add that to your outline?"
+
+### 7. The Library (Reader)
+**FR-7.1: Reader Interface**
+- Distraction-free reading view separate from Editor.
+- Typography: Large serif font (e.g., Merriweather).
+- Content: Public Domain Corpus texts defined in `Corpus_Definition.json`.
+
+**FR-7.2: Text Pinning**
+- Interaction: Select text -> "Pin" -> Target Notebook.
+- Result: Creates `NotebookEntry` (Type: Quote) with metadata (SourceBook, Author).
+
+**FR-7.3: Book Unlock System**
+- Trigger: `Story.Status` = Completed.
+- Logic: Unlock book matching `Story.Genre` / `Story.Archetype`.
+- Visual: Celebration Modal.
+
+**FR-7.4: External Library Integration**
+- **Goal**: Allow integration into divisional library licenses (e.g., OverDrive, Sora).
+- **Scope**: pending legal review regarding DRM and API access.
+- **Impact**: Extends potential reading list beyond public domain texts.
 ---
 
 ## 🎨 UI/UX Requirements
@@ -232,7 +262,7 @@ The AI **never** generates story prose. It only asks leading questions using Soc
 - Framework: .NET 10 Blazor Web App (Interactive Server)
 - Database: SQLite + Entity Framework Core
 - Rich Text: Blazored.TextEditor (QuillJS)
-- LLM: Ollama (local), Gemini (cloud, future)
+- LLM: Cohere API (Managed Cloud)
 
 ### TECH-2: Architecture
 - **State Management**: Scoped `StoryState` service for in-session persistence
@@ -278,11 +308,15 @@ Themes
 - `appsettings.json`:
   ```json
   {
-    "TutorProvider": "Mock",
-    "OllamaUrl": "http://localhost:11434",
-    "GeminiApiKey": ""
+    "TutorProvider": "Cohere",
+    "CohereApiKey": "<SECRET>",
+    "UseReasoningModel": true
   }
   ```
+
+### TECH-5: SSO
+Support MS Azure SSO
+
 
 ---
 

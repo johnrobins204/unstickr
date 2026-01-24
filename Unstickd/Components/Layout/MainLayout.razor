@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using Unstickd.Services
 @inject StoryState StoryState
+@inject IJSRuntime JS
 
 <div class="page" style="@ThemeStyles">
     <div class="sidebar">
@@ -71,6 +72,34 @@
     protected override void OnInitialized()
     {
         StoryState.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && JS != null)
+        {
+            // Load theme from localStorage if available
+            var themeJson = await JS.InvokeAsync<string>("themeInterop.loadTheme");
+            if (!string.IsNullOrEmpty(themeJson))
+            {
+                try
+                {
+                    var theme = System.Text.Json.JsonSerializer.Deserialize<Theme>(themeJson);
+                    if (theme != null)
+                    {
+                        StoryState.CurrentTheme = theme;
+                        StateHasChanged();
+                    }
+                }
+                catch { /* Ignore parse errors */ }
+            }
+        }
+        // Always save theme if set
+        if (JS != null && StoryState.CurrentTheme != null)
+        {
+            var themeJson = System.Text.Json.JsonSerializer.Serialize(StoryState.CurrentTheme);
+            await JS.InvokeVoidAsync("themeInterop.saveTheme", themeJson);
+        }
     }
 
     public void Dispose()

@@ -3,10 +3,11 @@
 This project is a modern **.NET 10 Blazor Web App** using **Interactive Server** render mode and the new **.slnx** solution format. It is a creative writing tool designed for local prototyping.
 
 ## 🏗 Architecture & State Management
-- **Hosting**: Server-Side Rendering (Interactive Server, WebSocket-based).
+- **Hosting**: .NET 10 Blazor Server running in a **Docker container hosted in Canada** (Data Sovereignty).
 - **Persistence Strategy**:
-    - **Database**: SQLite accessed via **Entity Framework Core**. This is the definitive source of truth.
-    - **Session State**: `StoryState` (Scoped Service) acts as a transient data buffer for the active user session. Do **NOT** rely on it for long-term storage; always commit critical changes to `AppDbContext`.
+    - **Database**: SQLite accessed via **Entity Framework Core**.
+    - **Security**: **Server-Side Encryption at Rest**. Critical story data is encrypted to the child's account and requires an Adult Supervisor for access (Supervisor Primacy).
+    - **Session State**: `StoryState` (Scoped Service) acts as a transient data buffer.
 - **Data Model**:
     - **Hierarchy**: `Account` owns `Notebooks` and `Stories`.
     - **Notebooks**: Global resource containing `Entities` (Characters, Places) and `Entries` (Notes).
@@ -23,19 +24,20 @@ This project is a modern **.NET 10 Blazor Web App** using **Interactive Server**
         - **Manual Save**: Icon indicator updates `Story.Content` in DB.
 - **`TutorPanel.razor`**:
     - AI assistant integration.
-    - **Inactivity Logic**: Responds to JS events (`OnInactivityStage1` @ 15s, `Stage2` @ 30s) to change avatar state.
-    - **Design Target**: primarily **Passive Observation**. The AI should not "ghostwrite" content. Direct chat is for specific "Review" or "Spark" modes (see `requirements.md`).
-    - **Rationale**: See `rationales.md` for the psychological basis of the "Unstickr" intervention (Locus of Control).
+    - **Inactivity Logic**: Responds to JS events (`OnInactivityStage1` @ 15s, `Stage2` @ 30s) to change avatar state. Context-sensitive pacing differentiates between "Transcription Pauses" and "Generative Pauses".
+    - **Design Target**: **Passive Observation**. The AI should not "ghostwrite" content ("No Ghostwriting" Firewall).
+    - **Rationale**: See `rationales.md` for the psychological basis (Locus of Control).
 
 ## 🤖 LLM Integration
 - **Client**: Use the named HttpClient **"LLM"** (`IHttpClientFactory.CreateClient("LLM")`).
-    - **Configuration**: Dynamic per-user via `Account.OllamaUrl` (default: `http://localhost:11434`) and `Account.OllamaModel`.
-    - **Endpoint**: Uses `/api/generate` (single completion), not chat history.
+    - **Configuration**: Dynamic per-user via `Account.CohereApiKey` (managed by Supervisor).
+    - **Endpoint**: Uses **Cohere's API** (`api.cohere.com`) specifically **Command R+ (Reasoning)** models.
+- **Privacy**: "Hybrid" AI strategy. No user data stored on inference side (Non-training agreement).
 - **Pattern**:
     - UI must remain responsive. Use async/await and loading indicators (`IsLoadingAI`).
     - Responses populate `StoryState.TutorNotes`.
 - **Planned Features** (See `requirements.md`):
-    - **Spark Protocol**: A specific Q&A loop for blank pages.
+    - **Spark Protocol**: A specific Q&A loop for blank pages (Divergent -> Convergent brainstorming).
     - **Review Protocol**: Style/Grammar coaching on demand.
     - **Assignments**: Structured prompts in a split view.
 

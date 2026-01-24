@@ -1,5 +1,6 @@
 @using Unstickd.Services
 @using Unstickd.Models
+@using Unstickd.Components.Shared
 @using Unstickd.Data
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext DbContext
@@ -151,8 +152,12 @@
             <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => SelectedEntity = null">
                 <i class="bi bi-arrow-left"></i>
             </button>
-            <h6 class="m-0">@SelectedEntity.Name</h6>
+            <h6 class="m-0 flex-grow-1">@SelectedEntity.Name</h6>
         </div>
+
+        <!-- Inline Entity Editor -->
+        <EntityEditor Entity="SelectedEntity" Mode="EntityEditor.EntityEditorMode.Inline" OnSaved="StateHasChanged" />
+        <hr class="my-3" />
 
         <!-- List of Notes -->
         <div class="d-flex flex-column gap-3 mb-3 flex-grow-1 overflow-auto">

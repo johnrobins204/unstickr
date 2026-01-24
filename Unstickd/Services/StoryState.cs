@@ -14,7 +14,8 @@ public class StoryState
     // Basic story data held in memory per user session
     public int StoryId { get; set; }
     public string Title { get; set; } = "Untitled Story";
-    
+    public Account? Account { get; set; }
+
     // HTML content from the Rich Text Editor
     public string Content { get; set; } = "<p>Once upon a time...</p>";
 
@@ -27,7 +28,7 @@ public class StoryState
 
     // Notebooks (In-Memory for faster access in session)
     public List<Notebook> Notebooks { get; set; } = new List<Notebook>();
-    
+
     // IDs of entities relevant to this specific story
     public HashSet<int> LinkedEntityIds { get; set; } = new HashSet<int>();
 
@@ -39,4 +40,8 @@ public class StoryState
 
     public TutorSession TutorSession { get; set; } = new();
     public string Genre { get; set; } = "General";
+
+    // Added for prompt context
+    public string? Age { get; set; } = null;
+    public string? Archetype { get; set; } = null;
 }

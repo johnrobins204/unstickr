@@ -34,11 +34,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // State Management
 builder.Services.AddScoped<StoryState>();
 builder.Services.AddScoped<TutorOrchestrator>();
+builder.Services.AddScoped<ICohereTutorService, CohereTutorService>();
 
 // LLM Integration Service
 builder.Services.AddHttpClient("LLM", client => 
 {
-    client.BaseAddress = new Uri("http://localhost:11434");
+    client.BaseAddress = new Uri("https://api.cohere.com/");
     client.Timeout = TimeSpan.FromMinutes(5); // LLMs can be slow
 });
 

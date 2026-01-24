@@ -2,6 +2,7 @@
 @using Unstickd.Models
 @using Microsoft.JSInterop
 @inject StoryState StoryState
+@inject ICohereTutorService CohereService
 @inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
 @inject TutorOrchestrator TutorOrchestrator
@@ -149,17 +150,14 @@
                     }
                     catch { /* Not JSON, ignore */ }
 
-                    // Create a Lore NotebookEntry for the spark idea
+                    // Create a Lore NotebookEntity for the spark idea
                     if (!string.IsNullOrWhiteSpace(summary))
                     {
-                        var entry = new NotebookEntry {
+                        var entry = new NotebookEntity {
                             Name = "Spark Idea",
-                            Description = summary,
-                            Type = NotebookType.Lore,
-                            StoryId = StoryState.StoryId,
-                            Created = DateTime.Now
+                            Description = summary
                         };
-                        var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Type == NotebookType.Lore);
+                        var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Name == "Lore");
                         if (loreNotebook != null)
                         {
                             loreNotebook.Entities.Add(entry);
@@ -210,44 +208,23 @@
         
         try
         {
-            var client = HttpClientFactory.CreateClient("LLM");
-            if (CurrentAccount != null && !string.IsNullOrWhiteSpace(CurrentAccount.OllamaUrl))
+            var account = CurrentAccount ?? StoryState.Account;
+            if (account != null)
             {
-                client.BaseAddress = new Uri(CurrentAccount.OllamaUrl);
-            }
-
-            var modelName = CurrentAccount?.OllamaModel;
-            if (string.IsNullOrWhiteSpace(modelName)) modelName = "llama3";
-            
-            var context = $"The user is writing a story titled '{StoryState.Title}'. Content snippet: '{Truncate(StoryState.Content, 500)}'.";
-            var fullPrompt = $"System: You are a helpful creative writing coach named Alice. Be concise. Context: {context}. User: {currentPrompt}";
-
-            var payload = new 
-            { 
-                model = modelName, 
-                prompt = fullPrompt,
-                stream = false 
-            };
-            
-            var response = await client.PostAsJsonAsync("api/generate", payload);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<LlamaResponse>();
-                if (result != null)
-                {
-                    StoryState.TutorNotes = result.response;
-                }
+                // Note: GetSocraticPromptAsync handles context internally or assumes simple prompt for now.
+                // If strict prompting is needed, we would prepend it here, but instruction says "Use GetSocraticPromptAsync(Prompt...)"
+                var response = await CohereService.GetSocraticPromptAsync(currentPrompt, account, account.UseReasoningModel);
+                StoryState.TutorNotes = response;
             }
             else
             {
-                StoryState.TutorNotes = "I'm having trouble connecting to my brain (Ollama). Check your settings.";
+                StoryState.TutorNotes = "No account context available.";
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "AI Error");
-            StoryState.TutorNotes = "I couldn't reach the AI service. Is Ollama running?";
+            StoryState.TutorNotes = "I couldn't reach the AI service.";
         }
         finally
         {
@@ -277,14 +254,11 @@
 
                 if (!string.IsNullOrWhiteSpace(summary))
                 {
-                    var entry = new NotebookEntry {
+                    var entry = new NotebookEntity {
                         Name = "Spark Idea",
-                        Description = summary,
-                        Type = NotebookType.Lore,
-                        StoryId = StoryState.StoryId,
-                        Created = DateTime.Now
+                        Description = summary
                     };
-                    var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Type == NotebookType.Lore);
+                    var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Name == "Lore");
                     if (loreNotebook != null)
                     {
                         loreNotebook.Entities.Add(entry);

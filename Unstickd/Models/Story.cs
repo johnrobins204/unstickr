@@ -19,4 +19,6 @@ public class Story
     public ICollection<StoryEntityLink> EntityLinks { get; set; } = new List<StoryEntityLink>();
 
     public string Genre { get; set; } = "General";
+    // Flexible story metadata (MVP)
+    public string Metadata { get; set; } = "{}";
 }
