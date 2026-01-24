@@ -129,7 +129,55 @@
     {
         if (e.Key == "Enter" && !e.ShiftKey)
         {
-            await AskTutor();
+            if (StoryState.TutorSession.CurrentMode == TutorMode.SparkProtocol)
+            {
+                // Treat input as answer to SparkProtocol
+                StoryState.TutorSession.History.Add(Prompt);
+                var response = await TutorOrchestrator.RunSparkProtocolAsync();
+                StoryState.TutorNotes = response;
+                Prompt = "";
+                // Check for handoff
+                if (StoryState.TutorSession.LastJsonStatus == "READY_TO_WRITE")
+                {
+                    // Try to extract summary from response
+                    string summary = null;
+                    try
+                    {
+                        var json = System.Text.Json.JsonDocument.Parse(response);
+                        if (json.RootElement.TryGetProperty("summary", out var s))
+                            summary = s.GetString();
+                    }
+                    catch { /* Not JSON, ignore */ }
+
+                    // Create a Lore NotebookEntry for the spark idea
+                    if (!string.IsNullOrWhiteSpace(summary))
+                    {
+                        var entry = new NotebookEntry {
+                            Name = "Spark Idea",
+                            Description = summary,
+                            Type = NotebookType.Lore,
+                            StoryId = StoryState.StoryId,
+                            Created = DateTime.Now
+                        };
+                        var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Type == NotebookType.Lore);
+                        if (loreNotebook != null)
+                        {
+                            loreNotebook.Entities.Add(entry);
+                        }
+                    }
+
+                    StoryState.TutorNotes = "You're ready to start writing!";
+                    StoryState.TutorSession.CurrentMode = TutorMode.Idle;
+                    StoryState.TutorSession.History.Clear();
+                    IsExpanded = false;
+                    await JS.InvokeVoidAsync("editorJs.focusEditor");
+                }
+                StateHasChanged();
+            }
+            else
+            {
+                await AskTutor();
+            }
         }
     }
 
@@ -215,14 +263,41 @@
         StoryState.TutorSession.CurrentMode = TutorMode.SparkProtocol;
         var response = await TutorOrchestrator.RunSparkProtocolAsync();
         StoryState.TutorNotes = response;
-        // If Spark Protocol signals READY_TO_WRITE, clear TutorNotes and reset mode
-        if (StoryState.TutorSession.LastJsonStatus == "READY_TO_WRITE")
-        {
-            StoryState.TutorNotes = "You're ready to start writing!";
-            StoryState.TutorSession.CurrentMode = TutorMode.Idle;
-            StoryState.TutorSession.History.Clear();
-        }
-        StateHasChanged();
+            // Check for handoff
+            if (StoryState.TutorSession.LastJsonStatus == "READY_TO_WRITE")
+            {
+                string summary = null;
+                try
+                {
+                    var json = System.Text.Json.JsonDocument.Parse(response);
+                    if (json.RootElement.TryGetProperty("summary", out var s))
+                        summary = s.GetString();
+                }
+                catch { /* Not JSON, ignore */ }
+
+                if (!string.IsNullOrWhiteSpace(summary))
+                {
+                    var entry = new NotebookEntry {
+                        Name = "Spark Idea",
+                        Description = summary,
+                        Type = NotebookType.Lore,
+                        StoryId = StoryState.StoryId,
+                        Created = DateTime.Now
+                    };
+                    var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Type == NotebookType.Lore);
+                    if (loreNotebook != null)
+                    {
+                        loreNotebook.Entities.Add(entry);
+                    }
+                }
+
+                StoryState.TutorNotes = "You're ready to start writing!";
+                StoryState.TutorSession.CurrentMode = TutorMode.Idle;
+                StoryState.TutorSession.History.Clear();
+                IsExpanded = false;
+                await JS.InvokeVoidAsync("editorJs.focusEditor");
+            }
+            StateHasChanged();
     }
 
     private async Task RunReview(ReviewType type)

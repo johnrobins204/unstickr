@@ -45,4 +45,11 @@ window.editorJs = {
             }
         }, debounceMs);
     }
+    ,
+    focusEditor: function () {
+        const editor = document.querySelector('.ql-editor');
+        if (editor) {
+            editor.focus();
+        }
+    }
 };

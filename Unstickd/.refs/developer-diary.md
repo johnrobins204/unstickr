@@ -1,3 +1,19 @@
+# Session 16: Spark Protocol Handoff & UX Flow
+- [x] **Spark Protocol Handoff**:
+    - Implemented multi-turn Spark Protocol in TutorPanel (Sensory → Attribute → Scenario → Handoff).
+    - On receiving `{status: 'READY_TO_WRITE', summary: '...'}` from the AI, the app:
+        - Creates a Lore NotebookEntry with the summary idea.
+        - Minimizes the Tutor panel.
+        - Auto-focuses the editor for immediate writing.
+    - Both "Get a hint" and Enter key now support the full loop and handoff.
+- [x] **UI/UX Flow**:
+    - Added JS interop to allow C# to focus the Quill editor after handoff.
+    - Confirmed the user is smoothly returned to writing with their spark idea pinned in the sidebar.
+- [x] **Documentation**:
+    - Created a Mermaid diagram to visualize the Spark Protocol handoff from a user perspective.
+
+## Current State
+The Spark Protocol is now a complete, user-friendly brainstorming loop. Children receive scaffolded help, and their ideas are captured and pinned for reference, with zero interruption to their writing flow.
 # Unstickd Developer Diary
 
 ## Session 1: Project Initialization & Architecture
