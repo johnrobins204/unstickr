@@ -1,0 +1,26 @@
+{
+	"name": "Unstickd Dev Container",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": { 
+			"VARIANT": "10.0" 
+		}
+	},
+	"settings": { 
+        "terminal.integrated.defaultProfile.linux": "zsh"
+    },
+	"extensions": [
+		"ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-azuretools.vscode-docker"
+	],
+	"remoteUser": "vscode",
+	"features": {
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+    "forwardPorts": [5000, 5001],
+    // Map the AWS/S3 credentials if present for Litestream testing
+    // "mounts": [
+    //     "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached" 
+    // ]
+}

@@ -48,6 +48,19 @@ builder.Services.AddHttpClient("LLM", client =>
 
 var app = builder.Build();
 
+// === PILOT HARDENING: Enable WAL Mode for Concurrency ===
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    // Ensure created and migrate
+    db.Database.Migrate();
+
+    // Enable WAL Mode (Write-Ahead Logging) to allow concurrent readers/writers
+    // This prevents SQLITE_BUSY errors when 30+ students save simultaneously.
+    db.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+}
+// ========================================================
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

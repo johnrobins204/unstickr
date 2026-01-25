@@ -17,8 +17,37 @@ window.editorJs = {
             
             // Also listen to keydown to catch some edge cases or immediate feedback if needed
             editor.addEventListener('keydown', () => this.handleInput(debounceMs));
+
+            // === PILOT NETWORK RESILIENCE ===
+            window.addEventListener('offline', () => this.handleConnectivityChange(false));
+            window.addEventListener('online', () => this.handleConnectivityChange(true));
+
         } else {
             console.warn("Editor element .ql-editor not found for auto-save initialization.");
+        }
+    },
+
+    handleConnectivityChange: function(isOnline) {
+        console.log("Connection status change: " + (isOnline ? "ONLINE" : "OFFLINE"));
+        if (!isOnline) {
+            // Signal loss to user (Simple alert for pilot, replace with toast later)
+            // Implementation: Change editor border or show overlay
+            const editorContainer = document.querySelector('.ql-container');
+            if (editorContainer) {
+                editorContainer.style.border = "2px solid red";
+                editorContainer.title = "You are OFFLINE. Changes may not save.";
+            }
+        } else {
+            // Restore visual state
+            const editorContainer = document.querySelector('.ql-container');
+            if (editorContainer) {
+                editorContainer.style.border = "";
+                editorContainer.title = "";
+            }
+            // Trigger an immediate save when back online
+            if (this.dotNetRef) {
+                this.dotNetRef.invokeMethodAsync('TriggerAutoSave');
+            }
         }
     },
 

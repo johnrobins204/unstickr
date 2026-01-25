@@ -1,62 +1,55 @@
 # Copilot Instructions for Unstickd
 
-This project is a modern **.NET 10 Blazor Web App** using **Interactive Server** render mode and the new **.slnx** solution format. It is a creative writing tool designed for local prototyping.
+You are assisting with **Unstickd**, a .NET 10 Blazor Web App (Interactive Server) designed as a creative writing tutor for children. 
 
-## 🏗 Architecture & State Management
-- **Hosting**: .NET 10 Blazor Server running in a **Docker container hosted in Canada** (Data Sovereignty).
-- **Persistence Strategy**:
-    - **Database**: SQLite accessed via **Entity Framework Core**.
-    - **Security**: **Server-Side Encryption at Rest**. Critical story data is encrypted to the child's account and requires an Adult Supervisor for access (Supervisor Primacy).
-    - **Session State**: `StoryState` (Scoped Service) acts as a transient data buffer.
-- **Data Model**:
-    - **Hierarchy**: `Account` owns `Notebooks` and `Stories`.
-    - **Notebooks**: Global resource containing `Entities` (Characters, Places) and `Entries` (Notes).
-    - **Stories**: Contain `Content` (HTML string). Can "link" to Notebook Entities via `StoryEntityLink`.
-        - *Legacy Note*: `StoryPage` entity exists but is deprecated; logic migrates old pages to `Story.Content` on load.
-    - **Themes**: Cosmetic overlays associated with Accounts.
+## 🏗 Project Architecture
+- **Framework**: .NET 10 Blazor Server (containerized).
+- **Solution Format**: Uses `.slnx` (Visual Studio Solution XML).
+- **Data**: SQLite with **WAL Mode** enabled (Write-Ahead Logging) for concurrency.
+- **ORM**: Entity Framework Core.
+- **AI**: **Cohere Command R+** (Reasoning) via named HttpClient `"LLM"`.
+- **State**: `StoryState` (Scoped Service) manages active session data (Story, Notebooks, Tutor).
 
-## 🧩 Key Components
-- **`Editor.razor`**: The core workspace.
-    - **Left Pane**: Wrapper around `Blazored.TextEditor` (QuillJS) using **Continuous Scrolling** (visual "book" viewport).
-    - **Right Pane**: Tabbed interface for **Notebooks** (Linkable entities) and **Tutor** (AI Chat).
-    - **Saving Logic**: 
-        - **Auto-Save**: Triggered via JS debounce (2s).
-        - **Manual Save**: Icon indicator updates `Story.Content` in DB.
-- **`TutorPanel.razor`**:
-    - AI assistant integration.
-    - **Inactivity Logic**: Responds to JS events (`OnInactivityStage1` @ 15s, `Stage2` @ 30s) to change avatar state. Context-sensitive pacing differentiates between "Transcription Pauses" and "Generative Pauses".
-    - **Design Target**: **Passive Observation**. The AI should not "ghostwrite" content ("No Ghostwriting" Firewall).
-    - **Rationale**: See `rationales.md` for the psychological basis (Locus of Control).
+## 🧩 Core Domain Concepts
+- **Supervisor Primacy**: Critical settings/data are gated. Child vs. Adult roles.
+- **No Ghostwriting**: The AI **never** writes story content for the user. It only asks questions ("Spark Protocol") or reviews text.
+- **Data Sovereignty**: Critical story data is encrypted (Server-Side Encryption) and hosted in Canada.
 
-## 🤖 LLM Integration
-- **Client**: Use the named HttpClient **"LLM"** (`IHttpClientFactory.CreateClient("LLM")`).
-    - **Configuration**: Dynamic per-user via `Account.CohereApiKey` (managed by Supervisor).
-    - **Endpoint**: Uses **Cohere's API** (`api.cohere.com`) specifically **Command R+ (Reasoning)** models.
-- **Privacy**: "Hybrid" AI strategy. No user data stored on inference side (Non-training agreement).
-- **Pattern**:
-    - UI must remain responsive. Use async/await and loading indicators (`IsLoadingAI`).
-    - Responses populate `StoryState.TutorNotes`.
-- **Planned Features** (See `requirements.md`):
-    - **Spark Protocol**: A specific Q&A loop for blank pages (Divergent -> Convergent brainstorming).
-    - **Review Protocol**: Style/Grammar coaching on demand.
-    - **Assignments**: Structured prompts in a split view.
-
-## 🛠 Developer Patterns & workflows
-- **Rich Text Handling**:
-    - **Library**: `Blazored.TextEditor`.
-    - **Caveat**: **No two-way binding**. You must manually call `await QuillHtml.GetHTML()` to read and `LoadHTML()` to write.
-- **Logging**:
-    - Use **Serilog**. Logs are written to `logs/unstickd-YYYYMMDD.txt`.
-- **JavaScript Interop**: 
-    - Used for Editor auto-save debounce (`editor.js`) and Inactivity detection (`inactivity.js`).
-    - Keep JS interop calls async.
-
-## ⚠️ Important Implementation Details
-1. **Scoped CSS**: Prefer scoped styles (`.razor.css`) over global CSS.
-2. **Navigation**: Project disables navigation exceptions: `<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>`.
-3. **Theme System**: Themes control fonts, colors, and background via CSS variables injected dynamically based on `StoryState.CurrentTheme`.
-
-## 🚀 Common Commands
+## 🛠 Developer Workflow
 - **Run**: `dotnet run --project Unstickd/Unstickd.csproj`
 - **Watch**: `dotnet watch --project Unstickd/Unstickd.csproj`
 - **Migrations**: `dotnet ef migrations add <Name> --project Unstickd/Unstickd.csproj`
+- **Testing**:
+    - Unit: `dotnet test Unstickd.Tests.Unit`
+    - Integration: `dotnet test Unstickd.Tests.Integration`
+    - E2E: `dotnet test Unstickd.Tests.E2E` (Playwright)
+
+## 📂 Key Code Patterns & Directories
+- **Rich Text**: Uses `Blazored.TextEditor` (QuillJS).
+    - ⚠️ **Critical**: No two-way binding. Use `GetHTML()` and `LoadHTML()` explicitly.
+    - **Styles**: Scoped CSS (`.razor.css`) preferred.
+- **Services (`Unstickd/Services/`)**:
+    - `StoryState.cs`: Central session state/cache.
+    - `TutorOrchestrator.cs`: Manages AI conversational state/pacing.
+    - `CohereTutorService.cs`: AI API integration.
+- **JS Interop (`Unstickd/wwwroot/js/`)**:
+    - `editor.js`: Auto-save debounce logic (2s), scroll events.
+    - `inactivity.js`: "Passive Observation" timers (Stage 1 @ 15s, Stage 2 @ 30s).
+- **Logging**: Serilog writes to `logs/unstickd-*.txt`.
+    - **Rule**: Never log `Story.Content` (Privacy).
+
+## ⚠️ Implementation Guidelines
+1. **Async/Await**: Mandatory for all I/O, especially AI calls (can be slow).
+2. **Navigation**: `<BlazorDisableThrowNavigationException>` is `true`.
+3. **Themes**: Controlled via `StoryState.CurrentTheme` injecting CSS variables.
+4. **Error Handling**: `CustomErrorBoundaryLogger` catches circuit errors.
+
+## 🔎 Service Boundaries
+- **Tutor Panel**: Isolated component for AI chat.
+- **Editor**: Continuous scroll viewport.
+- **Notebooks**: Entity management (Characters/Places) linked to Stories.
+
+## 🧪 Testing Strategy
+- **Unit**: Business logic in Services/Models.
+- **Integration**: EF Core operations and Service interactions.
+- **E2E**: Critical flows (Onboarding, Editor saving, Tutor interaction).

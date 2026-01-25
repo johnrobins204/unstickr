@@ -1,0 +1,14 @@
+# Litestream Configuration for Unstickd Pilot
+
+# /etc/litestream.yml
+
+dbs:
+  - path: /app/unstickd.db
+    replicas:
+      - url: s3://unstickd-pilot-backups/db
+        # Credentials should be set via environment variables:
+        # LITESTREAM_ACCESS_KEY_ID
+        # LITESTREAM_SECRET_ACCESS_KEY
+        
+# Metrics (Optional)
+# addr: ":9090"
