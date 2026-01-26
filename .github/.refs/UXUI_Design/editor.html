@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing Quest - Edit Phase</title>
+    <!-- Font Imports -->
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&family=Lexend:wght@300;400;600&family=Patrick+Hand&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* SHARED THEME VARIABLES */
+        :root {
+            --font-size: 16px;
+            --background: #f5ebe0; 
+            --foreground: #2d1b00;
+            --card: #fff9ec;
+            --card-foreground: #2d1b00;
+            --primary: #8b4513;
+            --primary-foreground: #fef6e4;
+            --secondary: #f582ae;
+            --muted: #e8d5b7;
+            --muted-foreground: #6b5842;
+            --accent: #72a1e5;
+            --accent-foreground: #2d1b00;
+            --border: #8b7355;
+            --radius: 0px;
+            --main-font: 'Silkscreen', cursive;
+            --reading-font: 'Lexend', sans-serif;
+
+            --sidebar: var(--primary);
+            --sidebar-foreground: var(--primary-foreground);
+            --sidebar-primary: var(--secondary);
+            --sidebar-primary-foreground: var(--foreground);
+            --sidebar-border: #6b4423;
+            --sidebar-accent: var(--card);
+            --sidebar-accent-foreground: var(--foreground);
+        }
+
+        * {
+            border-color: var(--border);
+            image-rendering: pixelated;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--main-font);
+            font-size: var(--font-size);
+            overflow: hidden;
+        }
+
+        /* Pixel Grid Background */
+        .pixel-grid {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px),
+                repeating-linear-gradient(90deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar-btn {
+            border-width: 2px;
+            transition: all 0.1s;
+            position: relative;
+        }
+        .workflow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -12px;
+            width: 2px;
+            height: 12px;
+            background: var(--sidebar-border);
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+        
+        .sidebar-btn.active {
+            background-color: var(--sidebar-primary);
+            color: var(--sidebar-primary-foreground);
+            border-color: var(--sidebar-primary);
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+        
+        /* EDITOR STYLES */
+        .edit-surface {
+            font-family: var(--reading-font);
+            font-size: 1.25rem;
+            line-height: 2.2;
+            color: #4a3b2a;
+        }
+
+        /* Flagged Items */
+        .flagged-item {
+            border-radius: 4px;
+            padding: 2px 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-weight: 600;
+            border: 2px solid transparent;
+        }
+
+        .flagged-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        /* Status Colors */
+        .flag-spelling { background-color: rgba(234, 88, 12, 0.2); border-color: #ea580c; }
+        .flag-grammar { background-color: rgba(147, 51, 234, 0.2); border-color: #9333ea; }
+        .flag-repetition { background-color: rgba(5, 150, 105, 0.2); border-color: #059669; }
+        
+        .flag-note { 
+            background-color: rgba(59, 130, 246, 0.1); 
+            border-bottom: 2px solid #3b82f6;
+        }
+        .flag-note::after {
+            content: '📝';
+            font-size: 0.6em;
+            position: absolute;
+            top: -12px;
+            right: -8px;
+        }
+
+        /* Fixed State */
+        .item-fixed {
+            background-color: transparent;
+            border-color: transparent;
+            color: #15803d;
+            animation: fixFlash 1s ease-out;
+        }
+        @keyframes fixFlash {
+            0% { background-color: #22c55e; color: white; }
+            100% { background-color: transparent; color: #15803d; }
+        }
+
+        /* Editor Popover */
+        .edit-popover {
+            position: absolute;
+            background: var(--card);
+            border: 4px solid var(--primary);
+            padding: 1rem;
+            width: 300px;
+            z-index: 100;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.2);
+            animation: slideUp 0.1s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Checklist Items */
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--muted-foreground);
+            transition: all 0.3s;
+        }
+        .checklist-item.done {
+            text-decoration: line-through;
+            opacity: 0.5;
+            background-color: rgba(0,0,0,0.05);
+        }
+        .checklist-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .checklist-item.done .checklist-icon {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: white;
+        }
+
+    </style>
+</head>
+<body class="h-screen flex" onclick="handleBodyClick(event)">
+
+    <div class="pixel-grid"></div>
+
+    <!-- Sidebar -->
+    <aside class="w-72 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r-4 border-[var(--sidebar-border)] flex flex-col z-10">
+        <div class="p-6 border-b-4 border-[var(--sidebar-border)]">
+            <h1 class="font-['Press_Start_2P'] text-xs leading-relaxed uppercase">Story Quest</h1>
+            <div class="mt-2 text-[var(--sidebar-foreground)] opacity-60 text-[10px]">✨ Phase: Edit</div>
+        </div>
+        
+        <nav class="flex-1 flex flex-col overflow-y-auto">
+            <!-- Workflow -->
+            <div class="p-6 pb-2">
+                <div class="flex flex-col gap-3 relative">
+                    <div class="workflow-step">
+                        <button class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70">
+                            <div class="bg-[var(--sidebar-accent)] text-[var(--muted-foreground)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">1</div>
+                            <span class="text-sm">Plan</span>
+                        </button>
+                    </div>
+                    <div class="workflow-step">
+                        <button onclick="window.location.href='index.html'" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70">
+                            <div class="bg-[var(--sidebar-accent)] text-[var(--muted-foreground)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">2</div>
+                            <span class="text-sm">Draft</span>
+                        </button>
+                    </div>
+                    <div class="workflow-step">
+                        <button onclick="window.location.href='review_wireframe.html'" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70">
+                            <div class="bg-[var(--sidebar-accent)] text-[var(--muted-foreground)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">3</div>
+                            <span class="text-sm">Review</span>
+                        </button>
+                    </div>
+                    <div class="workflow-step">
+                        <button class="sidebar-btn active w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                            <div class="bg-white text-[var(--primary)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">4</div>
+                            <span class="text-sm">Edit</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checklist -->
+            <div class="flex-1 bg-[var(--sidebar-accent)] m-4 border-2 border-[var(--sidebar-border)] flex flex-col">
+                <div class="p-3 border-b-2 border-[var(--sidebar-border)] bg-[var(--card)]">
+                    <h3 class="font-['Press_Start_2P'] text-[10px] text-[var(--primary)] uppercase mb-2">
+                        Edit Checklist
+                    </h3>
+                    <!-- Progress Bar -->
+                    <div class="w-full h-2 bg-[var(--muted)] rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-[var(--secondary)] transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="text-[9px] text-right mt-1 text-[var(--muted-foreground)]"><span id="progress-text">0/4</span> Fixed</div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-2" id="checklist-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col relative z-10 overflow-hidden bg-[var(--background)]">
+        
+        <!-- Header -->
+        <header class="border-b-4 border-[var(--border)] bg-[var(--card)] px-8 py-4 flex items-center justify-between shadow-md z-20">
+            <div>
+                <h2 class="font-['Press_Start_2P'] text-md text-[var(--primary)] mb-1">Polishing Station</h2>
+                <p class="text-xs text-[var(--muted-foreground)]">Turn your flags into fixes!</p>
+            </div>
+            <button onclick="finishEditing()" id="publish-btn" class="opacity-50 cursor-not-allowed flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] border-2 border-[var(--foreground)] font-['Press_Start_2P'] text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] transition-all">
+                Submit to Teacher <i data-lucide="send" class="size-4"></i>
+            </button>
+        </header>
+
+        <!-- Editor Surface -->
+        <div class="flex-1 overflow-y-auto p-12 custom-scrollbar">
+            <div class="max-w-3xl mx-auto bg-white border-4 border-[var(--border)] p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] min-h-[500px] relative">
+                
+                <div class="absolute inset-0 pointer-events-none opacity-10" 
+                     style="background-image: repeating-linear-gradient(transparent, transparent 31px, var(--accent) 32px);">
+                </div>
+
+                <div class="edit-surface relative z-10" id="editor-content">
+                    <!-- Content injected via JS -->
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Editor Toolkit Popover -->
+    <div id="edit-popover" class="edit-popover hidden">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h4 class="font-bold text-xs uppercase text-[var(--muted-foreground)]" id="popover-type">Spelling Error</h4>
+                <div class="text-sm font-bold text-[var(--primary)]" id="popover-original">Original</div>
+            </div>
+            <button onclick="closePopover()" class="text-[var(--muted-foreground)] hover:text-[var(--destructive)]"><i data-lucide="x" class="size-4"></i></button>
+        </div>
+
+        <div id="popover-note-area" class="bg-blue-50 border-l-4 border-blue-400 p-2 mb-4 text-xs italic text-blue-800 hidden">
+            <!-- User note content -->
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-[10px] font-bold uppercase mb-1">Your Fix:</label>
+            <input type="text" id="fix-input" class="w-full border-2 border-[var(--border)] p-2 font-['Lexend'] focus:border-[var(--primary)] outline-none" placeholder="Type correction here...">
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="applyEdit()" class="flex-1 bg-[var(--secondary)] text-white py-2 font-bold text-xs border-2 border-[var(--foreground)] hover:brightness-110">Apply Fix</button>
+            <button onclick="ignoreFlag()" class="px-3 bg-transparent border-2 border-[var(--border)] text-[var(--muted-foreground)] text-xs hover:bg-[var(--muted)]">Ignore</button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-[var(--card)] border-4 border-[var(--border)] p-8 max-w-md w-full text-center shadow-[10px_10px_0px_0px_rgba(255,255,255,0.2)]">
+            <i data-lucide="check-circle" class="size-16 mx-auto text-[var(--secondary)] mb-4 animate-bounce"></i>
+            <h2 class="font-['Press_Start_2P'] text-xl text-[var(--primary)] mb-4">Sent to Teacher!</h2>
+            <p class="text-sm font-['Lexend'] mb-6">Your edits have been submitted for review. While you wait, let's keep writing!</p>
+            <button onclick="window.location.href='index.html'" class="w-full py-3 bg-[var(--primary)] text-[var(--primary-foreground)] border-2 border-[var(--foreground)] font-['Press_Start_2P'] text-xs shadow-md hover:translate-y-1 transition-all">
+                Return to Drafting <i data-lucide="arrow-right" class="size-4 inline ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ----------------------------------------
+        // DATA: SIMULATED REVIEW OUTPUT
+        // ----------------------------------------
+        const storyData = [
+            { text: "The", id: 1 }, { text: "knight", id: 2, note: "Cooler name?" }, { text: "rode", id: 3 }, { text: "into", id: 4 }, { text: "the", id: 5 },
+            { text: "dark", id: 6, flag: "repetition" }, 
+            { text: "forest.", id: 7 }, { text: "It", id: 8 }, { text: "was", id: 9 }, { text: "a", id: 10 }, 
+            { text: "dark", id: 11, flag: "repetition" }, 
+            { text: "night.", id: 12 }, { text: "He", id: 13 }, { text: "was", id: 14 }, { text: "looking", id: 15 }, 
+            { text: "for", id: 16 }, { text: "the", id: 17 }, { text: "dragon.", id: 18 }, { text: "\"Where", id: 19 }, 
+            { text: "is", id: 20 }, { text: "the", id: 21 }, { text: "dragon?\"", id: 22 }, { text: "he", id: 23 }, 
+            { text: "asked.", id: 24 }, { text: "Just", id: 25 }, { text: "then,", id: 26 }, { text: "a", id: 27 }, 
+            { text: "huge", id: 28 }, { text: "fire", id: 29 }, { text: "ball", id: 30 }, { text: "shot", id: 31 }, 
+            { text: "across", id: 32 }, { text: "the", id: 33 }, 
+            { text: "skye.", id: 34, flag: "spelling" }, 
+            { text: "Their", id: 35, flag: "grammar" }, 
+            { text: "was", id: 36 }, { text: "smoke", id: 37 }, { text: "everywhere!", id: 38 }
+        ];
+
+        // ----------------------------------------
+        // STATE
+        // ----------------------------------------
+        let activeId = null;
+        let flagsToFix = 0;
+        let flagsFixed = 0;
+
+        // ----------------------------------------
+        // INITIALIZATION
+        // ----------------------------------------
+        function init() {
+            renderEditor();
+            renderChecklist();
+            updateProgress();
+        }
+
+        function renderEditor() {
+            const container = document.getElementById('editor-content');
+            container.innerHTML = storyData.map(token => {
+                let className = "inline-block px-1 rounded transition-colors cursor-text";
+                let onclick = "";
+                
+                if (token.flag) {
+                    className = `flagged-item flag-${token.flag}`;
+                    onclick = `onclick="openEditTool(event, ${token.id})"`;
+                    flagsToFix++;
+                } else if (token.note) {
+                    className = `flagged-item flag-note`;
+                    onclick = `onclick="openEditTool(event, ${token.id})"`;
+                    flagsToFix++; // Notes count as tasks
+                }
+
+                return `<span id="token-${token.id}" class="${className}" ${onclick}>${token.text}</span>`;
+            }).join(' ');
+            
+            // Reset count for dynamic logic
+            flagsToFix = storyData.filter(t => t.flag || t.note).length;
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('checklist-container');
+            const flaggedItems = storyData.filter(t => t.flag || t.note);
+            
+            container.innerHTML = flaggedItems.map(item => {
+                let icon = "alert-circle";
+                let label = "Correction";
+                let color = "text-[var(--primary)]";
+
+                if (item.flag === 'spelling') { icon = "type"; label = "Spelling"; color = "text-orange-600"; }
+                if (item.flag === 'grammar') { icon = "book-a"; label = "Grammar"; color = "text-purple-600"; }
+                if (item.flag === 'repetition') { icon = "repeat"; label = "Repetition"; color = "text-green-600"; }
+                if (item.note) { icon = "sticky-note"; label = "My Note"; color = "text-blue-600"; }
+
+                return `
+                    <div id="check-${item.id}" class="checklist-item" onclick="openEditTool(null, ${item.id})">
+                        <div class="checklist-icon"><i data-lucide="${icon}" class="size-3"></i></div>
+                        <div class="flex-1">
+                            <div class="font-bold text-[10px] ${color}">${label}</div>
+                            <div class="text-xs truncate w-32">"${item.text}"</div>
+                        </div>
+                        <button class="text-xs text-[var(--accent)] hover:underline">Fix</button>
+                    </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons();
+        }
+
+        // ----------------------------------------
+        // INTERACTION
+        // ----------------------------------------
+        function openEditTool(e, id) {
+            if (e) e.stopPropagation();
+            
+            const token = storyData.find(t => t.id === id);
+            const element = document.getElementById(`token-${id}`);
+            const popover = document.getElementById('edit-popover');
+            
+            activeId = id;
+
+            // Populate Popover
+            document.getElementById('popover-original').innerText = `"${token.text}"`;
+            document.getElementById('fix-input').value = token.text.replace(/[^a-zA-Z]/g, ""); // Simple cleanup
+            document.getElementById('fix-input').focus();
+
+            // Setup Header & Note
+            const typeLabel = document.getElementById('popover-type');
+            const noteArea = document.getElementById('popover-note-area');
+            
+            if (token.note) {
+                typeLabel.innerText = "My Note";
+                typeLabel.className = "font-bold text-xs uppercase text-blue-600";
+                noteArea.innerHTML = `<i data-lucide="message-square" class="size-3 inline mr-1"></i> ${token.note}`;
+                noteArea.classList.remove('hidden');
+            } else {
+                typeLabel.innerText = `${token.flag} Issue`;
+                typeLabel.className = "font-bold text-xs uppercase text-[var(--muted-foreground)]";
+                noteArea.classList.add('hidden');
+            }
+
+            // Position
+            const rect = element.getBoundingClientRect();
+            popover.style.left = `${rect.left}px`;
+            popover.style.top = `${rect.bottom + 10}px`;
+            popover.classList.remove('hidden');
+            
+            lucide.createIcons();
+        }
+
+        function applyFix() {
+            if (!activeId) return;
+            
+            const newVal = document.getElementById('fix-input').value;
+            const element = document.getElementById(`token-${activeId}`);
+            const checkItem = document.getElementById(`check-${activeId}`);
+
+            // Update Text
+            element.innerText = newVal + (element.innerText.match(/[.,!?]$/) || ""); // Preserve punctuation roughly
+            element.className = "inline-block px-1 item-fixed";
+            element.removeAttribute("onclick"); // Disable further editing for prototype
+
+            // Update Checklist
+            checkItem.classList.add('done');
+            checkItem.querySelector('.checklist-icon').innerHTML = `<i data-lucide="check" class="size-3"></i>`;
+            
+            // State
+            flagsFixed++;
+            updateProgress();
+            closePopover();
+            lucide.createIcons();
+        }
+
+        function ignoreFlag() {
+            // Just mark as done without changing text
+            const element = document.getElementById(`token-${activeId}`);
+            element.className = "inline-block px-1"; // Remove styling
+            element.removeAttribute("onclick");
+            
+            document.getElementById(`check-${activeId}`).classList.add('done');
+            
+            flagsFixed++;
+            updateProgress();
+            closePopover();
+        }
+
+        function closePopover() {
+            document.getElementById('edit-popover').classList.add('hidden');
+            activeId = null;
+        }
+
+        function updateProgress() {
+            const pct = Math.round((flagsFixed / flagsToFix) * 100);
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            document.getElementById('progress-text').innerText = `${flagsFixed}/${flagsToFix}`;
+
+            if (flagsFixed >= flagsToFix) {
+                const btn = document.getElementById('publish-btn');
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.classList.add('animate-pulse');
+            }
+        }
+
+        function finishEditing() {
+            if (flagsFixed >= flagsToFix) {
+                document.getElementById('success-modal').classList.remove('hidden');
+            }
+        }
+
+        function handleBodyClick(e) {
+            if (!e.target.closest('.edit-popover') && !e.target.classList.contains('flagged-item') && !e.target.closest('.checklist-item')) {
+                closePopover();
+            }
+        }
+
+        init();
+
+    </script>
+</body>
+</html>

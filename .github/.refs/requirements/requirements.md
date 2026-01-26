@@ -44,18 +44,16 @@ The AI **never** generates story prose. It only asks leading questions using Soc
 - Selection triggers visual transition (see UI Requirements)
 
 ### 2. Story Editor (The Notebook)
-**FR-2.1: Page-Based Architecture**
-- Stories are divided into **Pages** (not infinite scroll)
-- Each page contains:
-  - Rich text content (HTML)
-  - Page number
-  - Previous/Next navigation
-- Target: Simulates a physical notebook
+**FR-2.1: Continuous Book Architecture**
+- Stories are stored as a single HTML blob (`Story.Content`) for accessibility and flow.
+- **Visual Presentation**: Uses CSS Columns (`column-width`) to present text in a side-by-side "Open Book" spread.
+- **Navigation**: Horizontal scrolling simulates turning pages without breaking the text stream.
+- Target: Simulates a physical notebook while maintaining a continuous writing stream.
 
 **FR-2.2: Rich Text Editing**
 - Basic formatting: Bold, Italic, Underline, Font Size
 - Use existing `Blazored.TextEditor` (QuillJS wrapper)
-- Auto-save to `StoryState` on page navigation
+- Auto-save to `StoryState` via debounce (2s) and inactivity triggers
 
 **FR-2.3: Page Navigation**
 - "Next Page" button creates new page if at end

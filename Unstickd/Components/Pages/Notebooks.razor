@@ -1,3 +1,7 @@
+    <!-- Watermark -->
+    <div class="absolute bottom-10 right-10 pointer-events-none opacity-10 select-none z-0">
+        <div class="text-8xl">📚</div>
+    </div>
 @page "/notebooks"
 @using Unstickd.Models
 @using Unstickd.Services
@@ -9,19 +13,37 @@
 
 <PageTitle>Unstickd - Notebooks</PageTitle>
 
-<div class="container-fluid h-100 p-0 d-flex flex-column">
-    <div class="bg-light border-bottom p-3 d-flex justify-content-between align-items-center">
-        <h3 class="m-0"><i class="bi bi-journal-album me-2"></i>My Notebooks</h3>
-        <p class="text-muted m-0 small">Manage your world-building database</p>
+<div class="flex flex-col gap-6 w-full max-w-6xl mx-auto">
+    <div class="flex items-center justify-between border-b-4 border-[var(--border)] bg-[var(--card)] px-6 py-4">
+        <h3 class="font-['Press_Start_2P'] text-lg text-[var(--primary)] flex items-center gap-2"><i data-lucide="book" class="size-5"></i> Story Notebooks</h3>
+        <p class="text-xs text-[var(--muted-foreground)]">Your collection of world knowledge.</p>
     </div>
-
-    <div class="flex-grow-1 overflow-hidden">
-        <div class="container h-100 py-3">
-             <div class="card h-100 shadow-sm">
-                 <div class="card-body p-0 h-100">
-                    <NotebookPanel StoryId="0" />
-                 </div>
-             </div>
+    <div class="flex-1 p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+            @foreach (var nb in StoryState.Notebooks)
+            {
+                <div class="pixel-card p-6 cursor-pointer hover:border-[var(--primary)] transition-all group" style="border-radius: var(--radius)">
+                    <div class="mb-4">
+                        <div class="text-5xl mb-3">📚</div>
+                        <h3 class="font-['Press_Start_2P'] text-[10px] text-[var(--foreground)] mb-2 leading-relaxed">@nb.Name</h3>
+                        @if (nb.IsSystem)
+                        {
+                            <span class="text-[8px] bg-[var(--secondary)] text-white px-1 py-0.5 font-bold uppercase" style="border-radius: var(--radius)">System Repo</span>
+                        }
+                    </div>
+                    <div class="space-y-2 text-xs text-[var(--muted-foreground)]">
+                        <div class="flex items-center gap-2"><i data-lucide="book" class="size-3"></i><span>@(nb.Entities?.Count ?? 0) entries</span></div>
+                        <div class="flex items-center gap-2"><i data-lucide="calendar" class="size-3"></i><span>@nb.LastModified.ToShortDateString()</span></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t-2 border-[var(--border)] opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button class="text-xs text-[var(--primary)] font-bold">OPEN →</button>
+                    </div>
+                </div>
+            }
+            <div class="bg-[var(--muted)] border-4 border-dashed border-[var(--border)] p-6 flex flex-col items-center justify-center min-h-[200px] hover:bg-opacity-60 cursor-pointer transition-colors" style="border-radius: var(--radius)">
+                <i data-lucide="plus" class="size-8 text-[var(--muted-foreground)] mb-3"></i>
+                <p class="text-xs text-[var(--muted-foreground)] text-center font-bold">Create Repository</p>
+            </div>
         </div>
     </div>
 </div>

@@ -15,6 +15,7 @@ public class Account
     // UX Configuration
     public int? ActiveThemeId { get; set; }
     public Theme? ActiveTheme { get; set; }
+    public string ThemePreferenceJson { get; set; } = "{}";
     
     public ICollection<Story> Stories { get; set; } = new List<Story>();
     public ICollection<Notebook> Notebooks { get; set; } = new List<Notebook>();

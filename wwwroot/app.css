@@ -1,0 +1,135 @@
+/* === Design System Variables (from wireframe) === */
+:root {
+    --font-size: 16px;
+    --background: #f5ebe0; 
+    --foreground: #2d1b00;
+    --card: #fff9ec;
+    --card-foreground: #2d1b00;
+    --primary: #8b4513;
+    --primary-foreground: #fef6e4;
+    --secondary: #f582ae;
+    --muted: #e8d5b7;
+    --muted-foreground: #6b5842;
+    --accent: #72a1e5;
+    --accent-foreground: #2d1b00;
+    --border: #8b7355;
+    --radius: 0px;
+    --main-font: 'Silkscreen', cursive;
+    --sidebar: var(--primary);
+    --sidebar-foreground: var(--primary-foreground);
+    --sidebar-primary: var(--secondary);
+    --sidebar-primary-foreground: var(--foreground);
+    --sidebar-border: #6b4423;
+    --sidebar-accent: var(--card);
+    --sidebar-accent-foreground: var(--foreground);
+}
+
+body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--main-font);
+    font-size: var(--font-size);
+    transition: all 0.3s ease;
+}
+
+/* Pixel Grid Background */
+.pixel-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    pointer-events: none;
+    background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px),
+        repeating-linear-gradient(90deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px);
+}
+
+.pixel-card {
+    background: var(--card);
+    border: 4px solid var(--border);
+    box-shadow: 4px 4px 0px var(--border);
+    border-radius: var(--radius);
+}
+
+.sidebar-btn {
+    border-width: 2px;
+    transition: all 0.1s;
+    border-radius: var(--radius);
+}
+
+.sidebar-btn.active {
+    background-color: var(--sidebar-primary);
+    color: var(--sidebar-primary-foreground);
+    border-color: var(--sidebar-primary);
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+}
+
+.sidebar-btn:not(.active):hover {
+    transform: translate(2px, 2px);
+}
+
+.pixel-shadow {
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+}
+
+textarea:focus {
+    outline: none;
+}
+
+input[type="color"] {
+    -webkit-appearance: none;
+    border: 2px solid var(--border);
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: var(--radius);
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+    border: none;
+}
+
+input[type="range"] {
+    accent-color: var(--primary);
+}
+
+select {
+    appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+    border-radius: var(--radius);
+}
+
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: var(--muted); }
+::-webkit-scrollbar-thumb { 
+    background: var(--primary); 
+    border: 3px solid var(--muted);
+    border-radius: var(--radius);
+}
+
+.avatar-container {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 8px;
+    background: #e2d1c3; 
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.system-notebook {
+    border-style: double;
+    border-width: 6px;
+}
+
+.font-minecraft { font-family: 'Silkscreen', cursive; }
+.font-pixel { font-family: 'Pixelify Sans', cursive; }
+.font-retro { font-family: 'VT323', monospace; }
+.font-rounded { font-family: 'Lexend', sans-serif; }
+.font-inclusive { font-family: 'Atkinson Hyperlegible', sans-serif; }
+.font-dyslexia { font-family: 'Comic Neue', cursive; }
+.font-hand { font-family: 'Patrick Hand', cursive; }
+.font-hero { font-family: 'Luckiest Guy', cursive; }

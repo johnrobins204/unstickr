@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing Quest: Pedagogical Journey</title>
+    <!-- Professional Fonts: Inter for UI, Lexend for Readability -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lexend:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* Modern Ed-Tech Palette */
+            --primary: #4338ca; /* Indigo 700 */
+            --primary-light: #e0e7ff; /* Indigo 100 */
+            --secondary: #059669; /* Emerald 600 */
+            --accent: #6366f1; /* Indigo 500 */
+            --background: #f1f5f9; /* Slate 100 - darker background for slide contrast */
+            --text-main: #1e293b; /* Slate 800 */
+            --text-muted: #64748b; /* Slate 500 */
+            --card-bg: #ffffff;
+            --border: #e2e8f0; /* Slate 200 */
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 2vh 2vw; /* minimal padding to center slide */
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Prevent body scroll, keep it slide-like */
+        }
+
+        h1, h2, h3 {
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.025em;
+        }
+
+        /* 16:9 Slide Container */
+        .infographic-container {
+            width: 100%;
+            max-width: 1600px;
+            aspect-ratio: 16/9;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            padding: 40px 60px;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Connecting Timeline Line */
+        .timeline-line {
+            position: absolute;
+            top: 175px; /* Aligned with icon centers */
+            left: 80px;
+            right: 80px;
+            height: 4px;
+            background: var(--border);
+            z-index: 0;
+            border-radius: 2px;
+        }
+
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 24px;
+            position: relative;
+            z-index: 10;
+            margin-top: 20px;
+            flex: 1; /* allow growing */
+        }
+
+        .stage-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            position: relative;
+            /* Adjusted for cleaner layout without curriculum section */
+            height: 100%; 
+        }
+
+        .stage-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-color: var(--primary-light);
+        }
+
+        /* Icon Badge */
+        .icon-wrapper {
+            width: 70px;
+            height: 70px;
+            background: var(--card-bg); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 20;
+            border-radius: 50%;
+            margin-top: -55px; /* Pull up to overlap line */
+        }
+
+        .icon-circle {
+            width: 56px;
+            height: 56px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .stage-card:hover .icon-circle {
+            background: var(--primary);
+            color: white;
+        }
+
+        .stage-number {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--text-main);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .stage-title {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .stage-phase {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .section-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: auto; /* Push to bottom of content area if needed, or stick to top */
+            margin-bottom: 8px;
+            width: 100%;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+        }
+
+        .content-text {
+            font-family: 'Lexend', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            text-align: left;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        /* Header Styling */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Footer Styling */
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1280px) {
+            .infographic-container {
+                padding: 30px;
+            }
+            .stage-grid {
+                gap: 16px;
+            }
+            .stage-card {
+                padding: 16px;
+            }
+            .content-text {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="infographic-container">
+        <header>
+            <h1>Writing Quest Ecosystem</h1>
+            <p>Accelerating literacy outcomes through a standards-aligned, recursive writing framework designed for the modern classroom.</p>
+        </header>
+
+        <div class="timeline-line"></div>
+
+        <div class="stage-grid">
+            
+            <!-- 1. READER -->
+            <div class="stage-card">
+                <div class="icon-wrapper">
+                    <div class="icon-circle">
+                        <i data-lucide="book-open" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stage-number">1</div>
+                </div>
+                <div class="content-area w-full">
+                    <h2 class="stage-title">Reader</h2>
+                    <div class="stage-phase">Inquiry & Research</div>
+                    
+                    <div class="section-label">Pedagogical Core</div>
+                    <p class="content-text"><strong>Deconstructive Analysis:</strong> Cultivate analytical reading skills by deconstructing mentor texts, bridging the cognitive gap between consumption and creation.</p>
+                </div>
+            </div>
+
+            <!-- 2. PLANNER -->
+            <div class="stage-card">
+                <div class="icon-wrapper">
+                    <div class="icon-circle">
+                        <i data-lucide="map" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stage-number">2</div>
+                </div>
+                <div class="content-area w-full">
+                    <h2 class="stage-title">Planner</h2>
+                    <div class="stage-phase">Pre-Writing Strategy</div>
+                    
+                    <div class="section-label">Pedagogical Core</div>
+                    <p class="content-text"><strong>Evidence-Based Scaffolding:</strong> Operationalize ZPD via visual graphic organizers that decompose complex narrative architectures.</p>
+                </div>
+            </div>
+
+            <!-- 3. DRAFTER -->
+            <div class="stage-card">
+                <div class="icon-wrapper">
+                    <div class="icon-circle">
+                        <i data-lucide="pen-tool" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stage-number">3</div>
+                </div>
+                <div class="content-area w-full">
+                    <h2 class="stage-title">Drafter</h2>
+                    <div class="stage-phase">Composition</div>
+                    
+                    <div class="section-label">Pedagogical Core</div>
+                    <p class="content-text"><strong>Cognitive Optimization:</strong> Maximize flow states via a distraction-free interface engineered to support sustained creative output.</p>
+                </div>
+            </div>
+
+            <!-- 4. REVIEWER -->
+            <div class="stage-card">
+                <div class="icon-wrapper">
+                    <div class="icon-circle">
+                        <i data-lucide="search" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stage-number">4</div>
+                </div>
+                <div class="content-area w-full">
+                    <h2 class="stage-title">Reviewer</h2>
+                    <div class="stage-phase">Formative Assessment</div>
+                    
+                    <div class="section-label">Pedagogical Core</div>
+                    <p class="content-text"><strong>Metacognitive Development:</strong> Drive critical thinking by decoupling error detection from diagnosis, shifting the locus of control to the learner.</p>
+                </div>
+            </div>
+
+            <!-- 5. EDITOR -->
+            <div class="stage-card">
+                <div class="icon-wrapper">
+                    <div class="icon-circle">
+                        <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stage-number">5</div>
+                </div>
+                <div class="content-area w-full">
+                    <h2 class="stage-title">Editor</h2>
+                    <div class="stage-phase">Revision & Publication</div>
+                    
+                    <div class="section-label">Pedagogical Core</div>
+                    <p class="content-text"><strong>Iterative Refinement:</strong> Mitigate revision anxiety through granular task segmentation, fostering professional-grade editing habits.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOUNDATION LAYER -->
+        <div class="mt-6 mb-2">
+            <div class="stage-card flex flex-col md:flex-row items-start text-left min-h-0 bg-gradient-to-br from-white to-slate-50 border-l-4 border-l-[var(--secondary)]">
+                <div class="icon-wrapper h-auto w-auto m-0 mr-0 md:mr-8 mt-2 bg-transparent hidden md:flex">
+                    <div class="icon-circle w-16 h-16 bg-emerald-100 text-emerald-700 border-none">
+                        <i data-lucide="users" class="w-8 h-8"></i>
+                    </div>
+                </div>
+                <div class="content-area w-full p-2">
+                    <div class="flex items-center gap-4 mb-2">
+                        <div class="md:hidden p-2 bg-emerald-100 text-emerald-700 rounded-full"><i data-lucide="users" class="w-6 h-6"></i></div>
+                        <h2 class="stage-title text-xl md:text-2xl">Social-Emotional Learning (SEL) Foundation</h2>
+                    </div>
+                    <div class="stage-phase mb-4 text-[var(--secondary)]">Collaborative Learning Ecosystem</div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <div class="section-label mt-0 text-emerald-800 border-emerald-100">Inclusive Engagement Model</div>
+                            <p class="content-text mb-0">
+                                <strong>Longitudinal Artifact Tracking:</strong> Students curate a comprehensive portfolio of their writing journey—from ideation to publication—fostering a visible growth mindset. 
+                                <br><span class="mt-2 block"><strong>Differentiated Social Scaffolding:</strong> Granular privacy controls empower students to engage and share at their individual comfort levels.</span>
+                            </p>
+                        </div>
+                        <div>
+                            <div class="section-label mt-0 text-emerald-800 border-emerald-100">Psychologically Safe Feedback</div>
+                            <p class="content-text mb-0">
+                                <strong>Structured Peer Review:</strong> Eliminates negative social friction through a curated 'Sticker-Only' protocol that reinforces positive behaviors.
+                                <br><span class="mt-2 block"><strong>Anxiety-Free Interaction:</strong> By restricting unstructured commentary, the platform ensures a supportive environment focused purely on constructive recognition.</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Writing Quest Project. Educational Technology Division.</p>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

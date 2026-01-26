@@ -1,55 +1,70 @@
 # Copilot Instructions for Unstickd
 
-You are assisting with **Unstickd**, a .NET 10 Blazor Web App (Interactive Server) designed as a creative writing tutor for children. 
+You are assisting with **Unstickd**, a .NET 10 Blazor Web App (Interactive Server) designed as a creative writing tutor for children.
 
 ## 🏗 Project Architecture
 - **Framework**: .NET 10 Blazor Server (containerized).
 - **Solution Format**: Uses `.slnx` (Visual Studio Solution XML).
-- **Data**: SQLite with **WAL Mode** enabled (Write-Ahead Logging) for concurrency.
+- **Data**: SQLite with **WAL Mode** enabled for concurrency.
 - **ORM**: Entity Framework Core.
-- **AI**: **Cohere Command R+** (Reasoning) via named HttpClient `"LLM"`.
-- **State**: `StoryState` (Scoped Service) manages active session data (Story, Notebooks, Tutor).
+- **State**: `StoryState` (Scoped Service) acts as the central session cache (Story, Notebooks, Tutor).
+- **AI**: **Cohere Command R+** via `ICohereTutorService` / named HttpClient `"LLM"`.
 
 ## 🧩 Core Domain Concepts
-- **Supervisor Primacy**: Critical settings/data are gated. Child vs. Adult roles.
-- **No Ghostwriting**: The AI **never** writes story content for the user. It only asks questions ("Spark Protocol") or reviews text.
-- **Data Sovereignty**: Critical story data is encrypted (Server-Side Encryption) and hosted in Canada.
+- **Story Model**: 
+  - `Story.Content` holds the full text (continuous scroll).
+  - `Story.Pages` is **deprecated** but retained for migration history. Do not use for new features.
+  - `Story.Genre` classifies stories (added via migration).
+- **Supervisor Primacy**: Critical settings (`Account` model) are gated behind adult roles.
+- **No Ghostwriting**: The AI **never** generates story text. It uses the "Spark Protocol" (questions) or reviews.
+- **Data Sovereignty**: Critical data is encrypted and regionally hosted (Canada).
+
+## 🤖 AI Integration Patterns
+- **Orchestration**: `TutorOrchestrator` manages conversational flow and safeguards.
+- **Prompt Strategies**: Implements `IPromptStrategy` for different modes:
+  - `SparkPromptStrategy`: State-machine driven questioning (Sensory -> Attribute -> Conflict).
+  - `ReviewPromptStrategy`: Feedback analysis.
+- **Safeguards**: `ValidateSafeguards()` enforces "Defense in Depth" (PII, Prompt Injection) before API calls.
 
 ## 🛠 Developer Workflow
 - **Run**: `dotnet run --project Unstickd/Unstickd.csproj`
 - **Watch**: `dotnet watch --project Unstickd/Unstickd.csproj`
 - **Migrations**: `dotnet ef migrations add <Name> --project Unstickd/Unstickd.csproj`
 - **Testing**:
-    - Unit: `dotnet test Unstickd.Tests.Unit`
-    - Integration: `dotnet test Unstickd.Tests.Integration`
-    - E2E: `dotnet test Unstickd.Tests.E2E` (Playwright)
+    - **Unit** (`Unstickd.Tests.Unit`): Logic/JSON parsing. Mock all I/O.
+    - **Integration** (`Unstickd.Tests.Integration`): EF Core/SQLite. Use `EnsureDeleted()`/`EnsureCreated()`.
+    - **E2E** (`Unstickd.Tests.E2E`): Playwright. Use `GetByRole` selectors (accessibility first).
 
-## 📂 Key Code Patterns & Directories
-- **Rich Text**: Uses `Blazored.TextEditor` (QuillJS).
+## 📂 Key Code Patterns
+- **Rich Text**: `Blazored.TextEditor` (QuillJS).
     - ⚠️ **Critical**: No two-way binding. Use `GetHTML()` and `LoadHTML()` explicitly.
-    - **Styles**: Scoped CSS (`.razor.css`) preferred.
-- **Services (`Unstickd/Services/`)**:
-    - `StoryState.cs`: Central session state/cache.
-    - `TutorOrchestrator.cs`: Manages AI conversational state/pacing.
-    - `CohereTutorService.cs`: AI API integration.
-- **JS Interop (`Unstickd/wwwroot/js/`)**:
-    - `editor.js`: Auto-save debounce logic (2s), scroll events.
-    - `inactivity.js`: "Passive Observation" timers (Stage 1 @ 15s, Stage 2 @ 30s).
-- **Logging**: Serilog writes to `logs/unstickd-*.txt`.
-    - **Rule**: Never log `Story.Content` (Privacy).
+    - **Styles**: Use scoped CSS (`.razor.css`).
+- **Services**:
+    - `StoryState.cs`: Central point for active session data.
+    - `TutorOrchestrator.cs`: Conversational state manager.
+- **Logging**: Serilog writes to `logs/`. **NEVER** log `Story.Content` (Privacy).
 
 ## ⚠️ Implementation Guidelines
-1. **Async/Await**: Mandatory for all I/O, especially AI calls (can be slow).
+1. **Async/Await**: Mandatory for all I/O (Database, AI API).
 2. **Navigation**: `<BlazorDisableThrowNavigationException>` is `true`.
-3. **Themes**: Controlled via `StoryState.CurrentTheme` injecting CSS variables.
-4. **Error Handling**: `CustomErrorBoundaryLogger` catches circuit errors.
+3. **Themes**: Injected via `StoryState.CurrentTheme` (CSS variables).
+4. **Error Handling**: `CustomErrorBoundaryLogger` for circuit hardening.
 
-## 🔎 Service Boundaries
-- **Tutor Panel**: Isolated component for AI chat.
-- **Editor**: Continuous scroll viewport.
-- **Notebooks**: Entity management (Characters/Places) linked to Stories.
+## 📚 Read-In Plan for Agents
+To fully understand the project's constraints and philosophy, read these files in order:
 
-## 🧪 Testing Strategy
-- **Unit**: Business logic in Services/Models.
-- **Integration**: EF Core operations and Service interactions.
-- **E2E**: Critical flows (Onboarding, Editor saving, Tutor interaction).
+1. **The Core "Truth"**:
+   - `requirements/requirements.md`: The functional bible. Defines the "No Ghostwriting" rule, Spark Protocol, and Inactivity triggers.
+   - `developer-diary.md`: The living history. Check this to see what was *just* built (e.g., Spark Handoff) and what's next.
+
+2. **Architecture & Decisions**:
+   - `architecture/ARCHITECTURE.md`: Explains the "Hybrid Engine" (Blazor + Cohere) and Data Sovereignty pillars.
+   - `governance/ADR-004-Data-Resilience.md`: Explains the Litestream integration for SQLite WAL replication (critical for understanding `entrypoint.sh`).
+
+3. **Design & Psychology**:
+   - `rationales.md`: **Crucial** for understanding *why* the AI waits 30s or why there is no "Insert" button. (Locus of Control, CASA paradigm).
+   - `UXUI_Design/UI_UX_detail_reqs.md`: Read this before touching `Editor.razor` or `TutorPanel.razor`. Defines "Death of the Save Button" and accessibility specs.
+
+4. **Safety & Governance**:
+   - `governance/AI-System-Card.md`: Defines the "Defense in Depth" strategy for AI inputs/outputs.
+

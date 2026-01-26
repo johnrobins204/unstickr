@@ -150,7 +150,8 @@
 
     private void CheckTeacherPin()
     {
-        if (TeacherPinInput == TeacherPin)
+        var entered = TeacherPinInput?.Trim() ?? string.Empty;
+        if (entered == TeacherPin)
         {
             IsTeacherGatePassed = true;
             PinError = "";

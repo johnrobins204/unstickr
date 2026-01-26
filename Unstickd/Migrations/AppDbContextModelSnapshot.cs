@@ -42,6 +42,10 @@ namespace Unstickd.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ThemePreferenceJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("UseReasoningModel")
                         .HasColumnType("INTEGER");
 
@@ -59,6 +63,7 @@ namespace Unstickd.Migrations
                             Name = "Writer",
                             SupervisorEmail = "",
                             SupervisorName = "",
+                            ThemePreferenceJson = "{}",
                             UseReasoningModel = true
                         });
                 });
@@ -74,6 +79,12 @@ namespace Unstickd.Migrations
 
                     b.Property<string>("Icon")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")

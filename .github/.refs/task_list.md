@@ -36,11 +36,11 @@
 
 ## 2. Frontend & UX Logic
 
-### [ ] Update `inactivity.js` - Frustration Detection
+### [x] Update [inactivity.js](../Unstickd/wwwroot/js/inactivity.js) - Frustration Detection
 *   **Context**: "Hyper-activity" is a signal for help.
 *   **Requirement**: Listen for:
     *   **Rage Clicks**: >3 clicks on the same coordinates within 1s.
-    *   **Button Mashing**: High-velocity random keystrokes followed by immediate deletion.
+    *   **Button Mashing**: High-velocity random keystrokes followed by immediate deletion (Implemented as >5 deletions/sec).
 *   **Outcome**: Trigger `TutorState.OfferingHelp` immediately, bypassing standard timers.
 
 ### [ ] Update `inactivity.js` - Repetition Detection
@@ -98,3 +98,86 @@
 ### [ ] Blueprint Data Seeding
 *   **Context**: "Structural Scaffold" for mid-story support.
 *   **Task**: JSON schema for extracting archetypes (Hero, Mentor, MacGuffin) from Project Gutenberg texts.
+
+## 4. Audit Remediation (Hardening)
+
+### [ ] Disaster Recovery: Litestream Implementation
+*   **Context**: Auditor identified "Docker Volume" as a single point of failure (RPO 24h).
+*   **Action**:
+    1.  Add `litestream` binary to Dockerfile.
+    2.  Configure `litestream.yml` to replicate `unstickd.db` to an S3-compatible bucket (e.g., OVH Object Storage).
+    3.  Update `entrypoint.sh` to restore DB on startup if missing.
+
+### [ ] Network Resilience: "Disconnected Operation" Verification
+*   **Context**: Auditor flagged Blazor Server latency risk.
+*   **Action**:
+    1.  Verify `editor.js` handles all typing/cursor events locally (no SignalR round-trips for `oninput`).
+    2.  Stress test with "Network Throttling" (3G) to ensure typing remains fluid.
+    3.  Implement "Offline/Reconnecting" UI indicator if WebSocket drops.
+
+### [ ] Security: Basic Threat Modeling
+*   **Context**: WebSocket spoofing risk.
+*   **Action**:
+    1.  Ensure `Unstickd` hub methods validate `Context.User.Identity`. *(Note: Requires Auth implementation first)*.
+    2.  Review `TutorOrchestrator` for rate-limiting (prevent token exhaustion).
+
+### [ ] Governance: Operational Sovereignty Policy
+*   **Context**: Documenting the "Human Process" control for Canadian Sovereignty.
+*   **Action**: Create `GOVERNANCE.md` stating explicit restriction: Production access is limited to Canadian-resident personnel only.
+
+### [ ] Safety: Prompt Injection Defense (Input Filtering)
+*   **Context**: Auditor flagged "Ignore previous instructions" as OWASP LLM Top 10 risk.
+*   **Action**:
+    1.  Add regex filter in `TutorOrchestrator` to detect injection patterns (e.g., "ignore", "disregard", "new instructions").
+    2.  If detected, return a canned "I can only help with your story!" response without calling Cohere.
+
+### [ ] Safety: Output Moderation Check
+*   **Context**: Defense-in-depth against harmful AI responses.
+*   **Action**:
+    1.  Before displaying `TutorNotes`, check response against a blocklist (violence, explicit content).
+    2.  Optionally integrate Cohere's moderation endpoint for production.
+
+### [ ] Safety: Red Teaming Session (Pre-Pilot)
+*   **Context**: Adversarial testing before school deployment.
+*   **Action**:
+    1.  Create a test plan with 10-15 "jailbreak" prompts (e.g., "Write my story for me", "Pretend you're evil").
+    2.  Document results and mitigations in `AI-System-Card.md`.
+
+### [ ] Governance: Formalize AI System Card
+*   **Context**: Auditor recommends transparency document for school admins.
+*   **Action**:
+    1.  Review existing draft at `.github/.refs/governance/AI-System-Card.md`.
+    2.  Add "Red Teaming Results" section.
+    3.  Link from main `ARCHITECTURE.md`.
+
+### [ ] Accessibility: ARIA Live Regions for Tutor
+*   **Context**: Screen reader support (WCAG 2.2 / Accessible Canada Act).
+*   **Action**:
+    1.  Add `aria-live="polite"` to `TutorPanel` message container.
+    2.  Test with NVDA or VoiceOver.
+    3.  Ensure keyboard navigation works in Quill editor (no "traps").
+
+### [ ] Documentation: Context Window Management Strategy
+*   **Context**: Auditor noted "last 4 sentences" is ad-hoc; Quizlet uses summarization.
+*   **Action**:
+    1.  Document the current "sliding window" approach in `ARCHITECTURE.md` Section 9.
+    2.  For long stories (>2000 words), add a "Story So Far" summarization step before Spark/Review calls.
+
+### [ ] Documentation: PII Stripping Data Flow Diagram
+*   **Context**: Prove that PII never leaves Canadian enclave.
+*   **Action**:
+    1.  Create a Mermaid diagram showing: `Editor -> StoryState -> [PII Filter] -> Cohere API`.
+    2.  Add to `ARCHITECTURE.md` Section 3 (Data Governance).
+
+### [ ] Documentation: Spark Protocol State Diagram
+*   **Context**: Auditor recommends formal visualization of pedagogical logic.
+*   **Action**:
+    1.  Create UML State Diagram: `Idle -> Monitoring -> Evaluating -> Prompting -> Scaffolding -> Handoff`.
+    2.  Add to `ARCHITECTURE.md` Section 9 or `rationales.md`.
+
+### [ ] DevOps: Prompt Version Control
+*   **Context**: Khan Academy treats prompts as versioned R&D artifacts.
+*   **Action**:
+    1.  Move System Prompts from inline strings to `.md` files in `Unstickd/Prompts/`.
+    2.  Add prompt version header (e.g., `# v1.2 - 2026-01-25`).
+    3.  Consider a "Golden Dataset" of ideal AI responses for regression testing.

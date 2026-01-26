@@ -2,63 +2,45 @@
 @using Unstickd.Services
 @inject StoryState StoryState
 @inject IJSRuntime JS
+@implements IDisposable
 
-<div class="page" style="@ThemeStyles">
-    <div class="sidebar">
+<div class="h-screen flex @(StoryState.ThemePreference.FontClass) antialiased relative">
+    <!-- Pixel grid background -->
+    <div class="pixel-grid"></div>
+    <!-- Sidebar -->
+    <aside class="w-56 min-h-0 flex-shrink-0 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r-4 border-[var(--sidebar-border)] flex flex-col z-10 overflow-y-auto">
         <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <!-- Space for top-bar actions like "Save" or "Export" -->
-            <span class="navbar-text">Unstickd Writer Prototype</span>
-        </div>
-
-        <article class="content px-4">
+    </aside>
+    <!-- Main content with wireframe header -->
+    <main class="flex-1 flex flex-col relative z-10 overflow-hidden p-0">
+        <!-- Wireframe Header & Breadcrumbs -->
+        <header class="border-b-4 border-[var(--border)] bg-[var(--card)] px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button @onclick="NavigateHome" class="flex items-center gap-2 px-3 py-1 bg-[var(--muted)] border-2 border-[var(--border)] hover:bg-opacity-80" style="border-radius: var(--radius)">
+                    <i data-lucide="home" class="size-4"></i>
+                    <span class="text-sm">Home</span>
+                </button>
+                <div class="text-sm text-[var(--muted-foreground)] flex items-center gap-2">
+                    <span>/</span>
+                    <span>@BreadcrumbParent</span>
+                    @if (!string.IsNullOrEmpty(BreadcrumbChild))
+                    {
+                        <span>/</span>
+                        <span>@BreadcrumbChild</span>
+                    }
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-[9px] font-['Press_Start_2P'] text-[var(--primary)] opacity-80 animate-pulse uppercase">🏆 Writing Quest Prototype</div>
+            </div>
+        </header>
+        <div class="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto">
             @Body
-        </article>
+        </div>
     </main>
 </div>
 
-<!-- Dynamic Theme Styles -->
-@if (StoryState.CurrentTheme != null)
-{
-    <style>
-        :root {
-            --theme-primary: @StoryState.CurrentTheme.PrimaryColor;
-            --theme-secondary: @StoryState.CurrentTheme.SecondaryColor;
-            --theme-font: '@StoryState.CurrentTheme.FontName', sans-serif;
-            --theme-bg: @(StoryState.CurrentTheme.BackgroundTexture.StartsWith("#") ? StoryState.CurrentTheme.BackgroundTexture : "url('" + StoryState.CurrentTheme.BackgroundTexture + "')");
-        }
 
-        body {
-            font-family: var(--theme-font);
-            background: var(--theme-bg);
-        }
-
-        .btn-primary {
-            background-color: var(--theme-primary);
-            border-color: var(--theme-secondary);
-        }
-
-        .text-primary {
-            color: var(--theme-primary) !important;
-        }
-
-        .sidebar {
-            background-image: linear-gradient(180deg, var(--theme-primary) 0%, var(--theme-secondary) 70%);
-        }
-
-        /* NavMenu Overrides */
-        .nav-item a {
-            color: rgba(255,255,255,0.8) !important;
-        }
-        .nav-item a:hover, .nav-item a.active {
-            color: white !important;
-            background-color: rgba(255,255,255,0.1) !important;
-        }
-    </style>
-}
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -67,8 +49,6 @@
 </div>
 
 @code {
-    private string ThemeStyles => "";
-
     protected override void OnInitialized()
     {
         StoryState.OnChange += StateHasChanged;
@@ -76,34 +56,36 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && JS != null)
+        if (firstRender && StoryState.ThemePreference != null)
         {
-            // Load theme from localStorage if available
-            var themeJson = await JS.InvokeAsync<string>("themeInterop.loadTheme");
-            if (!string.IsNullOrEmpty(themeJson))
-            {
-                try
-                {
-                    var theme = System.Text.Json.JsonSerializer.Deserialize<Theme>(themeJson);
-                    if (theme != null)
-                    {
-                        StoryState.CurrentTheme = theme;
-                        StateHasChanged();
-                    }
-                }
-                catch { /* Ignore parse errors */ }
-            }
-        }
-        // Always save theme if set
-        if (JS != null && StoryState.CurrentTheme != null)
-        {
-            var themeJson = System.Text.Json.JsonSerializer.Serialize(StoryState.CurrentTheme);
-            await JS.InvokeVoidAsync("themeInterop.saveTheme", themeJson);
+            // Re-apply persisted CSS variables on hard refresh
+            var p = StoryState.ThemePreference;
+            if (!string.IsNullOrEmpty(p.Background)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--background", p.Background);
+            if (!string.IsNullOrEmpty(p.Foreground)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--foreground", p.Foreground);
+            if (!string.IsNullOrEmpty(p.Primary)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--primary", p.Primary);
+            if (!string.IsNullOrEmpty(p.Card)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--card", p.Card);
+            if (!string.IsNullOrEmpty(p.Radius)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--radius", p.Radius);
+            if (p.FontSize > 0) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--font-size", $"{p.FontSize}px");
         }
     }
 
     public void Dispose()
     {
         StoryState.OnChange -= StateHasChanged;
+    }
+
+    // Breadcrumbs Logic
+    [Inject] NavigationManager Navigation { get; set; } = default!;
+    
+    private string BreadcrumbParent => Navigation.Uri.Contains("editor") ? "Writer's Room" : 
+                                      Navigation.Uri.Contains("notebooks") ? "Archives" :
+                                      Navigation.Uri.Contains("design") ? "Creative Studio" : 
+                                      Navigation.Uri.Contains("settings") ? "Admin Center" : "Home";
+    
+    private string BreadcrumbChild => ""; 
+
+    private void NavigateHome()
+    {
+        Navigation.NavigateTo("/");
     }
 }

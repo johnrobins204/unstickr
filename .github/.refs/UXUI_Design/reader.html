@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing Quest - Bookshelf</title>
+    <!-- Font Imports -->
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&family=Lexend:wght@300;400;600&family=Patrick+Hand&family=Luckiest+Guy&family=VT323&family=Silkscreen:wght@400;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* SHARED THEME VARIABLES */
+        :root {
+            --font-size: 16px;
+            --background: #f5ebe0; 
+            --foreground: #2d1b00;
+            --card: #fff9ec;
+            --card-foreground: #2d1b00;
+            --primary: #8b4513;
+            --primary-foreground: #fef6e4;
+            --secondary: #f582ae;
+            --muted: #e8d5b7;
+            --muted-foreground: #6b5842;
+            --accent: #72a1e5;
+            --accent-foreground: #2d1b00;
+            --border: #8b7355;
+            --radius: 0px;
+            --main-font: 'Silkscreen', cursive;
+            --reading-font: 'Lexend', sans-serif;
+
+            --sidebar: var(--primary);
+            --sidebar-foreground: var(--primary-foreground);
+            --sidebar-primary: var(--secondary);
+            --sidebar-primary-foreground: var(--foreground);
+            --sidebar-border: #6b4423;
+            --sidebar-accent: var(--card);
+            --sidebar-accent-foreground: var(--foreground);
+        }
+
+        * {
+            border-color: var(--border);
+            image-rendering: pixelated;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--main-font);
+            font-size: var(--font-size);
+            overflow: hidden;
+        }
+
+        /* Pixel Grid Background */
+        .pixel-grid {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px),
+                repeating-linear-gradient(90deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px);
+        }
+
+        .pixel-shadow { box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3); }
+
+        /* Sidebar Styles */
+        .sidebar-btn {
+            border-width: 2px;
+            transition: all 0.1s;
+        }
+        .sidebar-btn.active {
+            background-color: var(--sidebar-primary);
+            color: var(--sidebar-primary-foreground);
+            border-color: var(--sidebar-primary);
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+        }
+        .sidebar-btn:not(.active):hover { transform: translate(2px, 2px); }
+
+        /* BOOKSHELF STYLES */
+        .shelf-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5rem;
+            padding-top: 4rem;
+            padding-bottom: 8rem;
+        }
+
+        .shelf-unit {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 56rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .shelf {
+            height: 24px;
+            background-color: var(--primary);
+            border-top: 4px solid #6b4423;
+            border-bottom: 4px solid #6b4423;
+            box-shadow: 0px 8px 0px rgba(0,0,0,0.1);
+            width: 100%;
+            z-index: 20;
+        }
+
+        .shelf-space {
+            height: 220px;
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            padding-left: 3rem;
+            padding-right: 3rem;
+            z-index: 10;
+        }
+
+        .book-spine {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 1rem 0.5rem;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 2px 2px 0 0;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            transform-origin: bottom center;
+            font-family: 'Patrick Hand', cursive; 
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 2px 0px 5px rgba(0,0,0,0.1);
+        }
+
+        .book-spine:hover {
+            transform: translateY(-10px) scale(1.05);
+            z-index: 30;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Book Colors */
+        .book-blue { background: #72a1e5; color: #2d1b00; border-color: #4a7ab5; }
+        .book-pink { background: #f582ae; color: #2d1b00; border-color: #c75c85; }
+        .book-cream { background: #fff9ec; color: #2d1b00; border-color: #d4cbb8; }
+        .book-brown { background: #8b4513; color: #fef6e4; border-color: #5e2f0d; }
+        .book-green { background: #88c999; color: #1a4a25; border-color: #5e966d; }
+
+        /* --------------------------------------------------------- */
+        /* IMMERSIVE READER & ANIMATION STYLES */
+        /* --------------------------------------------------------- */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(45, 27, 0, 0.85); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* The Ghost Book (The flying element) */
+        #ghost-book {
+            position: fixed;
+            z-index: 100;
+            transform-origin: center center;
+            transition: all 1.0s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.3);
+            display: none;
+            writing-mode: vertical-rl; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Patrick Hand', cursive;
+            font-weight: bold;
+            border: 2px solid rgba(0,0,0,0.2);
+        }
+
+        .reader-book-container {
+            width: 90vw;
+            max-width: 1400px;
+            height: 85vh;
+            position: relative;
+            perspective: 2000px;
+            display: none; 
+        }
+
+        .reader-book {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .reader-pages {
+            position: absolute;
+            inset: 0;
+            background: var(--card);
+            border: 8px solid;
+            border-radius: 4px;
+            display: flex;
+            box-shadow: 
+                inset 0 0 50px rgba(0,0,0,0.1), 
+                10px 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .center-spine-fold {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, 
+                rgba(0,0,0,0.05) 0%, 
+                rgba(0,0,0,0.2) 45%, 
+                rgba(0,0,0,0.3) 50%, 
+                rgba(0,0,0,0.2) 55%, 
+                rgba(0,0,0,0.05) 100%);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .page {
+            flex: 1;
+            padding: 4rem;
+            overflow-y: auto;
+            font-family: var(--reading-font);
+            color: #4a3b2a; 
+        }
+
+        .page-left {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .page-right {
+            text-align: left;
+            line-height: 1.8;
+            font-size: 1.25rem;
+        }
+
+        /* Interactive Sentences */
+        .interactive-sentence {
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+            padding: 2px 0;
+        }
+        
+        .interactive-sentence:hover {
+            background-color: rgba(255, 215, 0, 0.2); 
+        }
+
+        .interactive-sentence.active-sentence {
+            background-color: rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.6);
+        }
+
+        .interactive-sentence.pinned {
+            border-bottom: 2px solid var(--secondary);
+            background-color: rgba(245, 130, 174, 0.1);
+        }
+
+        .interactive-sentence.pinned::after {
+            content: '📌';
+            font-size: 0.8em;
+            margin-left: 4px;
+            vertical-align: super;
+        }
+
+        /* Context Menu */
+        #context-menu {
+            position: fixed;
+            z-index: 1000;
+            background: var(--card);
+            border: 4px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.2);
+            min-width: 200px;
+            display: none;
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-family: var(--main-font);
+            font-size: 0.8rem;
+            color: var(--foreground);
+            transition: background 0.1s;
+        }
+
+        .menu-item:hover {
+            background-color: var(--muted);
+            color: var(--primary);
+        }
+
+        .menu-header {
+            padding: 8px 16px;
+            background: var(--muted);
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        /* The Flipping Cover */
+        .reader-cover {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 50%; 
+            background: var(--primary); 
+            z-index: 20;
+            transform-origin: right center; 
+            transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: rotateY(0deg); 
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid rgba(0,0,0,0.2);
+        }
+
+        .reader-cover.open {
+            transform: rotateY(-140deg); 
+        }
+
+        .cover-content {
+            text-align: center;
+            color: white;
+            transform: rotate(0deg);
+        }
+
+        .close-reader {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .close-reader:hover { opacity: 1; }
+
+        /* Toast Styles */
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--primary);
+            color: var(--primary-foreground);
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            opacity: 0;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .toast-notification.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast-badge {
+            background: var(--secondary);
+            border: 2px solid var(--foreground);
+        }
+
+    </style>
+</head>
+<body class="h-screen flex" onclick="handleBodyClick(event)">
+
+    <div class="pixel-grid"></div>
+
+    <!-- Sidebar -->
+    <aside class="w-48 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r-4 border-[var(--sidebar-border)] flex flex-col z-10">
+        <div class="p-6 border-b-4 border-[var(--sidebar-border)]">
+            <h1 class="font-['Press_Start_2P'] text-[10px] leading-relaxed uppercase">Story Quest</h1>
+            <div class="mt-2 text-[var(--sidebar-foreground)] opacity-60 text-xs">✨ Young Writer</div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <button class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100">
+                <i data-lucide="book-open" class="size-4 shrink-0"></i>
+                <span class="text-sm truncate">Editor</span>
+            </button>
+            <button class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100">
+                <i data-lucide="book" class="size-4 shrink-0"></i>
+                <span class="text-sm truncate">Notebooks</span>
+            </button>
+            <button class="sidebar-btn active w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                <i data-lucide="library" class="size-4 shrink-0"></i>
+                <span class="text-sm truncate">Bookshelf</span>
+            </button>
+            <button class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left mt-8 opacity-70 hover:opacity-100">
+                <i data-lucide="settings" class="size-4 shrink-0"></i>
+                <span class="text-sm truncate">Settings</span>
+            </button>
+        </nav>
+
+        <div class="mt-auto p-4 border-t-4 border-[var(--sidebar-border)]">
+            <div class="bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] border-2 border-[var(--sidebar-border)] p-3 text-center">
+                <div class="text-[10px] font-['Press_Start_2P'] leading-relaxed">Alice</div>
+                <div class="text-[9px] opacity-60 mt-1">Ready to Read!</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col relative z-10 overflow-hidden bg-[var(--background)]">
+        <header class="border-b-4 border-[var(--border)] bg-[var(--card)] px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="text-4xl">📚</div>
+                <div>
+                    <h2 class="font-['Press_Start_2P'] text-lg text-[var(--primary)] mb-1">My Bookshelf</h2>
+                    <p class="text-xs text-[var(--muted-foreground)]">Classic stories to inspire your own.</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-8 shelf-container custom-scrollbar">
+            <div class="shelf-unit">
+                <div class="shelf-space" id="shelf-1"></div>
+                <div class="shelf"></div>
+            </div>
+            <div class="shelf-unit">
+                <div class="shelf-space" id="shelf-2"></div>
+                <div class="shelf"></div>
+            </div>
+             <div class="shelf-unit">
+                <div class="shelf-space" id="shelf-3"></div>
+                <div class="shelf"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Ghost Element for Animation -->
+    <div id="ghost-book"></div>
+
+    <!-- Context Menu for Pinning -->
+    <div id="context-menu">
+        <div class="menu-header">Pin Sentence To...</div>
+        <div id="notebook-list-container">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-notification" class="toast-notification">
+        <i id="toast-icon" data-lucide="check-circle" class="size-5"></i>
+        <div class="flex flex-col">
+            <span id="toast-title" class="font-['Press_Start_2P'] text-xs">Saved!</span>
+            <span id="toast-subtitle" class="text-[10px] opacity-80 hidden">Subtitle</span>
+        </div>
+    </div>
+
+    <!-- Immersive Reader Modal -->
+    <div id="reader-modal" class="modal-overlay">
+        <div class="reader-book-container" id="book-container">
+            <button onclick="closeReader()" class="close-reader">
+                <i data-lucide="x" class="size-8"></i>
+            </button>
+            
+            <div class="reader-book">
+                <!-- The Cover that Flips -->
+                <div id="reader-cover" class="reader-cover">
+                    <div class="cover-content">
+                        <h2 id="cover-title" class="font-['Press_Start_2P'] text-4xl mb-6 leading-relaxed p-8">Title</h2>
+                    </div>
+                </div>
+
+                <!-- The Pages Inside -->
+                <div class="reader-pages" id="reader-pages">
+                    <div class="center-spine-fold"></div>
+                    
+                    <div class="page page-left">
+                        <h2 id="page-title" class="font-['Silkscreen'] text-3xl mb-4 text-[var(--primary)]">Title</h2>
+                        <p id="page-author" class="font-['Patrick_Hand'] text-2xl text-[var(--muted-foreground)] mb-12">Author</p>
+                        <div class="text-center opacity-60">
+                            <i data-lucide="book-open" class="size-16 mx-auto mb-4"></i>
+                            <p class="text-sm uppercase font-bold">Chapter One</p>
+                            <p class="text-xs mt-2" id="page-counter">Page 1</p>
+                        </div>
+                    </div>
+                    
+                    <div class="page page-right">
+                        <div id="book-content">
+                            <!-- Sentences injected here -->
+                        </div>
+                        <div class="mt-8 flex gap-4">
+                            <button id="btn-prev" onclick="changePage(-1)" class="flex-1 px-4 py-3 bg-[var(--background)] border-2 border-[var(--border)] text-sm font-bold hover:bg-[var(--muted)] disabled:opacity-30">
+                                <- Prev
+                            </button>
+                            <button id="btn-next" onclick="changePage(1)" class="flex-1 px-4 py-3 bg-[var(--background)] border-2 border-[var(--border)] text-sm font-bold hover:bg-[var(--muted)]">
+                                Next ->
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ----------------------------------------
+        // DATA
+        // ----------------------------------------
+        
+        const library = [
+            { title: "Alice in Wonderland", author: "Lewis Carroll", color: "book-blue", height: 180, width: 40, shelf: 1, colorHex: "#72a1e5", borderHex: "#4a7ab5" },
+            { title: "Treasure Island", author: "R.L. Stevenson", color: "book-brown", height: 190, width: 45, shelf: 1, colorHex: "#8b4513", borderHex: "#5e2f0d" },
+            { title: "The Secret Garden", author: "Frances H. Burnett", color: "book-green", height: 175, width: 35, shelf: 1, colorHex: "#88c999", borderHex: "#5e966d" },
+            { title: "Peter Pan", author: "J.M. Barrie", color: "book-pink", height: 160, width: 30, shelf: 1, colorHex: "#f582ae", borderHex: "#c75c85" },
+            { title: "Green Gables", author: "L.M. Montgomery", color: "book-green", height: 185, width: 42, shelf: 2, colorHex: "#88c999", borderHex: "#5e966d" },
+            { title: "Jungle Book", author: "Rudyard Kipling", color: "book-brown", height: 195, width: 40, shelf: 2, colorHex: "#8b4513", borderHex: "#5e2f0d" },
+            { title: "Little Women", author: "Louisa May Alcott", color: "book-pink", height: 180, width: 45, shelf: 2, colorHex: "#f582ae", borderHex: "#c75c85" },
+            { title: "Wizard of Oz", author: "L. Frank Baum", color: "book-blue", height: 188, width: 40, shelf: 2, colorHex: "#72a1e5", borderHex: "#4a7ab5" }
+        ];
+
+        const userNotebooks = [
+            { id: 'chars', name: 'Characters', icon: 'user' },
+            { id: 'places', name: 'Places', icon: 'map-pin' }
+        ];
+
+        // Multi-page Content
+        const bookPages = [
+            [
+                "Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do.",
+                "Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.",
+                "\"And what is the use of a book,\" thought Alice \"without pictures or conversations?\"",
+                "So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies."
+            ],
+            [
+                "Suddenly a White Rabbit with pink eyes ran close by her.",
+                "There was nothing so VERY remarkable in that; nor did Alice think it so VERY much out of the way to hear the Rabbit say to itself, \"Oh dear! Oh dear! I shall be too late!\"",
+                "But when the Rabbit actually TOOK A WATCH OUT OF ITS WAISTCOAT-POCKET, and looked at it, and then hurried on, Alice started to her feet.",
+                "It flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it."
+            ],
+            [
+                "Burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.",
+                "In another moment down went Alice after it, never once considering how in the world she was to get out again.",
+                "The rabbit-hole went straight on like a tunnel for some way, and then dipped suddenly down, so suddenly that Alice had not a moment to think about stopping herself."
+            ],
+            [
+                "Down, down, down. Would the fall NEVER come to an end?",
+                "\"I wonder how many miles I've fallen by this time?\" she said aloud.",
+                "\"I must be getting somewhere near the centre of the earth. Let me see: that would be four thousand miles down, I think...\""
+            ]
+        ];
+
+        // ----------------------------------------
+        // STATE MANAGEMENT
+        // ----------------------------------------
+        let activeSentence = null;
+        let currentPageIndex = 0;
+        let timerInterval = null;
+        let timeReading = 0; // seconds
+        let pagesTurnedCount = 0;
+        
+        // Badge State
+        const earnedBadges = new Set();
+        const badges = {
+            first_book: { title: "Bookworm Beginnings", desc: "Opened your first book!", icon: "book-open" },
+            first_pin: { title: "Research Assistant", desc: "Saved your first note!", icon: "pin" },
+            three_pages: { title: "Page Turner", desc: "Read 3 pages!", icon: "arrow-right-circle" },
+            deep_reader: { title: "Deep Reader", desc: "Read for 5 minutes!", icon: "clock" } // Scaled to 10s for demo
+        };
+
+        // ----------------------------------------
+        // TOAST QUEUE SYSTEM
+        // ----------------------------------------
+        const toastQueue = [];
+        let isToastActive = false;
+
+        function queueToast(title, subtitle = "", icon = "check-circle", isBadge = false) {
+            toastQueue.push({ title, subtitle, icon, isBadge });
+            processToastQueue();
+        }
+
+        function processToastQueue() {
+            if (isToastActive || toastQueue.length === 0) return;
+
+            isToastActive = true;
+            const toastData = toastQueue.shift();
+            showToast(toastData);
+        }
+
+        function showToast({ title, subtitle, icon, isBadge }) {
+            const toast = document.getElementById('toast-notification');
+            const iconEl = document.getElementById('toast-icon');
+            const titleEl = document.getElementById('toast-title');
+            const subEl = document.getElementById('toast-subtitle');
+
+            // Apply Styles
+            titleEl.innerText = title;
+            iconEl.setAttribute('data-lucide', icon);
+            
+            if (subtitle) {
+                subEl.innerText = subtitle;
+                subEl.classList.remove('hidden');
+            } else {
+                subEl.classList.add('hidden');
+            }
+
+            if (isBadge) {
+                toast.className = "toast-notification toast-badge active";
+            } else {
+                toast.className = "toast-notification active"; // Default primary style
+            }
+            
+            lucide.createIcons();
+
+            // Hide after delay
+            setTimeout(() => {
+                toast.classList.remove('active');
+                setTimeout(() => {
+                    isToastActive = false;
+                    processToastQueue(); // Check for next
+                }, 400); // Wait for transition out
+            }, 3000);
+        }
+
+        function awardBadge(id) {
+            if (earnedBadges.has(id)) return;
+            earnedBadges.add(id);
+            const b = badges[id];
+            queueToast("Badge Unlocked!", b.desc, b.icon, true);
+        }
+
+        // ----------------------------------------
+        // BOOKSHELF LOGIC
+        // ----------------------------------------
+
+        function renderLibrary() {
+            library.forEach((book) => {
+                const shelf = document.getElementById(`shelf-${book.shelf}`);
+                if(!shelf) return;
+                const spine = document.createElement('div');
+                spine.className = `book-spine ${book.color} flex items-center justify-center`;
+                const tilt = Math.random() * 4 - 2; 
+                spine.style.height = `${book.height}px`;
+                spine.style.width = `${book.width}px`;
+                spine.style.transform = `rotate(${tilt}deg)`;
+                spine.innerHTML = `<span>${book.title}</span>`;
+                spine.onclick = (e) => animateBookOpening(book, spine);
+                shelf.appendChild(spine);
+            });
+        }
+
+        function animateBookOpening(book, element) {
+            const ghost = document.getElementById('ghost-book');
+            const rect = element.getBoundingClientRect();
+
+            // Ghost setup
+            ghost.style.display = 'flex';
+            ghost.style.top = `${rect.top}px`;
+            ghost.style.left = `${rect.left}px`;
+            ghost.style.width = `${rect.width}px`;
+            ghost.style.height = `${rect.height}px`;
+            ghost.style.transform = 'rotate(0deg)'; 
+            ghost.className = `${book.color}`; 
+            ghost.innerHTML = `<span>${book.title}</span>`;
+            ghost.style.writingMode = 'vertical-rl';
+            void ghost.offsetWidth;
+
+            // Animate Center
+            const maxWidth = 1400; 
+            const vw = window.innerWidth * 0.9; 
+            const finalModalWidth = Math.min(vw, maxWidth);
+            const finalModalHeight = window.innerHeight * 0.85; 
+            const targetWidth = finalModalWidth / 2;
+            const targetHeight = finalModalHeight;
+            const targetTop = (window.innerHeight - finalModalHeight) / 2;
+            const targetLeft = (window.innerWidth - finalModalWidth) / 2;
+
+            ghost.style.top = `${targetTop}px`;
+            ghost.style.left = `${targetLeft}px`;
+            ghost.style.width = `${targetWidth}px`;
+            ghost.style.height = `${targetHeight}px`;
+            ghost.style.writingMode = 'horizontal-tb'; 
+            ghost.innerHTML = `<h2 class="font-['Press_Start_2P'] text-4xl text-center p-8 leading-relaxed">${book.title}</h2>`;
+
+            setTimeout(() => {
+                const modal = document.getElementById('reader-modal');
+                const cover = document.getElementById('reader-cover');
+                const pages = document.getElementById('reader-pages');
+                
+                document.getElementById('cover-title').innerText = book.title;
+                document.getElementById('page-title').innerText = book.title;
+                document.getElementById('page-author').innerText = book.author;
+                
+                // Initialize Book State
+                currentPageIndex = 0;
+                renderPageContent();
+                startReadingSession(); // Start Timer
+                awardBadge('first_book'); // BADGE: Opened first book
+
+                cover.className = `reader-cover ${book.color}`;
+                pages.style.borderColor = book.borderHex;
+
+                modal.classList.add('active');
+                document.getElementById('book-container').style.display = 'block';
+                ghost.style.display = 'none';
+
+                setTimeout(() => {
+                    cover.classList.add('open');
+                }, 100);
+
+            }, 1000); 
+        }
+
+        function renderPageContent() {
+            const contentDiv = document.getElementById('book-content');
+            const sentences = bookPages[currentPageIndex];
+            contentDiv.innerHTML = sentences.map(s => `<span class="interactive-sentence" onclick="handleSentenceClick(event, this)">${s}</span> `).join('<br><br>');
+            
+            // Update Controls
+            document.getElementById('page-counter').innerText = `Page ${currentPageIndex + 1}`;
+            document.getElementById('btn-prev').disabled = currentPageIndex === 0;
+            document.getElementById('btn-next').disabled = currentPageIndex === bookPages.length - 1;
+        }
+
+        function changePage(delta) {
+            currentPageIndex += delta;
+            renderPageContent();
+            
+            if (delta > 0) {
+                pagesTurnedCount++;
+                if (pagesTurnedCount >= 3) {
+                    awardBadge('three_pages'); // BADGE: Read 3 pages
+                }
+            }
+        }
+
+        function startReadingSession() {
+            timeReading = 0;
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeReading++;
+                // Check 5 Minute Badge (Scaled to 10 seconds for prototype testing)
+                if (timeReading === 10) {
+                    awardBadge('deep_reader'); 
+                }
+            }, 1000);
+        }
+
+        function closeReader() {
+            const cover = document.getElementById('reader-cover');
+            const modal = document.getElementById('reader-modal');
+            const menu = document.getElementById('context-menu');
+            
+            // Stop Timer
+            if (timerInterval) clearInterval(timerInterval);
+
+            menu.style.display = 'none';
+            if(activeSentence) activeSentence.classList.remove('active-sentence');
+
+            cover.classList.remove('open');
+            
+            setTimeout(() => {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    document.getElementById('book-container').style.display = 'none';
+                }, 500);
+            }, 1200); 
+        }
+
+        /* --------------------------------------------------------- */
+        /* INTERACTION LOGIC */
+        /* --------------------------------------------------------- */
+
+        function handleSentenceClick(e, element) {
+            e.stopPropagation();
+            if(activeSentence) activeSentence.classList.remove('active-sentence');
+            activeSentence = element;
+            activeSentence.classList.add('active-sentence');
+
+            const menu = document.getElementById('context-menu');
+            const list = document.getElementById('notebook-list-container');
+            
+            list.innerHTML = userNotebooks.map(nb => `
+                <div class="menu-item" onclick="saveToNotebook('${nb.name}')">
+                    <i data-lucide="${nb.icon}" class="size-4"></i>
+                    <span>${nb.name}</span>
+                </div>
+            `).join('');
+            lucide.createIcons();
+
+            menu.style.display = 'block';
+            menu.style.left = `${e.clientX + 10}px`;
+            menu.style.top = `${e.clientY + 10}px`;
+        }
+
+        function saveToNotebook(notebookName) {
+            if(!activeSentence) return;
+
+            activeSentence.classList.add('pinned');
+            activeSentence.classList.remove('active-sentence'); 
+            document.getElementById('context-menu').style.display = 'none';
+            
+            // 1. Show Saved Toast
+            queueToast(`Saved to ${notebookName}!`, "", "check-circle", false);
+            
+            // 2. Trigger Badge (Will queue after toast)
+            awardBadge('first_pin');
+
+            activeSentence = null;
+        }
+
+        function handleBodyClick(e) {
+            const menu = document.getElementById('context-menu');
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                if(activeSentence) {
+                    activeSentence.classList.remove('active-sentence');
+                    activeSentence = null;
+                }
+            }
+        }
+
+        renderLibrary();
+    </script>
+</body>
+</html>

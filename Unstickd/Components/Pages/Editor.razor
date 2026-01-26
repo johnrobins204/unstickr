@@ -13,126 +13,100 @@
 
 <PageTitle>Editor - @StoryState.Title</PageTitle>
 
-<div class="container-fluid h-100 p-0">
-    <div class="d-flex flex-column h-100">
-        <!-- Toolbar / Header -->
-        <div class="bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-2">
-                <a href="/" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-house"></i> Home
-                </a>
-                <h5 class="m-0 text-truncate" style="max-width: 400px;">@StoryState.Title</h5>
-                <a href="/onboarding/themes?StoryId=@StoryId" class="btn btn-sm btn-light text-muted ms-2" title="Change Theme">
-                    <i class="bi bi-palette"></i>
-                </a>
-                <button class="btn btn-sm btn-outline-secondary ms-2" title="Story Settings" @onclick="ShowStorySettingsModal">
-                    <i class="bi bi-gear"></i>
-                </button>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="badge rounded-pill bg-light text-secondary border me-2 fade@(SaveStatus == "Ready" ? "" : " show")">
-                    @if (SaveStatus == "Saving...")
-                    {
-                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                    }
-                    else if (SaveStatus == "Saved")
-                    {
-                        <i class="bi bi-check2 me-1"></i>
-                    }
-                    @SaveStatus
-                </span>
-                <button class="btn btn-sm @(IsNotebookOpen ? "btn-info" : "btn-outline-info") me-2" type="button" @onclick="ToggleNotebook">
-                    <i class="bi bi-journal-bookmark-fill"></i> Notebooks
-                </button>
-            </div>
-        </div>
-@* Story Settings Modal *@
-<div class="modal fade @(ShowSettingsModal ? "show d-block" : "")" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog" aria-modal="true" aria-labelledby="storySettingsLabel" @(ShowSettingsModal ? "" : "hidden")>
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="storySettingsLabel"><i class="bi bi-gear me-2"></i>Story Settings</h5>
-                <button type="button" class="btn-close" @onclick="HideStorySettingsModal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Synopsis</label>
-                    <textarea class="form-control" rows="3" @bind="StoryMeta.Synopsis"></textarea>
+<div class="flex flex-col gap-6">
+    <!-- Pixel Card Editor Panel -->
+    <div class="pixel-card p-0 overflow-hidden w-full max-w-4xl mx-auto">
+        <!-- Collapsible Header -->
+        <div class="border-b-4 border-[var(--border)] bg-[var(--card)]">
+            <button @onclick="ToggleHeader" class="w-full px-6 py-3 flex items-center justify-between hover:bg-[var(--muted)] transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="text-2xl">✍️</div>
+                    <div class="text-left">
+                        <div class="font-['Press_Start_2P'] text-[10px] text-[var(--primary)]">Story Details</div>
+                        @if (!HeaderExpanded)
+                        {
+                            <div class="text-xs text-[var(--muted-foreground)] mt-1 truncate max-w-[200px]">@StoryState.Title</div>
+                        }
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Tone</label>
-                    <input class="form-control" @bind="StoryMeta.Tone" placeholder="e.g. Funny, Scary, Epic" />
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="HideStorySettingsModal">Cancel</button>
-                <button class="btn btn-primary" @onclick="SaveStorySettings">Save</button>
-            </div>
-        </div>
-    </div>
-</div>
-@code {
-    // ...existing code...
-    private bool ShowSettingsModal = false;
-    private StoryMetadata StoryMeta = new();
-
-    private void ShowStorySettingsModal()
-    {
-        // Load from StoryState or DB
-        var story = DbContext.Stories.FirstOrDefault(s => s.Id == StoryId);
-        if (story != null && !string.IsNullOrWhiteSpace(story.Metadata))
-        {
-            try { StoryMeta = System.Text.Json.JsonSerializer.Deserialize<StoryMetadata>(story.Metadata) ?? new(); }
-            catch { StoryMeta = new(); }
-        }
-        else
-        {
-            StoryMeta = new();
-        }
-        ShowSettingsModal = true;
-    }
-
-    private void HideStorySettingsModal()
-    {
-        ShowSettingsModal = false;
-    }
-
-    private async Task SaveStorySettings()
-    {
-        var story = await DbContext.Stories.FindAsync(StoryId);
-        if (story != null)
-        {
-            story.Metadata = System.Text.Json.JsonSerializer.Serialize(StoryMeta);
-            await DbContext.SaveChangesAsync();
-            SaveStatus = "Saved";
-        }
-        ShowSettingsModal = false;
-        StateHasChanged();
-    }
-
-    public class StoryMetadata
-    {
-        public string Synopsis { get; set; } = string.Empty;
-        public string Tone { get; set; } = string.Empty;
-    }
-}
-
-        <!-- Main Workspace (Flex Row) -->
-        <div class="flex-grow-1 d-flex overflow-hidden position-relative">
-            
-            <!-- Editor Column (Squeezed) -->
-            <div class="flex-grow-1 bg-light d-flex align-items-center justify-content-center overflow-hidden position-relative">
-            <!-- Scroll Logic Left/Right -->
-            <button class="btn btn-link nav-arrow start-0" @onclick="ScrollLeft">
-                <i class="bi bi-chevron-left display-4 text-secondary opacity-50"></i>
+                <i data-lucide="@(HeaderExpanded ? "chevron-up" : "chevron-down")" class="size-5 text-[var(--muted-foreground)]"></i>
             </button>
-            
-            <!-- Book Container -->
-            <div id="book-viewport" class="book-viewport shadow-lg bg-white">
-                <BlazoredTextEditor @ref="@QuillHtml" 
-                                    Placeholder="Once upon a time..."
-                                    Theme="snow"
-                                    DebugLevel="error">
+            @if (HeaderExpanded)
+            {
+                <div class="px-6 pb-4 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Story Title</label>
+                            <input type="text" class="w-full bg-[var(--background)] border-2 border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors" style="border-radius: var(--radius)" @bind="StoryState.Title" placeholder="Give your story a title..." />
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Quick Font Change</label>
+                            <select @onchange="OnFontChange" class="w-full border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]">
+                                <optgroup label="🎮 Game Styles">
+                                    <option value="font-minecraft">🧱 Minecraft UI (Silkscreen)</option>
+                                    <option value="font-pixel">👾 Modern Retro (Pixelify)</option>
+                                    <option value="font-retro">📟 Terminal (VT323)</option>
+                                </optgroup>
+                                <optgroup label="🌟 Inclusive & Clear">
+                                    <option value="font-rounded">📚 School Standard (Lexend)</option>
+                                    <option value="font-inclusive">👁️ Ultra-Clear (Atkinson)</option>
+                                    <option value="font-dyslexia">📖 Dyslexia Friendly (Comic Neue)</option>
+                                </optgroup>
+                                <optgroup label="✏️ Creative Styles">
+                                    <option value="font-hand">✏️ Journal Style (Patrick Hand)</option>
+                                    <option value="font-hero">💥 Action Hero (Luckiest Guy)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-6 flex-wrap">
+                        <div>
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Format</label>
+                            <div class="flex items-center gap-2">
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Bold"><i data-lucide="bold" class="size-4"></i></button>
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Italic"><i data-lucide="italic" class="size-4"></i></button>
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Bullet List"><i data-lucide="list" class="size-4"></i></button>
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Numbered List"><i data-lucide="list-ordered" class="size-4"></i></button>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-[250px]">
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Story Type</label>
+                            <div class="flex items-center gap-3">
+                                <select class="flex-1 border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]" @bind="StoryState.Genre">
+                                    <option value="fantasy">🧙‍♂️ Fantasy</option>
+                                    <option value="adventure">🗺️ Adventure</option>
+                                    <option value="scifi">🚀 Sci-Fi</option>
+                                    <option value="mystery">🔍 Mystery</option>
+                                    <option value="horror">👻 Horror</option>
+                                    <option value="comedy">😄 Comedy</option>
+                                    <option value="fairy-tale">🏰 Fairy Tale</option>
+                                    <option value="superhero">🦸 Superhero</option>
+                                </select>
+                                <select class="flex-1 border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]">
+                                    <option value="hero-journey">⚔️ Hero's Journey</option>
+                                    <option value="rags-to-riches">💎 Rags to Riches</option>
+                                    <option value="quest">🗺️ The Quest</option>
+                                    <option value="overcoming-monster">🐉 Overcoming Monster</option>
+                                    <option value="voyage-return">🚢 Voyage & Return</option>
+                                    <option value="comedy-arch">🎭 Comedy</option>
+                                    <option value="tragedy">😢 Tragedy</option>
+                                    <option value="rebirth">🌟 Rebirth</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <!-- Editor Content Area -->
+        <div class="flex flex-row relative">
+            <!-- Watermark -->
+            <div class="absolute bottom-10 right-10 pointer-events-none opacity-10 select-none z-0">
+                <div class="text-8xl">🐉</div>
+            </div>
+            <div class="flex-1 p-8">
+                <BlazoredTextEditor @ref="@QuillHtml" Placeholder="Once upon a time..." Theme="snow" DebugLevel="error">
                     <ToolbarContent>
                         <span class="ql-formats">
                             <select class="ql-header">
@@ -159,35 +133,27 @@
                     </EditorContent>
                 </BlazoredTextEditor>
             </div>
-
-            <button class="btn btn-link nav-arrow end-0" @onclick="ScrollRight">
-                <i class="bi bi-chevron-right display-4 text-secondary opacity-50"></i>
-            </button>
-        </div>
-
-            <!-- Notebook Side Panel -->
             @if (IsNotebookOpen)
             {
-                <div class="border-start bg-white d-flex flex-column" style="width: 350px; min-width: 350px; transition: width 0.3s;">
-                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
-                        <h6 class="m-0 text-muted"><i class="bi bi-journal-bookmark me-2"></i>Notebooks</h6>
-                        <button type="button" class="btn-close" @onclick="ToggleNotebook"></button>
+                <div class="border-l-4 border-[var(--border)] bg-[var(--card)] flex flex-col min-w-[350px] max-w-[400px] transition-all">
+                    <div class="flex items-center justify-between p-4 border-b-4 border-[var(--border)] bg-[var(--muted)]">
+                        <h6 class="m-0 text-[var(--muted-foreground)] font-bold flex items-center gap-2"><i data-lucide="book" class="size-4"></i> Notebooks</h6>
+                        <button type="button" class="px-2 py-1 bg-[var(--primary)] text-[var(--primary-foreground)] border-2 border-[var(--border)] hover:bg-opacity-80" style="border-radius: var(--radius)" @onclick="ToggleNotebook">
+                            <i data-lucide="x" class="size-4"></i>
+                        </button>
                     </div>
-                    <div class="flex-grow-1 overflow-hidden">
+                    <div class="flex-1 overflow-y-auto">
                         <NotebookPanel StoryId="StoryId" />
                     </div>
                 </div>
             }
-
         </div>
-        
-        <div class="card-footer bg-light border-top p-1 text-center text-muted small">
+        <div class="border-t-4 border-[var(--border)] bg-[var(--muted)] p-2 text-center text-[var(--muted-foreground)] text-xs">
             Continuous Flow &bull; @WordCount words
         </div>
     </div>
+    <TutorPanel CurrentAccount="CurrentAccount" />
 </div>
-
-<TutorPanel CurrentAccount="CurrentAccount" />
 
 @code {
     [Parameter] public int StoryId { get; set; }
@@ -197,13 +163,21 @@
     string InitialContent = "";
     int WordCount = 0;
     bool IsNotebookOpen = false;
+    private bool HeaderExpanded = true;
     private DotNetObjectReference<Editor>? _objRef;
-
     private Account? CurrentAccount;
 
-    private void ToggleNotebook()
+    private void ToggleHeader() => HeaderExpanded = !HeaderExpanded;
+    private void ToggleNotebook() => IsNotebookOpen = !IsNotebookOpen;
+
+    private async Task OnFontChange(ChangeEventArgs e)
     {
-        IsNotebookOpen = !IsNotebookOpen;
+        var fontClass = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(fontClass))
+        {
+            await JS.InvokeVoidAsync("eval", $"document.body.className = 'h-screen flex {fontClass}'");
+            StoryState.UpdateThemePreference(p => p.FontClass = fontClass);
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -211,15 +185,36 @@
         try
         {
             var story = await DbContext.Stories
-                .Include(s => s.Account).ThenInclude(acc => acc.ActiveTheme)
+                .Include(s => s.Account)
+                .ThenInclude(acc => acc != null ? acc.ActiveTheme : null)
                 .Include(s => s.Pages) // Load pages for migration if needed
                 .Include(s => s.EntityLinks)
-                .Include(s => s.Account).ThenInclude(a => a.Notebooks).ThenInclude(n => n.Entities).ThenInclude(e => e.Entries)
+                .Include(s => s.Account)
+                .ThenInclude(a => a != null ? a.Notebooks : null)
+                .ThenInclude(n => n != null ? n.Entities : null)
+                .ThenInclude(e => e != null ? e.Entries : null)
                 .FirstOrDefaultAsync(s => s.Id == StoryId);
 
             if (story != null)
             {
                 CurrentAccount = story.Account;
+                StoryState.Account = story.Account; // ADD THIS to support StoryState persistence
+
+                // Load Theme Preferences
+                if (!string.IsNullOrEmpty(story.Account?.ThemePreferenceJson))
+                {
+                    try 
+                    {
+                        var prefs = System.Text.Json.JsonSerializer.Deserialize<ThemePreference>(story.Account.ThemePreferenceJson);
+                        if (prefs != null) 
+                        {
+                            StoryState.ThemePreference = prefs;
+                            // Apply theme immediately if needed (usually handled by MainLayout binding to StoryState, but font might need JS)
+                        }
+                    }
+                    catch { /* Ignore invalid JSON */ }
+                }
+
                 StoryState.Title = story.Title;
                 StoryState.StoryId = story.Id;
                 
@@ -235,8 +230,6 @@
                     Log.Information("Migrating Pages to Continuous Content for Story {Id}", StoryId);
                     var combined = string.Join("", story.Pages.OrderBy(p => p.PageNumber).Select(p => p.Content));
                     story.Content = combined;
-                    // Do not save yet, wait for explicit save? Or save now?
-                    // Let's save now to persist migration.
                     DbContext.Stories.Update(story);
                     await DbContext.SaveChangesAsync();
                 }
@@ -269,23 +262,11 @@
     [JSInvokable]
     public async Task TriggerAutoSave()
     {
-        // Must use InvokeAsync to ensure we are on the UI context if triggered by JS
         await InvokeAsync(async () => 
         {
             await SaveContent();
             StateHasChanged();
         });
-    }
-
-    private async Task ScrollRight()
-    {
-        // Simple JS scroll by viewport width
-        await JS.InvokeVoidAsync("eval", "document.getElementById('book-viewport').scrollBy({ left: window.innerWidth * 0.8, behavior: 'smooth' })");
-    }
-
-    private async Task ScrollLeft()
-    {
-        await JS.InvokeVoidAsync("eval", "document.getElementById('book-viewport').scrollBy({ left: -(window.innerWidth * 0.8), behavior: 'smooth' })");
     }
 
     private async Task SaveContent()
@@ -300,25 +281,19 @@
             string html = await QuillHtml.GetHTML();
             StoryState.Content = html;
             
-            // Basic word count
             string text = await QuillHtml.GetText();
             WordCount = string.IsNullOrWhiteSpace(text) ? 0 : text.Split(new[] { ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
-
-            // Use the tracking mechanism to avoid redundant saves if content hasn't changed?
-            // The debounce helps, but dirty check is better. 
-            // However, implementing checking against loaded content is tricky with HTML variations.
-            // For now, assume debounce is sufficient.
 
             var story = await DbContext.Stories.FindAsync(StoryId);
             
             if (story != null)
             {
                 story.Content = html;
+                story.Title = StoryState.Title ?? story.Title; // Sync Title
+                story.Genre = StoryState.Genre ?? story.Genre; // Sync Genre
                 story.LastModified = DateTime.Now;
                 await DbContext.SaveChangesAsync();
-                SaveStatus = "Saved"; // \u2713
-                // Fade out after 5s? JS or CSS? The req says "indicator should fade out". 
-                // We'll leave it as "Saved" for now.
+                SaveStatus = "Saved"; 
             }
         }
         catch (Exception ex)

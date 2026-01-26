@@ -274,6 +274,88 @@ This document serves as the detailed specification for downstream Agent implemen
 2.  **License Logic**: Add `Account.SubscriptionTier` check to the "Publish" button.
 3.  **Layout Designer**: Create CSS `@media print` styles that map the screen Theme variables to print-safe values (e.g., dark mode screen -> light mode print).
 
+## MS-5: Wireframe-Inspired Enhancements
+**User Journey**: The wireframe introduces a dynamic and immersive design lab, alongside a refined sidebar and editor layout.
+
+### 1. Design Lab (Customization)
+**Requirement**: Allow users to personalize their interface with real-time previews.
+- **Color Mixer**:
+  - Users can adjust primary, background, and card colors.
+  - Changes are reflected immediately via CSS variables.
+- **Typography Station**:
+  - Offers font families grouped by style (Game, Inclusive, Creative).
+  - Includes a text size slider (12px-24px) with live updates.
+- **Shape Shifter**:
+  - Provides options for blocky (0px radius) or rounded (12px radius) UI elements.
+
+### 2. Sidebar Enhancements
+**Requirement**: Improve navigation and integrate writing stats.
+- **Dynamic Buttons**:
+  - Sidebar buttons highlight active views and provide hover animations.
+  - Includes "Save" and "Word Count" widgets for quick access.
+- **Avatar Integration**:
+  - Displays a pixel-art avatar (e.g., Alice) with status updates.
+  - Avatar acts as a subtle, non-intrusive companion.
+
+### 3. Editor Refinements
+**Requirement**: Enhance the writing experience with intuitive controls.
+- **Story Details Panel**:
+  - Collapsible header with fields for title, genre, and archetype.
+  - Includes quick font and formatting options.
+- **Content Area**:
+  - Full-screen textarea with placeholder text.
+  - Subtle background elements (e.g., faint dragon icon) for thematic immersion.
+
+### 4. Notebooks Panel
+**Requirement**: Organize story elements visually.
+- **Grid View**:
+  - Displays notebooks as cards with icons and descriptions.
+  - Includes a "New Notebook" button with hover effects.
+- **Detail View**:
+  - Shows notebook content with options to add new entries.
+
+### 5. Accessibility Improvements
+**Requirement**: Ensure inclusivity for diverse users.
+- **Dyslexia-Friendly Fonts**:
+  - Comic Neue and Atkinson Hyperlegible are available.
+- **Reduced Motion**:
+  - Option to disable animations for users with sensory sensitivities.
+- **High Contrast Mode**:
+  - Ensures readability across all themes.
+
+---
+
+## Implementation Plan: Style Lab & UI Overhaul (Wireframe Integration)
+
+### 1. CSS Architecture & Font Imports
+- Migrate all CSS variables from the wireframe's `<style>` block to `app.css`.
+- Import Google Fonts as in the wireframe for all font options.
+- Use Tailwind utility classes where possible for expedience.
+
+### 2. Theme State & Debounced Persistence
+- Extend `StoryState` to hold a `ThemePreference` object (colors, font, border radius).
+- On any change in the Design Lab, update CSS variables immediately via JS Interop.
+- Debounce all changes (e.g., 2s after last input) before persisting to the database/account settings, mirroring the editor's debounce logic.
+
+### 3. Sidebar & Layout Refactor
+- Implement a fixed sidebar with navigation, word count, and the "Alice" avatar as per the wireframe.
+- Use Lucide icons via the JS script (as in the wireframe) for immediate integration.
+- Sidebar buttons should highlight active view and animate on hover.
+
+### 4. Design Lab (Settings) Implementation
+- Create a `DesignLab.razor` component for the settings panel.
+- Add color pickers, font selectors, and border radius toggles as shown in the wireframe.
+- Use JS Interop to update CSS variables in real time.
+- All UI controls should update the preview instantly and persist after debounce.
+
+### 5. Editor & Notebooks UI Refresh
+- Refactor `Editor.razor` to use a collapsible header, full-height textarea, and background iconography (e.g., faint dragon).
+- Update Notebooks to a card grid layout with icons and descriptions, matching the wireframe.
+
+### Expediency Principle
+- Use the fastest available method for iconography and CSS (e.g., Lucide JS, Tailwind, direct CSS variable manipulation).
+- Prioritize user experience and maintainability over strict adherence to any one framework if a more expedient solution is available.
+
 
 
 

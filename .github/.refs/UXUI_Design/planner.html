@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing Quest - Plan Phase</title>
+    <!-- Font Imports -->
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&family=Lexend:wght@300;400;600&family=Patrick+Hand&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* SHARED THEME VARIABLES (From Editor) */
+        :root {
+            --font-size: 16px;
+            --background: #f5ebe0; 
+            --foreground: #2d1b00;
+            --card: #fff9ec;
+            --card-foreground: #2d1b00;
+            --primary: #8b4513;
+            --primary-foreground: #fef6e4;
+            --secondary: #f582ae;
+            --muted: #e8d5b7;
+            --muted-foreground: #6b5842;
+            --accent: #72a1e5;
+            --accent-foreground: #2d1b00;
+            --border: #8b7355;
+            --radius: 0px;
+            --main-font: 'Silkscreen', cursive;
+            --reading-font: 'Lexend', sans-serif;
+
+            --sidebar: var(--primary);
+            --sidebar-foreground: var(--primary-foreground);
+            --sidebar-primary: var(--secondary);
+            --sidebar-primary-foreground: var(--foreground);
+            --sidebar-border: #6b4423;
+            --sidebar-accent: var(--card);
+            --sidebar-accent-foreground: var(--foreground);
+        }
+
+        * {
+            border-color: var(--border);
+            image-rendering: pixelated;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--main-font);
+            font-size: var(--font-size);
+            overflow: hidden;
+        }
+
+        /* Pixel Grid Background */
+        .pixel-grid {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px),
+                repeating-linear-gradient(90deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px);
+        }
+
+        .pixel-card {
+            background: var(--card);
+            border: 4px solid var(--border);
+            box-shadow: 4px 4px 0px var(--border);
+        }
+
+        .pixel-input {
+            width: 100%;
+            background: var(--background);
+            border: 2px solid var(--border);
+            padding: 0.5rem;
+            font-family: var(--reading-font);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .pixel-input:focus {
+            border-color: var(--primary);
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        /* Sidebar Styles */
+        .sidebar-btn {
+            border-width: 2px;
+            transition: all 0.1s;
+            position: relative;
+        }
+        /* Connection line for the workflow steps */
+        .workflow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -12px;
+            width: 2px;
+            height: 12px;
+            background: var(--sidebar-border);
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+        
+        .sidebar-btn.active {
+            background-color: var(--sidebar-primary);
+            color: var(--sidebar-primary-foreground);
+            border-color: var(--sidebar-primary);
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+        .sidebar-btn.locked {
+            opacity: 0.5;
+            background: var(--sidebar-accent);
+            color: var(--sidebar-accent-foreground);
+            cursor: not-allowed;
+        }
+
+        /* PLOT MOUNTAIN STYLES */
+        .plot-container {
+            position: relative;
+            height: 350px; 
+            width: 100%;
+            margin-top: 2rem;
+        }
+        
+        .plot-point {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border: 2px solid var(--foreground);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 20;
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            transform: translate(-50%, -50%); 
+        }
+        .plot-point:hover { transform: translate(-50%, -50%) scale(1.2); }
+        .plot-point.completed { background: var(--secondary); }
+        .plot-point.active { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(114, 161, 229, 0.4); }
+
+        .plot-label {
+            position: absolute;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 0.7rem;
+            width: 140px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .mountain-svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .mountain-path {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 4;
+            stroke-dasharray: 8 4;
+            transition: d 0.5s ease;
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -50%); }
+            50% { transform: translate(-50%, -60%); }
+        }
+        .animate-bounce-slow {
+            animation: bounce 2s infinite;
+        }
+
+        /* AI Helper */
+        .ai-helper-btn {
+            background: var(--accent);
+            color: var(--accent-foreground);
+            border: 4px solid var(--foreground);
+            transition: transform 0.1s;
+        }
+        .ai-helper-btn:hover {
+            transform: scale(1.05);
+        }
+        .ai-helper-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ai-example-box {
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body class="h-screen flex">
+
+    <div class="pixel-grid"></div>
+
+    <!-- Sidebar: Workflow Focused -->
+    <aside class="w-64 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r-4 border-[var(--sidebar-border)] flex flex-col z-10">
+        <div class="p-6 border-b-4 border-[var(--sidebar-border)]">
+            <h1 class="font-['Press_Start_2P'] text-xs leading-relaxed uppercase">Story Quest</h1>
+            <div class="mt-2 text-[var(--sidebar-foreground)] opacity-60 text-[10px]">✨ Phase: Planning</div>
+        </div>
+        
+        <nav class="flex-1 p-6 flex flex-col gap-4 overflow-y-auto">
+            <div class="text-[10px] font-bold opacity-60 uppercase mb-2">Writing Process</div>
+            <!-- Workflow Steps -->
+            <div class="flex flex-col gap-3 relative">
+                <div class="workflow-step">
+                    <button class="sidebar-btn active w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                        <div class="bg-white text-[var(--primary)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">1</div>
+                        <span class="text-sm">Plan</span>
+                    </button>
+                </div>
+                
+                <div class="workflow-step">
+                    <button onclick="navigateToDraft()" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100 hover:translate-x-1 transition-transform">
+                        <div class="bg-[var(--sidebar-accent)] text-[var(--muted-foreground)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">2</div>
+                        <span class="text-sm">Draft</span>
+                    </button>
+                </div>
+
+                <div class="workflow-step">
+                    <button class="sidebar-btn locked w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                        <div class="bg-[var(--sidebar-accent)] w-5 h-5 flex items-center justify-center border-2 border-[var(--sidebar-border)]"><i data-lucide="lock" class="size-3"></i></div>
+                        <span class="text-sm">Review</span>
+                    </button>
+                </div>
+
+                <div class="workflow-step">
+                    <button class="sidebar-btn locked w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                        <div class="bg-[var(--sidebar-accent)] w-5 h-5 flex items-center justify-center border-2 border-[var(--sidebar-border)]"><i data-lucide="lock" class="size-3"></i></div>
+                        <span class="text-sm">Edit</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="border-t-4 border-[var(--sidebar-border)] my-2"></div>
+
+            <div class="text-[10px] font-bold opacity-60 uppercase mb-2">Tools</div>
+            <!-- AI Helper Button (Square) -->
+            <button onclick="askAI()" class="ai-helper-btn w-full aspect-square flex flex-col items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+                <i data-lucide="bot" class="size-8"></i>
+                <span class="text-[10px] font-bold font-['Press_Start_2P'] text-center">AI Helper</span>
+            </button>
+
+        </nav>
+    </aside>
+
+    <!-- Main Content: The Planner -->
+    <main class="flex-1 flex flex-col relative z-10 overflow-hidden bg-[var(--background)]">
+        
+        <!-- Header -->
+        <header class="border-b-4 border-[var(--border)] bg-[var(--card)] px-8 py-6 flex items-center justify-between">
+            <div>
+                <h2 class="font-['Press_Start_2P'] text-lg text-[var(--primary)] mb-2">Story Planner</h2>
+                <p class="text-xs text-[var(--muted-foreground)]">Map out your adventure before you begin.</p>
+            </div>
+        </header>
+
+        <!-- Scrollable Workspace -->
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div class="max-w-4xl mx-auto space-y-8 pb-12">
+
+                <!-- Section 1: The Basics -->
+                <div class="pixel-card p-6">
+                    <h3 class="font-['Press_Start_2P'] text-xs text-[var(--primary)] mb-6 uppercase flex items-center gap-2">
+                        <i data-lucide="pen-tool" class="size-4"></i> The Basics
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-xs font-bold block mb-2">Story Title</label>
+                            <input type="text" class="pixel-input" placeholder="e.g. The Lost Key of Pixel City">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold block mb-2">Main Character</label>
+                            <input type="text" id="protagonist-input" class="pixel-input" placeholder="Who is the hero?">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold block mb-2">Genre</label>
+                            <select id="genre-select" class="pixel-input">
+                                <option value="fantasy">Fantasy</option>
+                                <option value="scifi">Sci-Fi</option>
+                                <option value="adventure">Adventure</option>
+                                <option value="mystery">Mystery</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold block mb-2">Story Archetype</label>
+                            <select id="archetype-select" class="pixel-input" onchange="changeArchetype(this.value)">
+                                <optgroup label="Classic Structures">
+                                    <option value="classic">Classic Arc (Freytag)</option>
+                                    <option value="hero">Hero's Journey</option>
+                                    <option value="rags">Rags to Riches</option>
+                                    <option value="quest">The Quest</option>
+                                </optgroup>
+                                <optgroup label="Global Traditions">
+                                    <option value="kisho">The Twist (Kishōtenketsu)</option>
+                                    <option value="trickster">The Trickster's Tale</option>
+                                    <option value="collective">Collective Journey</option>
+                                    <option value="johakyu">The Waterfall (Jo-Ha-Kyū)</option>
+                                    <option value="frame">The Storyteller (Frame)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: The Plot Mountain -->
+                <div class="pixel-card p-6 bg-[var(--card)]">
+                    <h3 class="font-['Press_Start_2P'] text-xs text-[var(--primary)] mb-2 uppercase flex items-center gap-2">
+                        <i data-lucide="mountain" class="size-4"></i> The Plot Map
+                    </h3>
+                    <p id="archetype-desc" class="text-xs text-[var(--muted-foreground)] mb-6">A classic rise and fall structure.</p>
+                    
+                    <div class="plot-container">
+                        <!-- SVG Mountain Path -->
+                        <svg class="mountain-svg" viewBox="0 0 800 350" preserveAspectRatio="none">
+                            <path id="mountain-path" d="M0,320 L100,320 L300,50 L500,320 L800,320" class="mountain-path" />
+                        </svg>
+
+                        <!-- Dynamic Points Container -->
+                        <div id="plot-points-container">
+                            <!-- Points injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Plot Point Editor (Dynamic) -->
+                    <div id="plot-editor" class="mt-8 p-4 border-2 border-dashed border-[var(--border)] bg-[var(--background)] hidden transition-all relative">
+                        <!-- AI Example Box -->
+                        <div id="ai-example-box" class="hidden ai-example-box mb-4 bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-4">
+                            <!-- Content injected via JS -->
+                        </div>
+
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 id="editor-title" class="font-bold text-sm text-[var(--primary)]">Beginning</h4>
+                            <button onclick="savePlotPoint()" class="text-xs font-bold text-[var(--secondary)] hover:underline">Save Point</button>
+                        </div>
+                        <p id="editor-prompt" class="text-xs text-[var(--muted-foreground)] mb-2">Prompt goes here...</p>
+                        <textarea id="editor-text" class="w-full bg-[var(--card)] border-2 border-[var(--border)] p-2 text-sm h-24 outline-none resize-none font-['Lexend']" placeholder="Type your ideas here..."></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Floating Action Button: Start Drafting -->
+        <div class="fixed bottom-8 right-8">
+            <button onclick="navigateToDraft()" class="flex items-center gap-3 px-6 py-4 bg-[var(--primary)] text-[var(--primary-foreground)] border-4 border-[var(--foreground)] font-['Press_Start_2P'] text-xs shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] transition-all animate-bounce-slow">
+                Start Drafting <i data-lucide="arrow-right" class="size-4"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // ------------------------------------
+        // Archetype Data Configuration
+        // ------------------------------------
+        const archetypes = {
+            // --- WESTERN / CLASSIC ---
+            classic: {
+                desc: "A classic rise and fall structure suitable for most stories.",
+                path: "M0,320 L100,320 L300,50 L500,320 L800,320",
+                points: [
+                    { id: 1, label: "Beginning", prompt: "How does the story start? Describe the normal world.", x: 50, y: 308, align: "center" },
+                    { id: 2, label: "Inciting Incident", prompt: "What event changes everything for the hero?", x: 150, y: 250, align: "center" },
+                    { id: 3, label: "Rising Action", prompt: "What obstacles does the hero face along the way?", x: 225, y: 150, align: "right" },
+                    { id: 4, label: "The Climax", prompt: "The biggest battle or challenge!", x: 300, y: 38, align: "center", animate: true },
+                    { id: 5, label: "Falling Action", prompt: "What happens immediately after the climax?", x: 400, y: 185, align: "left" },
+                    { id: 6, label: "Resolution", prompt: "How does the story end? What is the new normal?", x: 650, y: 308, align: "center" }
+                ]
+            },
+            hero: {
+                desc: "A circular journey where the hero leaves home and returns changed.",
+                path: "M0,320 L100,320 L250,150 L400,38 L550,150 L700,320 L800,320",
+                points: [
+                    { id: 1, label: "Ordinary World", prompt: "Describe the hero's life before the adventure.", x: 50, y: 308, align: "center" },
+                    { id: 2, label: "Call to Adventure", prompt: "Who or what calls them to action?", x: 175, y: 235, align: "right" },
+                    { id: 3, label: "Threshold", prompt: "The hero leaves home and enters the unknown.", x: 250, y: 150, align: "right" },
+                    { id: 4, label: "The Ordeal", prompt: "The central crisis where the hero faces their greatest fear.", x: 400, y: 38, align: "center", animate: true },
+                    { id: 5, label: "The Road Back", prompt: "The hero must return home with what they learned.", x: 550, y: 150, align: "left" },
+                    { id: 6, label: "Return w/ Elixir", prompt: "The hero returns home, changed forever.", x: 700, y: 308, align: "center" }
+                ]
+            },
+            rags: {
+                desc: "A jagged path of success, failure, and ultimate victory.",
+                path: "M0,320 L50,320 L250,100 L400,250 L600,50 L800,150",
+                points: [
+                    { id: 1, label: "Low Status", prompt: "The hero starts with nothing or is unhappy.", x: 25, y: 308, align: "left" },
+                    { id: 2, label: "Initial Success", prompt: "Things start going well! What happens?", x: 250, y: 100, align: "center" },
+                    { id: 3, label: "The Crisis", prompt: "Disaster strikes! They lose almost everything.", x: 400, y: 250, align: "center" },
+                    { id: 4, label: "Ultimate Victory", prompt: "Through hard work, they win it all back.", x: 600, y: 50, align: "center", animate: true },
+                    { id: 5, label: "New Status", prompt: "They are now better off than before.", x: 750, y: 150, align: "center" }
+                ]
+            },
+            quest: {
+                desc: "A long journey with a clear goal in mind.",
+                path: "M0,250 L100,250 L200,200 L300,250 L400,150 L500,200 L600,100 L800,50",
+                points: [
+                    { id: 1, label: "The Call", prompt: "The mission is assigned.", x: 50, y: 238, align: "center" },
+                    { id: 2, label: "First Trial", prompt: "A small challenge on the road.", x: 200, y: 200, align: "center" },
+                    { id: 3, label: "The Setback", prompt: "Something goes wrong.", x: 300, y: 250, align: "center" },
+                    { id: 4, label: "Big Trial", prompt: "A major monster or puzzle.", x: 400, y: 150, align: "center" },
+                    { id: 5, label: "The Prize", prompt: "They reach the goal!", x: 750, y: 50, align: "center", animate: true }
+                ]
+            },
+            // --- GLOBAL / NEW ---
+            kisho: {
+                desc: "An East Asian structure with four acts: Intro, Development, Twist, and Conclusion.",
+                path: "M0,320 L100,320 L300,200 L550,50 L750,320 L800,320",
+                points: [
+                    { id: 1, label: "Introduction (Ki)", prompt: "Introduce the characters and their world.", x: 50, y: 308, align: "center" },
+                    { id: 2, label: "Development (Shō)", prompt: "Deepen the story. What are they doing? (No major conflict yet)", x: 200, y: 250, align: "center" },
+                    { id: 3, label: "The Twist (Ten)", prompt: "Surprise! Something unexpected happens that changes everything.", x: 550, y: 50, align: "center", animate: true },
+                    { id: 4, label: "Conclusion (Ketsu)", prompt: "How does the story settle after the twist?", x: 750, y: 308, align: "center" }
+                ]
+            },
+            trickster: {
+                desc: "A zigzag tale of mischief, chaos, and escape (West African/Indigenous).",
+                path: "M0,320 L50,320 L200,200 L400,280 L600,100 L750,320 L800,320",
+                points: [
+                    { id: 1, label: "The Itch", prompt: "The Trickster is bored or wants something they can't have.", x: 50, y: 308, align: "center" },
+                    { id: 2, label: "The Prank", prompt: "What clever trick do they play?", x: 200, y: 200, align: "center" },
+                    { id: 3, label: "The Chaos", prompt: "Oh no! The trick backfires or causes trouble.", x: 400, y: 280, align: "center" },
+                    { id: 4, label: "The Trap", prompt: "The Trickster gets caught in a tight spot!", x: 600, y: 100, align: "center", animate: true },
+                    { id: 5, label: "The Escape", prompt: "How do they use their wits to get away?", x: 750, y: 308, align: "center" }
+                ]
+            },
+            collective: {
+                desc: "A story where a community works together to solve a problem (Indigenous).",
+                path: "M0,320 L50,320 L200,250 L350,150 L500,150 L750,320 L800,320",
+                points: [
+                    { id: 1, label: "The Community", prompt: "Describe the group and their peaceful home.", x: 50, y: 308, align: "center" },
+                    { id: 2, label: "The Threat", prompt: "What danger threatens everyone?", x: 200, y: 250, align: "center" },
+                    { id: 3, label: "The Gathering", prompt: "How does the group come together to plan?", x: 350, y: 150, align: "center" },
+                    { id: 4, label: "Collective Action", prompt: "Everyone uses their unique skills to help.", x: 500, y: 150, align: "center", animate: true },
+                    { id: 5, label: "Restoration", prompt: "The community is safe and stronger than before.", x: 750, y: 308, align: "center" }
+                ]
+            },
+            johakyu: {
+                desc: "A rhythmic Japanese structure: Slow Start, Speed Up, Rapid Finish.",
+                path: "M0,320 L50,320 L250,280 L450,180 L650,50 L750,320 L800,320",
+                points: [
+                    { id: 1, label: "Jo (Beginning)", prompt: "Start quietly and slowly. Set the mood.", x: 50, y: 308, align: "center" },
+                    { id: 2, label: "Ha (Speed Up)", prompt: "Things start moving faster and getting complex.", x: 250, y: 280, align: "center" },
+                    { id: 3, label: "The Rush", prompt: "The action gets intense and fast!", x: 450, y: 180, align: "center" },
+                    { id: 4, label: "Kyū (Climax)", prompt: "The peak of speed and excitement!", x: 650, y: 50, align: "center", animate: true },
+                    { id: 5, label: "The Stop", prompt: "The story ends quickly and sharply.", x: 750, y: 308, align: "center" }
+                ]
+            },
+            frame: {
+                desc: "A story within a story (Middle Eastern/Indian).",
+                path: "M0,320 L50,320 L200,200 L400,50 L600,200 L750,320 L800,320",
+                points: [
+                    { id: 1, label: "The Real World", prompt: "Who is telling the story and who is listening?", x: 50, y: 308, align: "center" },
+                    { id: 2, label: "Enter The Tale", prompt: "The story begins. Who is the inner hero?", x: 200, y: 200, align: "right" },
+                    { id: 3, label: "Inner Lesson", prompt: "What happens in the inner story?", x: 400, y: 50, align: "center", animate: true },
+                    { id: 4, label: "Exit The Tale", prompt: "The story finishes.", x: 600, y: 200, align: "left" },
+                    { id: 5, label: "New Wisdom", prompt: "How does the listener change because of the story?", x: 750, y: 308, align: "center" }
+                ]
+            }
+        };
+
+        // ------------------------------------
+        // Logic
+        // ------------------------------------
+        let currentArchetype = 'classic';
+        let activePointData = null; // Store full point data
+        let activePointElement = null;
+
+        function changeArchetype(value) {
+            currentArchetype = value;
+            const data = archetypes[value];
+            if(!data) return;
+
+            // Update Description
+            document.getElementById('archetype-desc').innerText = data.desc;
+
+            // Update SVG Path
+            document.getElementById('mountain-path').setAttribute('d', data.path);
+
+            // Re-render Points
+            const container = document.getElementById('plot-points-container');
+            container.innerHTML = ''; // Clear existing
+
+            data.points.forEach(p => {
+                // Create Point
+                const point = document.createElement('div');
+                point.className = `plot-point ${p.animate ? 'animate-bounce-slow' : ''}`;
+                point.style.left = `${p.x}px`;
+                point.style.top = `${p.y}px`;
+                point.innerText = p.id;
+                point.onclick = () => editPlotPoint(p, point);
+                
+                // Create Label
+                const label = document.createElement('div');
+                label.className = 'plot-label';
+                label.innerHTML = `
+                    <strong>${p.label}</strong>
+                    <div class="text-[10px] text-[var(--muted-foreground)]">?</div>
+                `;
+                
+                // Label Positioning Logic
+                label.style.left = `${p.x}px`;
+                if (p.align === 'center') {
+                    label.style.top = `${p.y + 20}px`;
+                } else if (p.align === 'right') {
+                    label.style.top = `${p.y}px`;
+                    label.style.transform = `translateX(-110%) translateY(-50%)`;
+                    label.style.textAlign = 'right';
+                } else if (p.align === 'left') {
+                    label.style.top = `${p.y}px`;
+                    label.style.transform = `translateX(10%) translateY(-50%)`;
+                    label.style.textAlign = 'left';
+                }
+
+                container.appendChild(point);
+                container.appendChild(label);
+            });
+
+            // Hide editor if open
+            document.getElementById('plot-editor').classList.add('hidden');
+        }
+
+        // ------------------------------------
+        // Plot Editor Logic
+        // ------------------------------------
+
+        function editPlotPoint(pointData, element) {
+            const editor = document.getElementById('plot-editor');
+            const titleEl = document.getElementById('editor-title');
+            const promptEl = document.getElementById('editor-prompt');
+            const textEl = document.getElementById('editor-text');
+            const aiBox = document.getElementById('ai-example-box');
+
+            // Store active state
+            activePointData = pointData;
+
+            // Visual Selection
+            if (activePointElement) activePointElement.classList.remove('active');
+            activePointElement = element;
+            activePointElement.classList.add('active');
+
+            // Show editor
+            editor.classList.remove('hidden');
+            editor.classList.add('block');
+            
+            // Hide previous AI example if shown
+            aiBox.classList.add('hidden');
+
+            // Set content
+            titleEl.innerText = pointData.label;
+            promptEl.innerText = pointData.prompt;
+            textEl.value = ""; 
+            textEl.focus();
+        }
+
+        function savePlotPoint() {
+            const editor = document.getElementById('plot-editor');
+            editor.classList.add('hidden');
+            
+            if (activePointElement) {
+                activePointElement.classList.add('completed');
+                activePointElement.classList.remove('active');
+            }
+            alert("Plot point saved!");
+        }
+
+        // ------------------------------------
+        // AI HELPER LOGIC
+        // ------------------------------------
+        const mockExamples = {
+            hero: {
+                1: "In *The Wizard of Oz*, Dorothy starts in Kansas. It is gray, dusty, and boring. She feels trapped and wishes she could go somewhere over the rainbow.",
+                2: "A tornado sweeps up Dorothy's house while she is inside looking for her dog, Toto. The house flies into the air!",
+                3: "Dorothy lands in Oz. She meets the Scarecrow, Tin Man, and Lion. They face trees that throw apples and a field of sleepy poppies.",
+                4: "Dorothy and friends must kill the Wicked Witch of the West to get help from the Wizard. They sneak into her castle and Dorothy melts her with water!",
+                5: "Dorothy finds out the Wizard is just a man. She must learn to use her silver shoes to get home.",
+                6: "Dorothy taps her heels three times and wakes up back in Kansas, happy to be with her family."
+            },
+            quest: {
+                1: "In *Treasure Island*, Jim Hawkins works at a quiet inn until an old pirate captain comes to stay, bringing mystery and danger.",
+                2: "Jim finds a treasure map in the captain's chest after pirates attack the inn.",
+                3: "Jim joins a ship's crew. He overhears Long John Silver planning a mutiny!",
+                4: "The crew fights the pirates on the island for the treasure map.",
+                5: "Jim and his friends find the treasure and defeat the remaining pirates."
+            }
+        };
+
+        let currentAIExampleText = "";
+
+        function askAI() {
+            // Check if we are editing a point
+            if (!activePointData || document.getElementById('plot-editor').classList.contains('hidden')) {
+                alert("Click a plot point (circle) on the map first!");
+                return;
+            }
+
+            const aiBox = document.getElementById('ai-example-box');
+            const genre = document.getElementById('genre-select').value; 
+
+            // Simple Mock Logic
+            let example = "";
+            
+            // Try to match specific archetype, otherwise generic fallback
+            if (currentArchetype === 'hero' && mockExamples.hero[activePointData.id]) {
+                example = mockExamples.hero[activePointData.id];
+            } else if (currentArchetype === 'quest' && mockExamples.quest[activePointData.id]) {
+                example = mockExamples.quest[activePointData.id];
+            } else {
+                example = `In a famous ${genre} story, the author used the '${activePointData.label}' to show the character changing. For example, they might face a small challenge here that prepares them for the big one later.`;
+            }
+
+            // Store for reveal
+            currentAIExampleText = example;
+
+            aiBox.classList.remove('hidden');
+
+            // SPOILER LOGIC: Steps > 2 are considered spoilers
+            if (activePointData.id > 2) {
+                renderSpoilerWarning();
+            } else {
+                renderExampleText();
+            }
+            lucide.createIcons();
+        }
+
+        function renderSpoilerWarning() {
+            const aiBox = document.getElementById('ai-example-box');
+            aiBox.innerHTML = `
+                <div class="flex flex-col gap-2">
+                    <h5 class="text-xs font-bold text-[var(--accent-foreground)] flex items-center gap-2">
+                        <i data-lucide="alert-triangle" class="size-4"></i> Spoiler Alert!
+                    </h5>
+                    <p class="text-[10px] text-[var(--foreground)]">This example reveals major plot points for the story.</p>
+                    <button onclick="revealExample()" class="self-start mt-1 text-[10px] font-bold bg-[var(--accent)] text-[var(--accent-foreground)] px-3 py-2 border-2 border-[var(--border)] shadow-sm hover:opacity-90 hover:translate-x-0.5 transition-all">
+                        Reveal Example
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function revealExample() {
+            renderExampleText();
+        }
+
+        function renderExampleText() {
+            const text = currentAIExampleText;
+            const aiBox = document.getElementById('ai-example-box');
+            aiBox.innerHTML = `
+                <h5 class="text-xs font-bold text-[var(--accent-foreground)] mb-1 flex items-center gap-2">
+                    <i data-lucide="lightbulb" class="size-3"></i> Literary Example
+                </h5>
+                <p class="text-xs text-[var(--foreground)] font-['Lexend'] leading-relaxed italic animate-in fade-in slide-in-from-top-1 duration-300">
+                    ${text}
+                </p>
+            `;
+            lucide.createIcons();
+        }
+
+        // Navigation Helper for Prototype
+        function navigateToDraft() {
+             try {
+                 window.location.href = 'index.html'; 
+             } catch (err) {
+                 console.warn("Navigation blocked:", err);
+                 alert("Transition: Go to Editor (Drafting Phase)");
+             }
+        }
+
+        // Initialize with Classic
+        changeArchetype('hero');
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing Quest - Review Phase</title>
+    <!-- Font Imports -->
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&family=Lexend:wght@300;400;600&family=Patrick+Hand&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* SHARED THEME VARIABLES */
+        :root {
+            --font-size: 16px;
+            --background: #f5ebe0; 
+            --foreground: #2d1b00;
+            --card: #fff9ec;
+            --card-foreground: #2d1b00;
+            --primary: #8b4513;
+            --primary-foreground: #fef6e4;
+            --secondary: #f582ae;
+            --muted: #e8d5b7;
+            --muted-foreground: #6b5842;
+            --accent: #72a1e5;
+            --accent-foreground: #2d1b00;
+            --border: #8b7355;
+            --radius: 0px;
+            --main-font: 'Silkscreen', cursive;
+            --reading-font: 'Lexend', sans-serif;
+
+            --sidebar: var(--primary);
+            --sidebar-foreground: var(--primary-foreground);
+            --sidebar-primary: var(--secondary);
+            --sidebar-primary-foreground: var(--foreground);
+            --sidebar-border: #6b4423;
+            --sidebar-accent: var(--card);
+            --sidebar-accent-foreground: var(--foreground);
+        }
+
+        * {
+            border-color: var(--border);
+            image-rendering: pixelated;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--main-font);
+            font-size: var(--font-size);
+            overflow: hidden;
+        }
+
+        /* Pixel Grid Background */
+        .pixel-grid {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px),
+                repeating-linear-gradient(90deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar-btn {
+            border-width: 2px;
+            transition: all 0.1s;
+            position: relative;
+        }
+        .workflow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -12px;
+            width: 2px;
+            height: 12px;
+            background: var(--sidebar-border);
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+        
+        .sidebar-btn.active {
+            background-color: var(--sidebar-primary);
+            color: var(--sidebar-primary-foreground);
+            border-color: var(--sidebar-primary);
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+        .sidebar-btn.locked {
+            opacity: 0.5;
+            background: var(--sidebar-accent);
+            color: var(--sidebar-accent-foreground);
+            cursor: not-allowed;
+        }
+
+        /* EDITOR / GAME STYLES */
+        .review-editor {
+            font-family: var(--reading-font);
+            font-size: 1.25rem;
+            line-height: 2.2;
+            color: #4a3b2a;
+        }
+
+        /* Game Objects */
+        .word-token {
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            cursor: pointer; 
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .word-token:hover {
+            background-color: rgba(0,0,0,0.05);
+            transform: translateY(-1px);
+        }
+
+        /* Active selection */
+        .word-token.selected {
+            background-color: var(--muted);
+            border-color: var(--border);
+        }
+
+        /* Tagged States */
+        .word-token.flagged-spelling {
+            background-color: rgba(234, 88, 12, 0.15); /* Orange Tint */
+            border-bottom: 3px solid #ea580c;
+        }
+        .word-token.flagged-grammar {
+            background-color: rgba(147, 51, 234, 0.15); /* Purple Tint */
+            border-bottom: 3px solid #9333ea;
+        }
+        .word-token.flagged-repetition {
+            background-color: rgba(5, 150, 105, 0.15); /* Green Tint */
+            border-bottom: 3px solid #059669;
+        }
+        
+        /* User Note State */
+        .word-token.has-note {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-bottom: 3px solid #3b82f6;
+        }
+        .word-token.has-note::after {
+            content: '📝';
+            font-size: 0.6em;
+            position: absolute;
+            top: -10px;
+            right: -5px;
+        }
+
+        /* Alice's Chat Bubble */
+        .alice-chat {
+            background: var(--card);
+            border: 4px solid var(--border);
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-family: 'Lexend', sans-serif;
+            font-size: 0.8rem;
+        }
+
+        .chat-bubble {
+            background: white;
+            padding: 8px 12px;
+            border: 2px solid var(--muted);
+            border-radius: 8px 8px 8px 0;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 4px;
+        }
+
+        .chat-bubble.alice {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .chat-bubble.system {
+            background: var(--muted);
+            font-style: italic;
+            font-size: 0.7rem;
+            text-align: center;
+            border: none;
+            border-radius: 4px;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Scoreboard */
+        .score-board {
+            background: #2d1b00;
+            color: #00ff00; /* Retro terminal green */
+            font-family: 'Press Start 2P', cursive;
+            padding: 0.5rem 1rem;
+            border: 4px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Popover for Review Actions */
+        .fix-popover {
+            position: absolute;
+            background: var(--card);
+            border: 3px solid var(--primary);
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 100;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+            animation: slideUp 0.1s ease-out;
+            min-width: 220px;
+            transition: height 0.2s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(5px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .action-btn {
+            background: var(--background);
+            border: 2px solid var(--border);
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .action-btn:hover {
+            background: var(--secondary);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .btn-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--muted-foreground);
+            padding: 4px 0;
+            margin-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Mode Indicator */
+        .mode-badge {
+            font-family: 'Press Start 2P';
+            font-size: 0.6rem;
+            padding: 4px 8px;
+            background: var(--accent);
+            color: var(--accent-foreground);
+            border: 2px solid var(--foreground);
+            margin-right: 1rem;
+        }
+
+    </style>
+</head>
+<body class="h-screen flex">
+
+    <div class="pixel-grid"></div>
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r-4 border-[var(--sidebar-border)] flex flex-col z-10">
+        <div class="p-6 border-b-4 border-[var(--sidebar-border)]">
+            <h1 class="font-['Press_Start_2P'] text-xs leading-relaxed uppercase">Story Quest</h1>
+            <div class="mt-2 text-[var(--sidebar-foreground)] opacity-60 text-[10px]">✨ Phase: Review</div>
+        </div>
+        
+        <nav class="flex-1 p-6 flex flex-col gap-4 overflow-y-auto">
+            <div class="text-[10px] font-bold opacity-60 uppercase mb-2">Writing Process</div>
+            
+            <div class="flex flex-col gap-3 relative">
+                <div class="workflow-step">
+                    <button class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70">
+                        <div class="bg-[var(--sidebar-accent)] text-[var(--muted-foreground)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">1</div>
+                        <span class="text-sm">Plan</span>
+                    </button>
+                </div>
+                
+                <div class="workflow-step">
+                    <button onclick="window.location.href='index.html'" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100 hover:translate-x-1 transition-transform">
+                        <div class="bg-[var(--sidebar-accent)] text-[var(--muted-foreground)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">2</div>
+                        <span class="text-sm">Draft</span>
+                    </button>
+                </div>
+
+                <div class="workflow-step">
+                    <button class="sidebar-btn active w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                        <div class="bg-white text-[var(--primary)] w-5 h-5 flex items-center justify-center font-bold text-xs border-2 border-[var(--sidebar-border)]">3</div>
+                        <span class="text-sm">Review</span>
+                    </button>
+                </div>
+
+                <div class="workflow-step">
+                    <button class="sidebar-btn locked w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                        <div class="bg-[var(--sidebar-accent)] w-5 h-5 flex items-center justify-center border-2 border-[var(--sidebar-border)]"><i data-lucide="lock" class="size-3"></i></div>
+                        <span class="text-sm">Edit</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-auto">
+                <button id="coach-btn" onclick="startCoachedMode()" class="w-full py-3 mb-4 bg-[var(--accent)] text-[var(--accent-foreground)] border-2 border-[var(--border)] font-bold text-xs shadow-md hover:translate-y-1 transition-all">
+                    Start Coaching
+                </button>
+
+                <div class="bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] border-4 border-[var(--sidebar-border)] p-4 relative">
+                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-white border-2 border-[var(--border)] rounded-full flex items-center justify-center overflow-hidden">
+                        <span class="text-xl">👩‍🏫</span>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="font-['Press_Start_2P'] text-[10px] mb-2">Coach Alice</p>
+                        <div class="text-xs italic opacity-80" id="latest-nudge">
+                            "Scan the text yourself first. Tag anything tricky!"
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col relative z-10 overflow-hidden bg-[var(--background)]">
+        
+        <!-- Game Header -->
+        <header class="border-b-4 border-[var(--border)] bg-[var(--card)] px-8 py-4 flex items-center justify-between shadow-md z-20">
+            <div class="flex items-center">
+                <div id="mode-badge" class="mode-badge">SELF-SCAN MODE</div>
+                <div>
+                    <h2 class="font-['Press_Start_2P'] text-md text-[var(--primary)] mb-1">Editor's Eye</h2>
+                    <p class="text-xs text-[var(--muted-foreground)]">Step 1: Find & Flag Errors</p>
+                </div>
+            </div>
+            
+            <div class="score-board">
+                <span class="text-xs">SCORE:</span>
+                <span id="score-display" class="text-lg">000</span>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Editor Surface -->
+            <div class="flex-1 overflow-y-auto p-12 custom-scrollbar">
+                <div class="max-w-3xl mx-auto bg-white border-4 border-[var(--border)] p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] min-h-[500px] relative">
+                    
+                    <!-- Paper Lines -->
+                    <div class="absolute inset-0 pointer-events-none opacity-10" 
+                         style="background-image: repeating-linear-gradient(transparent, transparent 31px, var(--accent) 32px);">
+                    </div>
+
+                    <!-- The Text to Review -->
+                    <div class="review-editor relative z-10" id="editor-text-container">
+                        <!-- Text injected by JS with spans -->
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Alice's Coaching Pane -->
+            <div class="w-80 bg-[var(--background)] border-l-4 border-[var(--border)] p-4 flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-['Press_Start_2P'] text-xs text-[var(--muted-foreground)] uppercase">
+                        <i data-lucide="message-square" class="size-3 inline mr-1"></i> Hints
+                    </h3>
+                    <div id="potential-score" class="text-[10px] font-bold text-[var(--primary)]">Pot: 1000pts</div>
+                </div>
+                <div id="chat-container" class="alice-chat flex-1 custom-scrollbar">
+                    <div class="chat-bubble alice">Hi! Try to find the errors on your own first. Click any word to start the investigation!</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Popover Element -->
+    <div id="fix-popover" class="fix-popover hidden">
+        <!-- Content injected dynamically -->
+    </div>
+
+    <!-- Bonus Round Modal -->
+    <div id="bonus-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-[var(--card)] border-4 border-[var(--border)] p-8 max-w-md w-full text-center shadow-[10px_10px_0px_0px_rgba(255,255,255,0.2)]">
+            <i data-lucide="trophy" class="size-16 mx-auto text-[var(--secondary)] mb-4 animate-bounce"></i>
+            <h2 class="font-['Press_Start_2P'] text-xl text-[var(--primary)] mb-4">Review Complete!</h2>
+            <p class="text-sm font-['Lexend'] mb-6">You've flagged all the major issues.</p>
+            <button onclick="window.location.href='index.html'" class="w-full py-3 bg-[var(--primary)] text-[var(--primary-foreground)] border-2 border-[var(--foreground)] font-['Press_Start_2P'] text-xs shadow-md hover:translate-y-1 transition-all">
+                Continue to Edit Phase
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ----------------------------------------
+        // DATA STRUCTURE
+        // ----------------------------------------
+        const storyTokens = [
+            { text: "The", id: 1 }, { text: "knight", id: 2 }, { text: "rode", id: 3 }, { text: "into", id: 4 }, { text: "the", id: 5 },
+            { text: "dark", id: 6, isError: true, type: 'repetition' }, 
+            { text: "forest.", id: 7 }, { text: "It", id: 8 }, { text: "was", id: 9 }, { text: "a", id: 10 }, 
+            { text: "dark", id: 11, isError: true, type: 'repetition' }, 
+            { text: "night.", id: 12 }, { text: "He", id: 13 }, { text: "was", id: 14 }, { text: "looking", id: 15 }, 
+            { text: "for", id: 16 }, { text: "the", id: 17 }, { text: "dragon.", id: 18 }, { text: "\"Where", id: 19 }, 
+            { text: "is", id: 20 }, { text: "the", id: 21 }, { text: "dragon?\"", id: 22 }, { text: "he", id: 23 }, 
+            { text: "asked.", id: 24 }, { text: "Just", id: 25 }, { text: "then,", id: 26 }, { text: "a", id: 27 }, 
+            { text: "huge", id: 28 }, { text: "fire", id: 29 }, { text: "ball", id: 30 }, { text: "shot", id: 31 }, 
+            { text: "across", id: 32 }, { text: "the", id: 33 }, 
+            { text: "skye.", id: 34, isError: true, type: 'spelling' }, 
+            { text: "Their", id: 35, isError: true, type: 'grammar' }, 
+            { text: "was", id: 36 }, { text: "smoke", id: 37 }, { text: "everywhere!", id: 38 }
+        ];
+
+        // ----------------------------------------
+        // HINT DATA
+        // ----------------------------------------
+        const errorLibrary = {
+            'repetition': {
+                targetIds: [11], // Updated ID
+                hints: [
+                    "I noticed a few things we need to fix on this page. Can you spot what needs another look?",
+                    "Look for a word repetition. Using the same description twice makes the story feel flat.",
+                    "Can you find the word that rhymes with 'Bark'?",
+                    "It's in the second sentence.",
+                    "How about taking another look at where you wrote 'dark'..."
+                ]
+            },
+            'spelling': {
+                targetIds: [34], // Updated ID
+                hints: [
+                    "I see a spelling puzzle on this page.",
+                    "Look for a misspelled word that involves our 'Long I' rules.",
+                    "Can you find the word that rhymes with 'Pie'?",
+                    "It's in the sentence about the fire ball.",
+                    "How about taking another look at where you wrote 'skye'..."
+                ]
+            },
+            'grammar': {
+                targetIds: [35], // Updated ID
+                hints: [
+                    "There is a tricky homophone hiding here.",
+                    "Look for a word that sounds right, but means 'belongs to them'.",
+                    "It sounds like 'Air'.",
+                    "It's the very last sentence.",
+                    "Look at 'Their'..."
+                ]
+            }
+        };
+
+        // ----------------------------------------
+        // STATE
+        // ----------------------------------------
+        let score = 0;
+        let gameMode = 'self-scan'; // 'self-scan' or 'coached'
+        let activeWordId = null;
+        let solvedErrors = new Set();
+        const totalErrorsToFind = 3; // repetition, spelling, grammar
+        
+        // Coached Mode State
+        let errorOrder = ['repetition', 'spelling', 'grammar'];
+        let currentErrorTypeIndex = 0;
+        let currentHintLevel = 0;
+        let currentPotentialPoints = 1000; // Self scan value
+        let nudgeInterval = null;
+
+        // ----------------------------------------
+        // RENDERER
+        // ----------------------------------------
+        function renderText() {
+            const container = document.getElementById('editor-text-container');
+            container.innerHTML = storyTokens.map(token => {
+                return `<span id="word-${token.id}" class="word-token" onclick="handleWordClick(${token.id})">${token.text}</span>`;
+            }).join(' ');
+        }
+
+        function handleWordClick(id) {
+            // Visual Selection
+            if(activeWordId) document.getElementById(`word-${activeWordId}`).classList.remove('selected');
+            activeWordId = id;
+            document.getElementById(`word-${id}`).classList.add('selected');
+
+            // Show Stage 1 Popover (Observe)
+            renderStage1Popover(id);
+        }
+
+        // ----------------------------------------
+        // POPOVER STAGES (Scaffolding Logic)
+        // ----------------------------------------
+        
+        function renderStage1Popover(id) {
+            const popover = document.getElementById('fix-popover');
+            const element = document.getElementById(`word-${id}`);
+            const rect = element.getBoundingClientRect();
+
+            // ADDED event.stopPropagation() to prevent the body listener from firing when button is removed
+            popover.innerHTML = `
+                <div class="btn-header">Observation</div>
+                <button class="action-btn" onclick="event.stopPropagation(); renderStage2Popover(${id})">
+                    <i data-lucide="alert-triangle" class="size-4 text-orange-600"></i> There is a problem
+                </button>
+                <button class="action-btn" onclick="event.stopPropagation(); showNoteInput()">
+                    <i data-lucide="sticky-note" class="size-4 text-blue-600"></i> Add a Note
+                </button>
+                <!-- Note Input (Hidden) -->
+                <div id="note-input-area" class="hidden p-2 mt-2 border-t border-[var(--border)]">
+                    <textarea id="user-note" class="w-full text-xs p-1 border border-[var(--border)] mb-2" rows="2" placeholder="Type note..." onclick="event.stopPropagation()"></textarea>
+                    <button onclick="event.stopPropagation(); saveNote()" class="w-full bg-[var(--primary)] text-white text-xs py-1 font-bold">Save Note</button>
+                </div>
+            `;
+            
+            popover.style.left = `${rect.left}px`;
+            popover.style.top = `${rect.bottom + 10}px`;
+            popover.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function renderStage2Popover(id) {
+            const popover = document.getElementById('fix-popover');
+            
+            // ADDED event.stopPropagation() here as well for safety
+            popover.innerHTML = `
+                <div class="flex items-center gap-2 mb-2">
+                    <button onclick="event.stopPropagation(); renderStage1Popover(${id})" class="text-[10px] hover:bg-[var(--muted)] p-1 rounded"><i data-lucide="arrow-left" class="size-3"></i></button>
+                    <div class="btn-header mb-0 border-none">Diagnosis</div>
+                </div>
+                <button class="action-btn" onclick="event.stopPropagation(); tagError('spelling')">
+                    <i data-lucide="type" class="size-4 text-orange-600"></i> Spelling Error
+                </button>
+                <button class="action-btn" onclick="event.stopPropagation(); tagError('grammar')">
+                    <i data-lucide="book-a" class="size-4 text-purple-600"></i> Wrong Word / Meaning
+                </button>
+                <button class="action-btn" onclick="event.stopPropagation(); tagError('repetition')">
+                    <i data-lucide="repeat" class="size-4 text-green-600"></i> Repetition
+                </button>
+            `;
+            lucide.createIcons();
+        }
+
+        // ----------------------------------------
+        // ACTION: TAGGING
+        // ----------------------------------------
+        function tagError(type) {
+            if(!activeWordId) return;
+            const token = storyTokens.find(t => t.id === activeWordId);
+            const element = document.getElementById(`word-${activeWordId}`);
+
+            // Game Logic: Is this correct?
+            if (token.isError && token.type === type) {
+                // Correct!
+                if (!solvedErrors.has(token.id)) {
+                    solvedErrors.add(token.id);
+                    element.className = `word-token flagged-${type}`;
+                    addChatMessage(`Good eye! You correctly identified a ${type === 'grammar' ? 'word usage' : type} issue.`, 'system');
+                    addScore(currentPotentialPoints);
+                    hidePopover();
+                    checkCompletion();
+                } else {
+                    addChatMessage("You already flagged that one!", 'system');
+                    hidePopover();
+                }
+            } else {
+                // Incorrect Diagnosis OR Not an error
+                addChatMessage("That's not the one I was thinking of. Do you want to add a note with what you see that you want to change?", 'alice');
+                hidePopover();
+            }
+        }
+
+        function showNoteInput() {
+            document.getElementById('note-input-area').classList.remove('hidden');
+        }
+
+        function saveNote() {
+            if(!activeWordId) return;
+            const element = document.getElementById(`word-${activeWordId}`);
+            element.classList.add('has-note');
+            addChatMessage("Sticky note added!", 'system');
+            hidePopover();
+        }
+
+        function hidePopover() {
+            document.getElementById('fix-popover').classList.add('hidden');
+            if(activeWordId) {
+                document.getElementById(`word-${activeWordId}`).classList.remove('selected');
+                activeWordId = null;
+            }
+        }
+
+        function addScore(points) {
+            score += points;
+            document.getElementById('score-display').innerText = score.toString().padStart(3, '0');
+        }
+
+        // ----------------------------------------
+        // COACHED MODE LOGIC
+        // ----------------------------------------
+        function startCoachedMode() {
+            if(gameMode === 'coached') return;
+            
+            gameMode = 'coached';
+            document.getElementById('mode-badge').innerText = "COACHED MODE";
+            document.getElementById('mode-badge').style.backgroundColor = "var(--secondary)";
+            document.getElementById('coach-btn').classList.add('hidden'); // Hide button
+            
+            addChatMessage("Reviewing your work... Okay, I see a few things we missed. Let's find them together!", 'alice');
+            
+            // Reset potential points for coached mode
+            currentPotentialPoints = 500;
+            updatePointsDisplay();
+            
+            // Find first unsolved error type
+            // findNextUnsolvedError(); // Implicit in hint loop
+            
+            // Start Timer
+            startHintTimer();
+        }
+
+        function startHintTimer() {
+            if (nudgeInterval) clearInterval(nudgeInterval);
+            
+            // Initial Hint
+            pushHint();
+
+            nudgeInterval = setInterval(() => {
+                if (currentHintLevel < 4) {
+                    currentHintLevel++;
+                    currentPotentialPoints = Math.max(100, 500 - (currentHintLevel * 100));
+                    updatePointsDisplay();
+                    pushHint();
+                }
+            }, 5000);
+        }
+
+        function pushHint() {
+            // Find current target type that isn't solved
+            let type = errorOrder[currentErrorTypeIndex];
+            
+            // Loop until we find an unsolved type or finish
+            while (type) {
+                const targetId = errorLibrary[type].targetIds[0];
+                if (!solvedErrors.has(targetId)) {
+                    break; // Found unsolved type
+                }
+                // If solved, move to next
+                currentErrorTypeIndex++;
+                currentHintLevel = 0;
+                type = errorOrder[currentErrorTypeIndex];
+            }
+
+            // If we ran out of types, check if done
+            if(!type) {
+                clearInterval(nudgeInterval);
+                return;
+            }
+
+            // If we have a hint for this level
+            if (errorLibrary[type].hints[currentHintLevel]) {
+                const hintText = errorLibrary[type].hints[currentHintLevel];
+                addChatMessage(hintText, 'alice');
+                document.getElementById('latest-nudge').innerText = `"${hintText}"`;
+            }
+        }
+
+        function updatePointsDisplay() {
+            document.getElementById('potential-score').innerText = `Pot: ${currentPotentialPoints}pts`;
+        }
+
+        function checkCompletion() {
+            // Check if ALL are found
+            if (solvedErrors.size >= totalErrorsToFind) {
+                clearInterval(nudgeInterval);
+                setTimeout(() => {
+                    document.getElementById('bonus-modal').classList.remove('hidden');
+                }, 1000);
+            } else if (gameMode === 'coached') {
+                // If coached, finding one might trigger immediate next hint sequence
+                // For simplicity, just reset the timer to find next
+                currentHintLevel = 0;
+                currentPotentialPoints = 500;
+                updatePointsDisplay();
+                startHintTimer();
+            }
+        }
+
+        function addChatMessage(msg, type) {
+            const container = document.getElementById('chat-container');
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${type}`;
+            bubble.innerText = msg;
+            container.appendChild(bubble);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Close popover on click outside
+        document.body.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('word-token') && !e.target.closest('.fix-popover')) {
+                hidePopover();
+            }
+        });
+
+        // Initialize
+        renderText();
+
+    </script>
+</body>
+</html>

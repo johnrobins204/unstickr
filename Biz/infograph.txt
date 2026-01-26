@@ -1,0 +1,72 @@
+This document outlines the Writing Quest Ecosystem, a standards-aligned, recursive writing framework designed to accelerate literacy outcomes through a five-stage pedagogical journey underpinned by a Social-Emotional Learning (SEL) foundation.
+
+I. Core Framework: The Five Stages of Writing
+The Writing Quest follows a linear yet recursive progression, bridging the gap between reading and professional-grade publication.
+
+1. Reader
+Phase: Inquiry & Research
+
+Pedagogical Core: Deconstructive Analysis. Focuses on cultivating analytical reading skills by deconstructing mentor texts to bridge the gap between consumption and creation.
+
+Curriculum Alignment: * GLO 2: Comprehend
+
+GLO 3: Inquiry
+
+Key Activity: Active text interrogation.
+
+2. Planner
+Phase: Pre-Writing Strategy
+
+Pedagogical Core: Evidence-Based Scaffolding. Operationalizes the Zone of Proximal Development (ZPD) through visual graphic organizers that decompose complex narrative architectures.
+
+Curriculum Alignment: * GLO 4: Plan
+
+Indigenous Perspectives (Diverse archetypes and structures)
+
+Key Activity: Strategic organization of ideas.
+
+3. Drafter
+Phase: Composition
+
+Pedagogical Core: Cognitive Optimization. Maximizes "flow states" via a distraction-free interface designed to support sustained creative output.
+
+Curriculum Alignment: * GLO 4: Generate
+
+Differentiation (Inclusive typography for neurodiversity)
+
+Key Activity: Sustained creative drafting.
+
+4. Reviewer
+Phase: Formative Assessment
+
+Pedagogical Core: Metacognitive Development. Drives critical thinking by decoupling error detection from diagnosis, shifting the locus of control to the learner.
+
+Curriculum Alignment: * Assessment as Learning
+
+GLO 4: Appraise
+
+Key Activity: Self-directed evaluation.
+
+5. Editor
+Phase: Revision & Publication
+
+Pedagogical Core: Iterative Refinement. Mitigates revision anxiety through granular task segmentation to foster professional-grade editing habits.
+
+Curriculum Alignment: * GLO 4: Edit
+
+GLO 5: Community
+
+Key Activity: Final polish for a target audience.
+
+II. Foundation Layer: Social-Emotional Learning (SEL)
+The entire ecosystem is built upon a Collaborative Learning Ecosystem designed to ensure psychological safety and visible growth.
+
+Inclusive Engagement Model
+Longitudinal Artifact Tracking: Students curate portfolios of their entire journey (ideation to publication) to foster a growth mindset.
+
+Differentiated Social Scaffolding: Granular privacy controls (Private, Mentor, Small Group, Class) allow students to share at their individual comfort levels.
+
+Psychologically Safe Feedback
+Structured Peer Review: Utilizes a "Sticker-Only" protocol to eliminate negative social friction and reinforce positive behaviors/specific competencies.
+
+Anxiety-Free Interaction: Restricts unstructured commentary to ensure a supportive environment focused on constructive recognition.

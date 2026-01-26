@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing Quest Prototype</title>
+    <!-- Font Imports -->
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&family=Lexend:wght@300;400;600&family=Patrick+Hand&family=Luckiest+Guy&family=VT323&family=Silkscreen:wght@400;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* These variables are now dynamic via the Design Lab */
+            --font-size: 16px;
+            --background: #f5ebe0; 
+            --foreground: #2d1b00;
+            --card: #fff9ec;
+            --card-foreground: #2d1b00;
+            --primary: #8b4513;
+            --primary-foreground: #fef6e4;
+            --secondary: #f582ae;
+            --muted: #e8d5b7;
+            --muted-foreground: #6b5842;
+            --accent: #72a1e5;
+            --accent-foreground: #2d1b00;
+            --border: #8b7355;
+            --radius: 0px;
+
+            /* Default Font */
+            --main-font: 'Silkscreen', cursive;
+
+            /* Sidebar specific mappings */
+            --sidebar: var(--primary);
+            --sidebar-foreground: var(--primary-foreground);
+            --sidebar-primary: var(--secondary);
+            --sidebar-primary-foreground: var(--foreground);
+            --sidebar-border: #6b4423;
+            --sidebar-accent: var(--card);
+            --sidebar-accent-foreground: var(--foreground);
+        }
+
+        * {
+            border-color: var(--border);
+            image-rendering: pixelated;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--main-font);
+            font-size: var(--font-size);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Pixel Grid Background */
+        .pixel-grid {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px),
+                repeating-linear-gradient(90deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px);
+        }
+
+        .pixel-card {
+            background: var(--card);
+            border: 4px solid var(--border);
+            box-shadow: 4px 4px 0px var(--border);
+            border-radius: var(--radius);
+        }
+
+        .sidebar-btn {
+            border-width: 2px;
+            transition: all 0.1s;
+            border-radius: var(--radius);
+        }
+        
+        .sidebar-btn.active {
+            background-color: var(--sidebar-primary);
+            color: var(--sidebar-primary-foreground);
+            border-color: var(--sidebar-primary);
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+        }
+
+        .sidebar-btn:not(.active):hover {
+            transform: translate(2px, 2px);
+        }
+
+        .pixel-shadow {
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: 2px solid var(--border);
+            padding: 0;
+            overflow: hidden;
+            cursor: pointer;
+            border-radius: var(--radius);
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+        }
+
+        input[type="range"] {
+            accent-color: var(--primary);
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1em;
+            border-radius: var(--radius);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: var(--muted); }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--primary); 
+            border: 3px solid var(--muted);
+            border-radius: var(--radius);
+        }
+
+        /* Avatar styling */
+        .avatar-container {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            margin: 0 auto 8px;
+            background: #e2d1c3; 
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .system-notebook {
+            border-style: double;
+            border-width: 6px;
+        }
+
+        /* Dynamic Font Classes */
+        .font-minecraft { font-family: 'Silkscreen', cursive; }
+        .font-pixel { font-family: 'Pixelify Sans', cursive; }
+        .font-retro { font-family: 'VT323', monospace; }
+        .font-rounded { font-family: 'Lexend', sans-serif; }
+        .font-inclusive { font-family: 'Atkinson Hyperlegible', sans-serif; }
+        .font-dyslexia { font-family: 'Comic Neue', cursive; }
+        .font-hand { font-family: 'Patrick Hand', cursive; }
+        .font-hero { font-family: 'Luckiest Guy', cursive; }
+    </style>
+</head>
+<body class="h-screen flex font-minecraft">
+
+    <div class="pixel-grid"></div>
+
+    <!-- Sidebar -->
+    <aside class="w-48 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r-4 border-[var(--sidebar-border)] flex flex-col z-10 overflow-y-auto">
+        <div class="p-6 border-b-4 border-[var(--sidebar-border)]">
+            <h1 class="font-['Press_Start_2P'] text-[10px] leading-relaxed uppercase">Story Quest</h1>
+            <div class="mt-2 text-[var(--sidebar-foreground)] opacity-60 text-xs">✨ Young Writer</div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="setView('editor')" id="btn-editor" class="sidebar-btn active w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                <i data-lucide="book-open" class="size-4 shrink-0"></i>
+                <span class="text-sm truncate">Editor</span>
+            </button>
+            <button onclick="setView('notebooks')" id="btn-notebooks" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left">
+                <i data-lucide="book" class="size-4 shrink-0"></i>
+                <span class="text-sm truncate">Notebooks</span>
+            </button>
+            <button onclick="setView('settings')" id="btn-settings" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left mt-8">
+                <i data-lucide="settings" class="size-4 shrink-0"></i>
+                <span class="text-sm truncate">Settings</span>
+            </button>
+        </nav>
+
+        <!-- Writing Stats & Controls (Conditional) -->
+        <div id="sidebar-editor-controls" class="p-4 border-t-4 border-[var(--sidebar-border)] space-y-3">
+            <div class="bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] border-2 border-[var(--sidebar-border)] p-3" style="border-radius: var(--radius)">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="text-xl">📝</div>
+                    <div class="text-[10px] opacity-60">Word Count</div>
+                </div>
+                <div class="font-['Press_Start_2P'] text-[9px]">
+                    <span id="word-count">0</span> words
+                </div>
+            </div>
+
+            <button id="save-btn" onclick="handleSave()" 
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-[var(--sidebar-border)] pixel-shadow hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-sm font-bold" style="border-radius: var(--radius)">
+                <i data-lucide="save" class="size-4"></i>
+                <span id="save-text">Save</span>
+            </button>
+        </div>
+
+        <div class="p-4 border-t-4 border-[var(--sidebar-border)]">
+            <div class="bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] border-2 border-[var(--sidebar-border)] p-3 text-center" style="border-radius: var(--radius)">
+                <div class="avatar-container">
+                    <svg viewBox="0 0 100 100" class="w-full h-full p-2">
+                        <rect x="20" y="20" width="60" height="60" fill="#f582ae" />
+                        <rect x="30" y="40" width="10" height="10" fill="#2d1b00" />
+                        <rect x="60" y="40" width="10" height="10" fill="#2d1b00" />
+                        <rect x="40" y="65" width="20" height="5" fill="#2d1b00" />
+                    </svg>
+                    <div id="alice-status" class="absolute -top-1 -right-1 text-lg" title="Alice is reading along with you">📖</div>
+                </div>
+                <div class="text-[10px] font-['Press_Start_2P'] leading-relaxed">Alice</div>
+                <div class="text-[9px] opacity-60 mt-1">Your Writing Tutor</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col relative z-10 overflow-hidden">
+        <header class="border-b-4 border-[var(--border)] bg-[var(--card)] px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="setView('editor')" class="flex items-center gap-2 px-3 py-1 bg-[var(--muted)] border-2 border-[var(--border)] hover:bg-opacity-80" style="border-radius: var(--radius)">
+                    <i data-lucide="home" class="size-4"></i>
+                    <span class="text-sm">Home</span>
+                </button>
+                <div class="text-sm text-[var(--muted-foreground)] flex items-center gap-2">
+                    <span>/</span>
+                    <span id="breadcrumb-parent">Editor</span>
+                    <span id="breadcrumb-separator" class="hidden">/</span>
+                    <span id="breadcrumb-child" class="hidden">Detail</span>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-[9px] font-['Press_Start_2P'] text-[var(--primary)] opacity-80 animate-pulse uppercase">🏆 Writing Quest Prototype</div>
+            </div>
+        </header>
+
+        <!-- Editor Panel -->
+        <div id="panel-editor" class="flex-1 flex flex-col bg-[var(--background)] overflow-hidden">
+            <!-- Collapsible Header -->
+            <div class="border-b-4 border-[var(--border)] bg-[var(--card)]">
+                <button onclick="toggleEditorHeader()" class="w-full px-6 py-3 flex items-center justify-between hover:bg-[var(--muted)] transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="text-2xl">✍️</div>
+                        <div class="text-left">
+                            <div class="font-['Press_Start_2P'] text-[10px] text-[var(--primary)]">Story Details</div>
+                            <div id="header-collapsed-title" class="hidden text-xs text-[var(--muted-foreground)] mt-1 truncate max-w-[200px]">Untitled Story</div>
+                        </div>
+                    </div>
+                    <i id="header-toggle-icon" data-lucide="chevron-up" class="size-5 text-[var(--muted-foreground)]"></i>
+                </button>
+
+                <div id="header-content" class="px-6 pb-4 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Story Title</label>
+                            <input type="text" id="story-title" value="Untitled Story" 
+                                class="w-full bg-[var(--background)] border-2 border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors" style="border-radius: var(--radius)"
+                                oninput="updateTitle(this.value)" placeholder="Give your story a title...">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Quick Font Change</label>
+                            <select onchange="changeFont(this.value)" class="w-full border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]">
+                                <optgroup label="🎮 Game Styles">
+                                    <option value="font-minecraft">🧱 Minecraft UI (Silkscreen)</option>
+                                    <option value="font-pixel">👾 Modern Retro (Pixelify)</option>
+                                    <option value="font-retro">📟 Terminal (VT323)</option>
+                                </optgroup>
+                                <optgroup label="🌟 Inclusive & Clear">
+                                    <option value="font-rounded">📚 School Standard (Lexend)</option>
+                                    <option value="font-inclusive">👁️ Ultra-Clear (Atkinson)</option>
+                                    <option value="font-dyslexia">📖 Dyslexia Friendly (Comic Neue)</option>
+                                </optgroup>
+                                <optgroup label="✏️ Creative Styles">
+                                    <option value="font-hand">✏️ Journal Style (Patrick Hand)</option>
+                                    <option value="font-hero">💥 Action Hero (Luckiest Guy)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-6 flex-wrap">
+                        <div>
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Format</label>
+                            <div class="flex items-center gap-2">
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Bold"><i data-lucide="bold" class="size-4"></i></button>
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Italic"><i data-lucide="italic" class="size-4"></i></button>
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Bullet List"><i data-lucide="list" class="size-4"></i></button>
+                                <button class="p-2 hover:bg-[var(--muted)] border-2 border-[var(--border)] transition-colors" style="border-radius: var(--radius)" title="Numbered List"><i data-lucide="list-ordered" class="size-4"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 min-w-[250px]">
+                            <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Story Type</label>
+                            <div class="flex items-center gap-3">
+                                <select id="genre-select" class="flex-1 border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]">
+                                    <option value="fantasy">🧙‍♂️ Fantasy</option>
+                                    <option value="adventure">🗺️ Adventure</option>
+                                    <option value="scifi">🚀 Sci-Fi</option>
+                                    <option value="mystery">🔍 Mystery</option>
+                                    <option value="horror">👻 Horror</option>
+                                    <option value="comedy">😄 Comedy</option>
+                                    <option value="fairy-tale">🏰 Fairy Tale</option>
+                                    <option value="superhero">🦸 Superhero</option>
+                                </select>
+                                <select id="archetype-select" class="flex-1 border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]">
+                                    <option value="hero-journey">⚔️ Hero's Journey</option>
+                                    <option value="rags-to-riches">💎 Rags to Riches</option>
+                                    <option value="quest">🗺️ The Quest</option>
+                                    <option value="overcoming-monster">🐉 Overcoming Monster</option>
+                                    <option value="voyage-return">🚢 Voyage & Return</option>
+                                    <option value="comedy-arch">🎭 Comedy</option>
+                                    <option value="tragedy">😢 Tragedy</option>
+                                    <option value="rebirth">🌟 Rebirth</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Content Area -->
+            <div class="flex-1 relative p-6">
+                <textarea id="story-content" 
+                    class="size-full bg-[var(--card)] border-4 border-[var(--border)] p-8 outline-none resize-none focus:border-[var(--primary)] transition-colors leading-relaxed text-lg" style="border-radius: var(--radius)"
+                    placeholder="Once upon a time..."
+                    oninput="handleContentChange(this.value)">This is the story of John the Great, a viking king. He is the greatest King we've ever seen.</textarea>
+                
+                <div class="absolute bottom-10 right-10 pointer-events-none opacity-10">
+                    <div class="text-8xl">🐉</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notebooks Panel -->
+        <div id="panel-notebooks" class="hidden flex-1 bg-[var(--background)] p-6 overflow-y-auto">
+            <div id="notebooks-list-view">
+                <div class="mb-6 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="text-4xl">📚</div>
+                        <div>
+                            <h2 class="font-['Press_Start_2P'] text-sm text-[var(--primary)] mb-2">Story Notebooks</h2>
+                            <p class="text-xs text-[var(--muted-foreground)]">Your collection of world knowledge.</p>
+                        </div>
+                    </div>
+                    <button class="flex items-center gap-2 px-4 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] border-2 border-[var(--border)] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all" style="border-radius: var(--radius)">
+                        <i data-lucide="plus" class="size-4"></i>
+                        <span class="text-sm">New Notebook</span>
+                    </button>
+                </div>
+                <div id="notebooks-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8"></div>
+            </div>
+
+            <div id="notebook-detail-view" class="hidden h-full">
+                <button onclick="closeNotebook()" class="mb-4 flex items-center gap-2 text-sm text-[var(--primary)] hover:underline">
+                    <i data-lucide="arrow-left" class="size-4"></i> Back to Notebooks
+                </button>
+                <div class="pixel-card p-8 h-full min-h-[400px]">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div id="detail-icon" class="text-6xl">❓</div>
+                        <div>
+                            <h2 id="detail-title" class="font-['Press_Start_2P'] text-lg text-[var(--primary)] mb-2">Notebook Title</h2>
+                            <p id="detail-desc" class="text-sm text-[var(--muted-foreground)]">Subordinate repository content goes here.</p>
+                        </div>
+                    </div>
+                    <div class="border-t-4 border-[var(--border)] pt-8">
+                        <div class="bg-[var(--muted)] border-4 border-dashed border-[var(--border)] p-12 text-center text-[var(--muted-foreground)]" style="border-radius: var(--radius)">
+                            <i data-lucide="plus-circle" class="size-12 mx-auto mb-4 opacity-40"></i>
+                            <p>This repository is currently empty.</p>
+                            <button class="mt-4 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] text-xs" style="border-radius: var(--radius)">Add New Entry</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings / Design Lab Panel -->
+        <div id="panel-settings" class="hidden flex-1 bg-[var(--background)] p-8 overflow-y-auto">
+            <div class="max-w-2xl mx-auto">
+                <div class="mb-8 flex items-center gap-4">
+                    <div class="text-4xl">🎨</div>
+                    <div>
+                        <h2 class="font-['Press_Start_2P'] text-lg text-[var(--primary)] mb-2">Design Lab</h2>
+                        <p class="text-sm text-[var(--muted-foreground)]">Mix your own interface style!</p>
+                    </div>
+                </div>
+
+                <!-- Color Mixer -->
+                <div class="pixel-card p-6 mb-8">
+                    <h3 class="font-bold uppercase text-xs text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
+                        <i data-lucide="palette" class="size-4"></i> Color Mixer
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold block">Background</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" value="#f5ebe0" onchange="updateColor('--background', this.value)" class="w-10 h-10">
+                                <span class="text-[10px] opacity-60">Base</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold block">Text Ink</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" value="#2d1b00" onchange="updateColor('--foreground', this.value)" class="w-10 h-10">
+                                <span class="text-[10px] opacity-60">Words</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold block">Buttons</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" value="#8b4513" onchange="updateColor('--primary', this.value)" class="w-10 h-10">
+                                <span class="text-[10px] opacity-60">Action</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold block">Cards</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" value="#fff9ec" onchange="updateColor('--card', this.value)" class="w-10 h-10">
+                                <span class="text-[10px] opacity-60">Panels</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typography Station -->
+                <div class="pixel-card p-6 mb-8">
+                    <h3 class="font-bold uppercase text-xs text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
+                        <i data-lucide="type" class="size-4"></i> Typography Station
+                    </h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-xs font-bold block mb-2">Font Family</label>
+                            <select onchange="changeFont(this.value)" class="w-full border-2 border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]">
+                                <optgroup label="🎮 Game Styles">
+                                    <option value="font-minecraft">🧱 Minecraft UI (Silkscreen)</option>
+                                    <option value="font-pixel">👾 Modern Retro (Pixelify)</option>
+                                    <option value="font-retro">📟 Terminal (VT323)</option>
+                                </optgroup>
+                                <optgroup label="🌟 Inclusive & Clear">
+                                    <option value="font-rounded">📚 School Standard (Lexend)</option>
+                                    <option value="font-inclusive">👁️ Ultra-Clear (Atkinson)</option>
+                                    <option value="font-dyslexia">📖 Dyslexia Friendly (Comic Neue)</option>
+                                </optgroup>
+                                <optgroup label="✏️ Creative Styles">
+                                    <option value="font-hand">✏️ Journal Style (Patrick Hand)</option>
+                                    <option value="font-hero">💥 Action Hero (Luckiest Guy)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold block mb-2">Text Size: <span id="size-label">16px</span></label>
+                            <input type="range" min="12" max="24" value="16" step="1" oninput="updateFontSize(this.value)" class="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-[10px] opacity-60 mt-1">
+                                <span>Small</span>
+                                <span>Large</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shape Shifter -->
+                <div class="pixel-card p-6 mb-8">
+                    <h3 class="font-bold uppercase text-xs text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
+                        <i data-lucide="shapes" class="size-4"></i> Shape Shifter
+                    </h3>
+                    <div class="flex items-center gap-4">
+                        <button onclick="updateRadius('0px')" class="flex-1 p-4 border-2 border-[var(--border)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-center" style="border-radius: 0px">
+                            <div class="w-8 h-8 border-2 border-[var(--foreground)] bg-[var(--primary)] mx-auto mb-2" style="border-radius: 0px"></div>
+                            <span class="text-xs font-bold">Blocky (Pixel)</span>
+                        </button>
+                        <button onclick="updateRadius('12px')" class="flex-1 p-4 border-2 border-[var(--border)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-center" style="border-radius: 12px">
+                            <div class="w-8 h-8 border-2 border-[var(--foreground)] bg-[var(--primary)] mx-auto mb-2" style="border-radius: 12px"></div>
+                            <span class="text-xs font-bold">Round (Modern)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Data Structure
+        const notebooks = [
+            { id: 'characters', title: 'Characters', entries: 0, lastEdited: 'System', icon: '👥', type: 'system', desc: 'A record of all the people in your stories.' },
+            { id: 'places', title: 'Places', entries: 0, lastEdited: 'System', icon: '🗺️', type: 'system', desc: 'The landscapes and landmarks of your world.' },
+            { id: 1, title: 'My First Adventure', entries: 3, lastEdited: 'Today', icon: '🗡️', type: 'user', desc: 'The starting journey of the hero.' },
+            { id: 2, title: 'Dragon Tales', entries: 5, lastEdited: 'Yesterday', icon: '🐲', type: 'user', desc: 'Legends of the flying drakes.' },
+            { id: 3, title: 'Magic School', entries: 2, lastEdited: '2 days ago', icon: '🪄', type: 'user', desc: 'Spells, incantations, and alchemy.' }
+        ];
+
+        // State Management
+        let currentView = 'editor';
+        let activeNotebookId = null;
+        let wordCount = 0;
+        let isSaved = true;
+        let lastEditTime = Date.now();
+        let flowState = 'reading';
+        let isHeaderExpanded = true;
+
+        // Initialize Icons
+        lucide.createIcons();
+
+        function changeFont(fontClass) {
+            document.body.className = `h-screen flex ${fontClass}`;
+            // Update all selectors to match
+            document.querySelectorAll('select').forEach(s => {
+                if(s.innerHTML.includes(fontClass)) s.value = fontClass;
+            });
+        }
+
+        function updateColor(variable, value) {
+            document.documentElement.style.setProperty(variable, value);
+        }
+
+        function updateFontSize(val) {
+            document.documentElement.style.setProperty('--font-size', val + 'px');
+            document.getElementById('size-label').innerText = val + 'px';
+        }
+
+        function updateRadius(val) {
+            document.documentElement.style.setProperty('--radius', val);
+        }
+
+        function setView(view) {
+            currentView = view;
+            activeNotebookId = null;
+            document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${view}`).classList.add('active');
+            document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`panel-${view}`).classList.remove('hidden');
+
+            if (view === 'notebooks') {
+                document.getElementById('notebooks-list-view').classList.remove('hidden');
+                document.getElementById('notebook-detail-view').classList.add('hidden');
+                renderNotebooks();
+            }
+
+            const stats = document.getElementById('sidebar-editor-controls');
+            if (view === 'editor') stats.classList.remove('hidden');
+            else stats.classList.add('hidden');
+
+            updateBreadcrumbs();
+        }
+
+        function toggleEditorHeader() {
+            isHeaderExpanded = !isHeaderExpanded;
+            const content = document.getElementById('header-content');
+            const icon = document.getElementById('header-toggle-icon');
+            const collapsedTitle = document.getElementById('header-collapsed-title');
+
+            if (isHeaderExpanded) {
+                content.classList.remove('hidden');
+                collapsedTitle.classList.add('hidden');
+                icon.setAttribute('data-lucide', 'chevron-up');
+            } else {
+                content.classList.add('hidden');
+                collapsedTitle.classList.remove('hidden');
+                collapsedTitle.innerText = document.getElementById('story-title').value;
+                icon.setAttribute('data-lucide', 'chevron-down');
+            }
+            lucide.createIcons();
+        }
+
+        function openNotebook(id) {
+            const nb = notebooks.find(n => n.id === id);
+            if (!nb) return;
+            activeNotebookId = id;
+            document.getElementById('notebooks-list-view').classList.add('hidden');
+            document.getElementById('notebook-detail-view').classList.remove('hidden');
+            document.getElementById('detail-title').innerText = nb.title;
+            document.getElementById('detail-icon').innerText = nb.icon;
+            document.getElementById('detail-desc').innerText = nb.desc;
+            updateBreadcrumbs();
+            lucide.createIcons();
+        }
+
+        function closeNotebook() {
+            activeNotebookId = null;
+            document.getElementById('notebooks-list-view').classList.remove('hidden');
+            document.getElementById('notebook-detail-view').classList.add('hidden');
+            updateBreadcrumbs();
+        }
+
+        function updateBreadcrumbs() {
+            const parent = document.getElementById('breadcrumb-parent');
+            const separator = document.getElementById('breadcrumb-separator');
+            const child = document.getElementById('breadcrumb-child');
+
+            if (currentView === 'editor') {
+                parent.innerText = document.getElementById('story-title').value;
+                separator.classList.add('hidden');
+                child.classList.add('hidden');
+            } else if (currentView === 'settings') {
+                parent.innerText = 'Design Lab';
+                separator.classList.add('hidden');
+                child.classList.add('hidden');
+            } else {
+                parent.innerText = 'Notebooks';
+                if (activeNotebookId) {
+                    const nb = notebooks.find(n => n.id === activeNotebookId);
+                    separator.classList.remove('hidden');
+                    child.classList.remove('hidden');
+                    child.innerText = nb.title;
+                } else {
+                    separator.classList.add('hidden');
+                    child.classList.add('hidden');
+                }
+            }
+        }
+
+        function renderNotebooks() {
+            const grid = document.getElementById('notebooks-grid');
+            let html = '';
+            notebooks.forEach(nb => {
+                const systemClass = nb.type === 'system' ? 'system-notebook' : '';
+                html += `
+                    <div onclick="openNotebook('${nb.id}')" class="notebook-card ${systemClass} bg-[var(--card)] border-4 border-[var(--border)] p-6 hover:border-[var(--primary)] transition-all cursor-pointer group" style="border-radius: var(--radius)">
+                        <div class="mb-4">
+                            <div class="text-5xl mb-3">${nb.icon}</div>
+                            <h3 class="font-['Press_Start_2P'] text-[10px] text-[var(--foreground)] mb-2 leading-relaxed">${nb.title}</h3>
+                            ${nb.type === 'system' ? '<span class="text-[8px] bg-[var(--secondary)] text-white px-1 py-0.5 font-bold uppercase" style="border-radius: var(--radius)">System Repo</span>' : ''}
+                        </div>
+                        <div class="space-y-2 text-xs text-[var(--muted-foreground)]">
+                            <div class="flex items-center gap-2"><i data-lucide="book" class="size-3"></i><span>${nb.entries} entries</span></div>
+                            <div class="flex items-center gap-2"><i data-lucide="calendar" class="size-3"></i><span>${nb.lastEdited}</span></div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t-2 border-[var(--border)] opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="text-xs text-[var(--primary)] font-bold">OPEN →</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `
+                <div class="bg-[var(--muted)] border-4 border-dashed border-[var(--border)] p-6 flex flex-col items-center justify-center min-h-[200px] hover:bg-opacity-60 cursor-pointer transition-colors" style="border-radius: var(--radius)">
+                    <i data-lucide="plus" class="size-8 text-[var(--muted-foreground)] mb-3"></i>
+                    <p class="text-xs text-[var(--muted-foreground)] text-center font-bold">Create Repository</p>
+                </div>
+            `;
+            grid.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function updateTitle(val) { updateBreadcrumbs(); triggerEdit(); }
+        
+        function handleContentChange(content) {
+            const words = content.trim().split(/\s+/).filter(word => word.length > 0);
+            wordCount = words.length;
+            document.getElementById('word-count').innerText = wordCount;
+            setSaved(false);
+            triggerEdit();
+        }
+
+        function handleSave() { setSaved(true); }
+
+        function setSaved(val) {
+            isSaved = val;
+            const btn = document.getElementById('save-btn');
+            const text = document.getElementById('save-text');
+            if (isSaved) {
+                btn.className = "w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-[var(--sidebar-border)] pixel-shadow bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] text-sm font-bold";
+                text.innerText = "Saved!";
+            } else {
+                btn.className = "w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-[var(--sidebar-border)] pixel-shadow bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)] text-sm font-bold";
+                text.innerText = "Save";
+            }
+        }
+
+        function triggerEdit() { lastEditTime = Date.now(); updateFlowUI('reading'); }
+        
+        function updateFlowUI(state) {
+            flowState = state;
+            const indicator = document.getElementById('alice-status');
+            if (state === 'reading') indicator.innerText = '📖';
+            else if (state === 'checking') indicator.innerText = '👀';
+            else indicator.innerText = '✋';
+        }
+
+        setInterval(() => {
+            const timeSinceEdit = Date.now() - lastEditTime;
+            if (timeSinceEdit < 10000) updateFlowUI('reading');
+            else if (timeSinceEdit < 20000) updateFlowUI('checking');
+            else updateFlowUI('helping');
+        }, 1000);
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); handleSave(); }
+        });
+
+        // Initialize view
+        setView('editor');
+        handleContentChange(document.getElementById('story-content').value);
+    </script>
+</body>
+</html>
