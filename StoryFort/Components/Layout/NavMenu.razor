@@ -1,0 +1,94 @@
+
+<div class="p-6 border-b-4 border-[var(--sidebar-border)] flex flex-col items-center gap-2">
+    <img src="/images/story_fort_logo.png" alt="Story Fort Logo" style="width: 64px; height: 64px; object-fit: contain; margin-bottom: 0.5rem;" />
+    <h1 class="font-['Press_Start_2P'] text-[10px] leading-relaxed uppercase">Story Quest</h1>
+    <div class="mt-2 text-[var(--sidebar-foreground)] opacity-60 text-xs">? Young Writer</div>
+</div>
+
+<nav class="flex-1 p-4 space-y-2">
+    <NavLink href="editor" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Editor">
+        <i data-lucide="book-open" class="size-4 shrink-0"></i>
+        <span class="text-sm truncate">Editor</span>
+    </NavLink>
+    <NavLink href="notebooks" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Notebooks">
+        <i data-lucide="book" class="size-4 shrink-0"></i>
+        <span class="text-sm truncate">Notebooks</span>
+    </NavLink>
+
+    <NavLink href="@($"planner/{(StoryState?.StoryId > 0 ? StoryState.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Planner">
+        <i data-lucide="map" class="size-4 shrink-0"></i>
+        <span class="text-sm truncate">Planner</span>
+    </NavLink>
+
+    <NavLink href="design" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Design Lab">
+        <i data-lucide="palette" class="size-4 shrink-0"></i>
+        <span class="text-sm truncate">Design Lab</span>
+    </NavLink>
+    <div class="mt-auto pt-8 space-y-2">
+        <NavLink href="settings" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Grown-ups">
+            <i data-lucide="lock" class="size-4 shrink-0"></i>
+            <span class="text-sm truncate">Grown-ups</span>
+        </NavLink>
+        <NavLink href="admin" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Admin">
+            <i data-lucide="wrench" class="size-4 shrink-0"></i>
+            <span class="text-sm truncate">Admin</span>
+        </NavLink>
+    </div>
+</nav>
+
+<div class="p-4 border-t-4 border-[var(--sidebar-border)] space-y-3">
+    <div class="bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] border-2 border-[var(--sidebar-border)] p-3" style="border-radius: var(--radius)">
+        <div class="flex items-center gap-2 mb-1">
+            <div class="text-xl">??</div>
+            <div class="text-[10px] opacity-60">Word Count</div>
+        </div>
+        <div class="font-['Press_Start_2P'] text-[9px]">
+            <span>@WordCount</span> words
+        </div>
+    </div>
+</div>
+
+<div class="p-4 border-t-4 border-[var(--sidebar-border)]">
+    <div class="bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)] border-2 border-[var(--sidebar-border)] p-3 text-center" style="border-radius: var(--radius)">
+        <div class="avatar-container mx-auto">
+            <svg viewBox="0 0 100 100" class="w-full h-full p-2">
+                <rect x="20" y="20" width="60" height="60" fill="#f582ae" />
+                <rect x="30" y="40" width="10" height="10" fill="#2d1b00" />
+                <rect x="60" y="40" width="10" height="10" fill="#2d1b00" />
+                <rect x="40" y="65" width="20" height="5" fill="#2d1b00" />
+            </svg>
+            <div class="absolute -top-1 -right-1 text-lg" title="@AliceStatusTitle">@AliceStatusIcon</div>
+
+        @code {
+            [CascadingParameter] public StoryFort.Services.StoryState? StoryState { get; set; }
+            [Inject] public IJSRuntime JS { get; set; } = default!;
+
+            private int WordCount => (StoryState?.Content ?? string.Empty)
+                .Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+            private string AliceStatusIcon => FlowState switch
+            {
+                "reading" => "??",
+                "checking" => "??",
+                _ => "?"
+            };
+            private string AliceStatusTitle => FlowState switch
+            {
+                "reading" => "Alice is reading along with you",
+                "checking" => "Alice is checking your work",
+                _ => "Alice is waiting to help"
+            };
+            private string FlowState => StoryState?.FlowState ?? "reading";
+
+            protected override async Task OnAfterRenderAsync(bool firstRender)
+            {
+                await JS.InvokeVoidAsync("refreshLucideIcons");
+            }
+        }
+        </div>
+        <div class="text-[10px] font-['Press_Start_2P'] leading-relaxed">Alice</div>
+        <div class="text-[9px] opacity-60 mt-1">Your Writing Tutor</div>
+    </div>
+</div>
+
+

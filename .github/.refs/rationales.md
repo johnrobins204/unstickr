@@ -1,6 +1,6 @@
 # Academic Rationale for UX Decisions
 
-This document outlines the psychological and educational principles guiding the User Experience (UX) design of Unstickd, specifically concerning the "Unstickr" (AI Tutor) intervention logic.
+This document outlines the psychological and educational principles guiding the User Experience (UX) design of StoryFort, specifically concerning the "Unstickr" (AI Tutor) intervention logic.
 
 ## 1. Generative Pauses vs. Transcription Pauses
 **Concept:** Writing involves distinct cognitive phases. *Transcription pauses* (typing, spelling) are short. *Generative pauses* (planning narrative arcs) are significantly longer. Rigid activity timers often interrupt productive "thinking" time, breaking the writer's flow.
@@ -42,3 +42,4 @@ This document outlines the psychological and educational principles guiding the 
 **Design Implication:** The trigger system supports **Metacognitive Prompting**. The prompt asking "Are you stuck?" forces the child to self-evaluate their mental state, a key step in developing writerly maturity.
 *   **Bereiter, C., & Scardamalia, M.** (1987). *The psychology of written composition*. Lawrence Erlbaum Associates.
 *   **Flavell, J. H.** (1979). Metacognition and cognitive monitoring: A new area of cognitive-developmental inquiry. *American Psychologist*, 34(10), 906–911.
+

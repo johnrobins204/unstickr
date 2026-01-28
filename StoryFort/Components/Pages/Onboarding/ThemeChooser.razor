@@ -1,0 +1,146 @@
+@page "/onboarding/themes"
+@using Microsoft.EntityFrameworkCore
+@using StoryFort.Components.Layout
+@using Serilog
+@layout EmptyLayout
+@rendermode InteractiveServer
+@inject AppDbContext DbContext
+@inject NavigationManager Nav
+@inject StoryState StoryState
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Choose Your Adventure</h2>
+
+    @if (Age.HasValue)
+    {
+        <p class="text-center text-muted small">Suggested for age @Age</p>
+    }
+    
+    @if (Themes == null)
+    {
+        <p class="text-center">Loading worlds...</p>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            @foreach (var theme in Themes)
+            {
+                <div class="col">
+                    <div class="card h-100 theme-card" 
+                         style="background-color: @theme.PrimaryColor; border-color: @theme.SecondaryColor; cursor: pointer;"
+                         @onclick="() => SelectTheme(theme)">
+                        <div class="card-body text-center" style="color: @GetContrastColor(theme.PrimaryColor)">
+                            <h5 class="card-title" style="font-family: '@theme.FontName', sans-serif">@theme.Name</h5>
+                            <p class="card-text small">@theme.Description</p>
+                            @* Placeholder for Sprite *@
+                            @if (!string.IsNullOrEmpty(theme.SpritePath))
+                            {
+                                <div class="mt-2 text-muted fst-italic">
+                                    <small>@theme.SpritePath</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .theme-card {
+        transition: transform 0.2s;
+        border-width: 3px;
+    }
+    .theme-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+</style>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? Age { get; set; }
+    
+    [SupplyParameterFromQuery]
+    public int? StoryId { get; set; }
+
+    private List<Theme>? Themes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            Log.Information("Loading themes for Age: {Age}, StoryId: {StoryId}", Age, StoryId);
+            Themes = await DbContext.Themes.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to load themes.");
+            throw; // Let the global boundary catch it
+        }
+    }
+
+    private async Task SelectTheme(Theme theme)
+    {
+        try
+        {
+            Log.Information("User selected theme: {ThemeName}", theme.Name);
+
+            if (StoryId.HasValue)
+            {
+                // Update Account's Theme preference
+                var account = await DbContext.Accounts.FirstOrDefaultAsync(a => a.Id == 1);
+                if (account != null)
+                {
+                    account.ActiveThemeId = theme.Id;
+                    await DbContext.SaveChangesAsync();
+                }
+
+                // Navigate back to Editor
+                Nav.NavigateTo($"/editor/{StoryId}");
+            }
+            else 
+            {
+                // Used during onboarding flow (no story ID yet)
+                // 1. Set Preference
+                var account = await DbContext.Accounts.FirstOrDefaultAsync(a => a.Id == 1);
+                if (account != null)
+                {
+                    account.ActiveThemeId = theme.Id;
+                }
+
+                // 2. Create the Story
+                var newStory = new Story 
+                { 
+                    Title = "New Adventure", 
+                    Created = DateTime.Now,
+                    AccountId = 1 
+                };
+                
+                DbContext.Stories.Add(newStory);
+                await DbContext.SaveChangesAsync();
+
+                // 3. Add Page 1
+                DbContext.Pages.Add(new StoryPage { StoryId = newStory.Id, PageNumber = 1, Content = "" });
+                await DbContext.SaveChangesAsync();
+
+                Nav.NavigateTo($"/editor/{newStory.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to apply theme {ThemeName}", theme.Name);
+        }
+    }
+
+    private string GetContrastColor(string hexColor)
+    {
+        // Simple heuristic for text color (black or white) based on background
+        // Real implementation would parse hex and calculate luminance.
+        // For safe fallback, returning 'inherit' or a specific logic.
+        // For now, let's just return 'black' or 'white' based on a simple check or just black.
+        return "#000000"; 
+    }
+}
+

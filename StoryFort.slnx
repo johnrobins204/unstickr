@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="StoryFort.Tests.E2E/StoryFort.Tests.E2E.csproj" />
+  <Project Path="StoryFort.Tests.Integration/StoryFort.Tests.Integration.csproj" />
+  <Project Path="StoryFort.Tests.Unit/StoryFort.Tests.Unit.csproj" />
+  <Project Path="StoryFort/StoryFort.csproj" />
+</Solution>

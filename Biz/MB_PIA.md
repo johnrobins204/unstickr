@@ -1,9 +1,9 @@
-This is a completed **Privacy Impact Assessment (PIA)** for the "Unstickd" application, populated strictly using the provided architecture, requirements, and governance documentation. It follows the structure of the Manitoba Ombudsman’s PIA Tool.
+This is a completed **Privacy Impact Assessment (PIA)** for the "StoryFort" application, populated strictly using the provided architecture, requirements, and governance documentation. It follows the structure of the Manitoba Ombudsman’s PIA Tool.
 
 ***
 
 # Manitoba Ombudsman Privacy Impact Assessment Tool
-**Project:** Unstickd (Ed-Tech Creative Writing Platform)
+**Project:** StoryFort (Ed-Tech Creative Writing Platform)
 **Date:** January 24, 2026 (Based on Document Version 0.4)
 
 ---
@@ -11,12 +11,12 @@ This is a completed **Privacy Impact Assessment (PIA)** for the "Unstickd" appli
 ## Part 1: Summary of Program or Activity
 
 **Who?**
-*   **Name of Project:** Unstickd.
+*   **Name of Project:** StoryFort.
 *   **Project Representatives:** Technical Architects, School Administrators (Supervisor Role).
 *   **External Entities:** Cohere (AI Intelligence Provider).
 
 **What?**
-*   **Summary:** Unstickd is a hybrid AI-augmented creative writing environment designed for children. Unlike generative AI tools that create content for users ("Ghostwriting"), Unstickd prioritizes "process scaffolding" by using AI for passive, Socratic guidance.
+*   **Summary:** StoryFort is a hybrid AI-augmented creative writing environment designed for children. Unlike generative AI tools that create content for users ("Ghostwriting"), StoryFort prioritizes "process scaffolding" by using AI for passive, Socratic guidance.
 *   **Current State:** The application is a .NET 10 Blazor Server application running in a Docker container. It is currently in the "Draft" stage (Version 0.4).
 
 **Purposes, goals and objectives**
@@ -99,7 +99,7 @@ This is a completed **Privacy Impact Assessment (PIA)** for the "Unstickd" appli
 **Ability to provide access and correction**
 *   **Access:** The architecture ensures "Digital Object Permanence." Stories are auto-saved and exist exactly as the child left them.
 *   **Correction:** The "Editor" phase and "Polishing Station" are built-in workflows designed specifically for the user to review and correct their own information (stories).
-*   **Ownership:** Unstickd explicitly treats the story as the child's property, ensuring they have full rights to access and export (future PDF/EPUB) their work.
+*   **Ownership:** StoryFort explicitly treats the story as the child's property, ensuring they have full rights to access and export (future PDF/EPUB) their work.
 
 ---
 
@@ -144,7 +144,7 @@ This is a completed **Privacy Impact Assessment (PIA)** for the "Unstickd" appli
 ## Part 6: PIA Summary and Findings
 
 **Description of Proposal**
-Unstickd is a writing education tool hosted in **Canada** that uses AI to assist students without writing for them. It collects student stories and metadata, encrypts them locally, and uses a US-based third-party (Cohere) strictly for transient inference of anonymized text segments.
+StoryFort is a writing education tool hosted in **Canada** that uses AI to assist students without writing for them. It collects student stories and metadata, encrypts them locally, and uses a US-based third-party (Cohere) strictly for transient inference of anonymized text segments.
 
 **Identified Risks & Mitigation**
 
@@ -165,7 +165,7 @@ Unstickd is a writing education tool hosted in **Canada** that uses AI to assist
     *   *Mitigation:* **Encryption & Supervisor Gate.** Stories are encrypted at rest. Sensitive settings require a Teacher PIN.
 
 **Conclusion**
-The "Unstickd" architecture proactively addresses privacy risks through its **Sovereign Hybrid Engine**. By separating the *storage* of data (Canada) from the *intelligence* processing (API), and by stripping PII before inference, it meets the functional needs of the classroom while adhering to the principles of data privacy and protection.
+The "StoryFort" architecture proactively addresses privacy risks through its **Sovereign Hybrid Engine**. By separating the *storage* of data (Canada) from the *intelligence* processing (API), and by stripping PII before inference, it meets the functional needs of the classroom while adhering to the principles of data privacy and protection.
 
-**Submitted by:** Unstickd Architecture Team
+**Submitted by:** StoryFort Architecture Team
 **Date:** January 24, 2026

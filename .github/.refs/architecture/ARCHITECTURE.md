@@ -1,8 +1,8 @@
-# Unstickd: Solution Architecture Document
+# StoryFort: Solution Architecture Document
 **Status:** Draft | **Version:** 0.4 | **Date:** 2026-01-24
 
 ## 1. Executive Summary
-Unstickd is a **Hybrid AI-augmented creative writing environment** designed for children. Unlike traditional generative AI tools which prioritize output generation ("Ghostwriting"), Unstickd prioritizes **process scaffolding**. It uses **Cohere's Intelligence API (Reasoning + Chat)** to provide passive, Socratic guidance, ensuring the user maintains the "Locus of Control" over their creative work.
+StoryFort is a **Hybrid AI-augmented creative writing environment** designed for children. Unlike traditional generative AI tools which prioritize output generation ("Ghostwriting"), StoryFort prioritizes **process scaffolding**. It uses **Cohere's Intelligence API (Reasoning + Chat)** to provide passive, Socratic guidance, ensuring the user maintains the "Locus of Control" over their creative work.
 
 The system is architected as a **.NET 10 Blazor Server** application running in a **Docker container hosted in Canada**. This ensures data sovereignty while providing the accessibility of a modern web application.
 
@@ -21,7 +21,7 @@ The system is architected as a **.NET 10 Blazor Server** application running in 
 **Encryption, IP Respect, and Ethical Research.**
 
 *   **Child-Centric Encryption**: Moving beyond simple local storage, we implement Server-Side Encryption at Rest. The full story content is encrypted to the child’s account and is architecturally gated: it must be shared with at least one Adult Supervisor, enforcing the "Supervisor Primacy" principle (GP-3).
-*   **Intellectual Property & Privacy**: We explicitly engineer for the child's IP rights. Unlike platforms that claim ownership of user content, Unstickd treats the story as the child's property. For research initiatives, we collect only anonymized metadata or small snippets, and strictly on an Opt-In basis for parents/guardians (never opt-out), ensuring ethical compliance.
+*   **Intellectual Property & Privacy**: We explicitly engineer for the child's IP rights. Unlike platforms that claim ownership of user content, StoryFort treats the story as the child's property. For research initiatives, we collect only anonymized metadata or small snippets, and strictly on an Opt-In basis for parents/guardians (never opt-out), ensuring ethical compliance.
 *   **The Benefit**: This architecture solves the "Privacy Paradox" in EdTech. It allows for the data collection necessary to improve the tool (via opt-in research) while mathematically guaranteeing that a child’s creative work remains their private, secure property.
 
 ### Pillar 3: "Psychology-as-Code" Scaffolding
@@ -56,14 +56,14 @@ These principles serve as the "Constitution" for architectural decision-making, 
 
 ## 4. Solution Overview
 
-Unstickd uses a **Monolithic Blazor Server** architecture. The client (Browser) acts as a "Thin Terminal," rendering UI updates pushed over a persistent SignalR WebSocket connection from the containerized ASP.NET Core process.
+StoryFort uses a **Monolithic Blazor Server** architecture. The client (Browser) acts as a "Thin Terminal," rendering UI updates pushed over a persistent SignalR WebSocket connection from the containerized ASP.NET Core process.
 
 ### 4.1 High Level Diagram
 
 ```mermaid
 graph TD
     User[Student User] -->|HTTPS / WebSocket| Browser[Web Browser]
-    Browser -->|Input Events & DOM Updates| AppServer[Unstickd Blazor Server (Docker)]
+    Browser -->|Input Events & DOM Updates| AppServer[StoryFort Blazor Server (Docker)]
 
     subgraph "Canadian Hosting Zone"
         AppServer
@@ -86,7 +86,7 @@ graph TD
 
 ```mermaid
 graph TD
-    subgraph "Unstickd Application Service"
+    subgraph "StoryFort Application Service"
         Router[Blazor Router]
         
         subgraph "Presentation Layer"
@@ -173,16 +173,16 @@ This section highlights discrepancies between the documented architecture and th
 
 This section maps the logical architecture to the physical project structure, clarifying separation of concerns within the monolithic project.
 
-*   \Unstickd/Models/\: **Domain Entities**. POCOs representing the core data structures (\Account\, \Story\, \Notebook\).
-*   \Unstickd/Data/\: **Persistence Layer**. \AppDbContext\ and EF configurations.
-*   \Unstickd/Services/\: **Business Logic & State**.
+*   \StoryFort/Models/\: **Domain Entities**. POCOs representing the core data structures (\Account\, \Story\, \Notebook\).
+*   \StoryFort/Data/\: **Persistence Layer**. \AppDbContext\ and EF configurations.
+*   \StoryFort/Services/\: **Business Logic & State**.
     *   \StoryState.cs\: Session-scoped logic container.
     *   \TutorOrchestrator.cs\: AI interaction workflow manager.
     *   \CohereTutorService.cs\: AI infrastructure adapter.
-*   \Unstickd/Components/\: **Presentation Layer** (Blazor).
+*   \StoryFort/Components/\: **Presentation Layer** (Blazor).
     *   \/Pages\: Routable pages (\Editor.razor\).
     *   \/EditorPanels\: complex sub-components (\TutorPanel.razor\).
-*   \Unstickd/wwwroot/js/\: **Browser Interop**. TypeScript/JS bridges for events Blazor cannot handle natively (e.g., rich text scroll events, user inactivity timers).
+*   \StoryFort/wwwroot/js/\: **Browser Interop**. TypeScript/JS bridges for events Blazor cannot handle natively (e.g., rich text scroll events, user inactivity timers).
 
 ## 8. Cross-Cutting Concerns
 
@@ -191,7 +191,7 @@ This section maps the logical architecture to the physical project structure, cl
 - **Fail-Safe**: If AI services fail, the application degrades gracefully to a "Offline/Manual" mode, preserving the writing capability.
 
 ### 8.2 Logging (Observability)
-- **Serilog**: Structured logging is configured to write to local files (\logs/unstickd-*.txt\).
+- **Serilog**: Structured logging is configured to write to local files (\logs/StoryFort-*.txt\).
 - **Privacy Filter**: Logs are explicitly configured to *exclude* \Story.Content\ to preventing leaking creative work into plaintext log files.
 
 ### 8.3 Authentication (Supervisor Model)
@@ -275,3 +275,4 @@ sequenceDiagram
 1.  **Late Binding of Context**: We do not bake user details into the HttpClient. The TutorOrchestrator injects Age, Genre, and Archetype at the *moment of request*, ensuring the AI adapts immediately if settings change.
 2.  **Strategy Pattern (Future)**: Currently functional, the roadmap calls for refactoring prompt generation into IPromptStrategy implementations (e.g., SparkStrategy, ReviewStrategy), allowing the Orchestrator to switch behavior polymorphically based on StoryState.CurrentMode.
 3.  **The "Context Window" Management**: To maintain speed and lower costs, we only send the *relevant tail* of the story (last ~4-6 paragraphs) rather than the full manuscript, unless a specific "Whole Story Review" is requested.
+

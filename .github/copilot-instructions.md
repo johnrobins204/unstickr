@@ -1,6 +1,18 @@
-# Copilot Instructions for Unstickd
 
-You are assisting with **Unstickd**, a .NET 10 Blazor Web App (Interactive Server) designed as a creative writing tutor for children.
+# Copilot Instructions for StoryFort
+
+**Summary:**
+These instructions are the authoritative, up-to-date guide for AI coding agents working on StoryFort. They summarize the architecture, workflows, and unique conventions of the project. Read this before making any code changes or answering developer queries.
+
+**Quick Start:**
+- StoryFort is a .NET 10 Blazor Server app (containerized) for creative writing tutoring.
+- AI agents must never generate story text—use the "Spark Protocol" (questioning) or review only.
+- All critical data is encrypted and regionally hosted (Canada).
+- Key files: requirements/requirements.md, developer-diary.md, architecture/ARCHITECTURE.md, governance/AI-System-Card.md, rationales.md, UXUI_Design/UI_UX_detail_reqs.md.
+
+---
+
+You are assisting with **StoryFort**, a .NET 10 Blazor Web App (Interactive Server) designed as a creative writing tutor for children.
 
 ## 🏗 Project Architecture
 - **Framework**: .NET 10 Blazor Server (containerized).
@@ -27,13 +39,13 @@ You are assisting with **Unstickd**, a .NET 10 Blazor Web App (Interactive Serve
 - **Safeguards**: `ValidateSafeguards()` enforces "Defense in Depth" (PII, Prompt Injection) before API calls.
 
 ## 🛠 Developer Workflow
-- **Run**: `dotnet run --project Unstickd/Unstickd.csproj`
-- **Watch**: `dotnet watch --project Unstickd/Unstickd.csproj`
-- **Migrations**: `dotnet ef migrations add <Name> --project Unstickd/Unstickd.csproj`
+- **Run**: `dotnet run --project StoryFort/StoryFort.csproj`
+- **Watch**: `dotnet watch --project StoryFort/StoryFort.csproj`
+- **Migrations**: `dotnet ef migrations add <Name> --project StoryFort/StoryFort.csproj`
 - **Testing**:
-    - **Unit** (`Unstickd.Tests.Unit`): Logic/JSON parsing. Mock all I/O.
-    - **Integration** (`Unstickd.Tests.Integration`): EF Core/SQLite. Use `EnsureDeleted()`/`EnsureCreated()`.
-    - **E2E** (`Unstickd.Tests.E2E`): Playwright. Use `GetByRole` selectors (accessibility first).
+    - **Unit** (`StoryFort.Tests.Unit`): Logic/JSON parsing. Mock all I/O.
+    - **Integration** (`StoryFort.Tests.Integration`): EF Core/SQLite. Use `EnsureDeleted()`/`EnsureCreated()`.
+    - **E2E** (`StoryFort.Tests.E2E`): Playwright. Use `GetByRole` selectors (accessibility first).
 
 ## 📂 Key Code Patterns
 - **Rich Text**: `Blazored.TextEditor` (QuillJS).
@@ -67,4 +79,5 @@ To fully understand the project's constraints and philosophy, read these files i
 
 4. **Safety & Governance**:
    - `governance/AI-System-Card.md`: Defines the "Defense in Depth" strategy for AI inputs/outputs.
+
 

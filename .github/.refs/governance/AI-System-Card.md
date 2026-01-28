@@ -1,11 +1,11 @@
-# AI System Card: Unstickd (Pilot Phase)
+# AI System Card: StoryFort (Pilot Phase)
 
 **Date:** January 24, 2026  
 **Model:** Cohere Command R+ (Reasoning)  
 **Role:** Creative Writing Tutor
 
 ## 1. Intended Use and Scope
-Unstickd is designed as a **scaffolding tool** for creative writing in Grades 4-8. 
+StoryFort is designed as a **scaffolding tool** for creative writing in Grades 4-8. 
 *   **Primary Function:** To ask sensory questions, suggest plot alternatives, and unblock "writer's block."
 *   **Out of Scope:** It is not a fact-checking engine, a math tutor, or a mental health counselor. It is not designed to write the story for the student ("No Ghostwriting" Policy).
 
@@ -27,7 +27,8 @@ We employ a "Defense in Depth" strategy:
 ## 4. Data Usage
 *   **Input:** Student narrative text (anonymized) sent to Cohere API in Canada.
 *   **Storage:** No student data is stored by Cohere.
-*   **Training:** Data sent via Unstickd is **excluded** from Cohere's training sets.
+*   **Training:** Data sent via StoryFort is **excluded** from Cohere's training sets.
 
 ## 5. Feedback Mechanism
 If the AI produces inappropriate or unhelpful content, please report it immediately via the "Flag Interaction" button (or email support at [contact info]) so we can tune the System Prompts.
+

@@ -1,0 +1,267 @@
+/* === Design System Variables (from wireframe) === */
+:root {
+    /* Typography */
+    --font-size: 16px;
+    --font-size-lg: 1.25rem;
+    --font-size-sm: 0.95rem;
+    --main-font: 'Silkscreen', cursive;
+    --heading-font: 'Luckiest Guy', cursive;
+    --body-font: 'Atkinson Hyperlegible', sans-serif;
+    --dyslexia-font: 'Comic Neue', cursive;
+
+    /* Color Palette - Hearth & Ink Scheme */
+    /* Color Palette - Hearth & Ink Scheme */
+    --background: #E0D8C3; /* Darker Parchment (Base Layer) */
+    --foreground: #1A2B3C; /* Oxford Navy */
+    --card: #F2EAD3; /* Warm Parchment (Popping forward) */
+    --card-foreground: #1A2B3C;
+    --primary: #BC6D4F; /* Terracotta Clay */
+    --primary-foreground: #FFFFFF; /* High Contrast White for accessible buttons */
+    --secondary: #7A9A88; /* Cotswold Sage */
+    --secondary-foreground: #1A2B3C;
+    --muted: #D6CDB6; /* Even Darker Parchment */
+    --muted-foreground: #4A5B6C; /* Darker Muted Navy */
+    --accent: #D4AF37; /* Antique Brass */
+    --accent-foreground: #1A2B3C;
+    --success: #7A9A88; /* Cotswold Sage */
+    --warning: #D4AF37; /* Antique Brass */
+    --error: #e74c3c;
+    --info: #2196f3;
+    --border: #1A2B3C; /* Oxford Navy (Stroke) */
+
+    /* Spacing & Radius */
+    --radius: 8px;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 32px;
+
+    /* Sidebar */
+    --sidebar: var(--primary);
+    --sidebar-foreground: var(--primary-foreground);
+    --sidebar-primary: var(--secondary);
+    --sidebar-primary-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-accent: var(--card);
+    --sidebar-accent-foreground: var(--foreground);
+
+    /* Accessibility */
+    --focus-outline: 3px solid var(--foreground);
+    --high-contrast-bg: #fff;
+    --high-contrast-fg: #000;
+    --link: #8B3A28; /* Deep Rust for links */
+    --link-hover: #1A2B3C;
+    --disabled: #bdbdbd;
+    --disabled-bg: #f0f0f0;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--body-font);
+    font-size: var(--font-size);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--heading-font);
+    color: var(--primary);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-md);
+    letter-spacing: 1px;
+}
+
+p, li, label, input, textarea, select, button {
+    font-family: var(--body-font);
+    font-size: var(--font-size);
+}
+
+a {
+    color: var(--link);
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+a:hover, a:focus {
+    color: var(--link-hover);
+    outline: none;
+}
+
+button, .btn {
+    font-family: var(--main-font);
+    font-size: var(--font-size-lg);
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: var(--radius);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--border);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+button:hover, .btn:hover, button:focus, .btn:focus {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    outline: var(--focus-outline);
+    box-shadow: 4px 4px 0 var(--border);
+}
+button:disabled, .btn:disabled {
+    background: var(--disabled-bg);
+    color: var(--disabled);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+input, textarea, select {
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size);
+    background: var(--card);
+    color: var(--foreground);
+    transition: border 0.2s, box-shadow 0.2s;
+}
+input:focus, textarea:focus, select:focus {
+    outline: var(--focus-outline);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
+::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+}
+
+/* Pixel Grid Background */
+.pixel-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    pointer-events: none;
+    background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px),
+        repeating-linear-gradient(90deg, transparent, transparent 4px, #8b4513 4px, #8b4513 5px);
+}
+
+.pixel-card {
+    background: var(--card);
+    border: 4px solid var(--border);
+    box-shadow: 4px 4px 0px var(--border);
+    border-radius: var(--radius);
+}
+
+.sidebar-btn {
+    border-width: 2px;
+    transition: all 0.1s;
+    border-radius: var(--radius);
+}
+
+.sidebar-btn.active {
+    background-color: var(--sidebar-primary);
+    color: var(--sidebar-primary-foreground);
+    border-color: var(--sidebar-primary);
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+}
+
+.sidebar-btn:not(.active):hover {
+    transform: translate(2px, 2px);
+}
+
+.pixel-shadow {
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3);
+}
+
+textarea:focus {
+    outline: none;
+}
+
+input[type="color"] {
+    -webkit-appearance: none;
+    border: 2px solid var(--border);
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: var(--radius);
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+    border: none;
+}
+
+input[type="range"] {
+    accent-color: var(--primary);
+}
+
+select {
+    appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+    border-radius: var(--radius);
+}
+
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: var(--muted); }
+::-webkit-scrollbar-thumb { 
+    background: var(--primary); 
+    border: 3px solid var(--muted);
+    border-radius: var(--radius);
+}
+
+.avatar-container {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 8px;
+    background: #e2d1c3; 
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.system-notebook {
+    border-style: double;
+    border-width: 6px;
+}
+
+/* === Font Theme System (Paired Headings & Body) === */
+
+/* 1. Retro Gaming (8-bit) */
+.font-pixel { 
+    --heading-font: 'Press Start 2P', cursive;
+    --body-font: 'VT323', monospace; 
+}
+
+/* 2. Storybook (Creative/Cozy) */
+.font-hand { 
+    --heading-font: 'Luckiest Guy', cursive;
+    --body-font: 'Patrick Hand', cursive; 
+}
+
+/* 3. Modern School (Clean/Standard) */
+.font-rounded { 
+    --heading-font: 'Lexend', sans-serif; /* Bold is automatic for Headers */
+    --body-font: 'Lexend', sans-serif; 
+    --font-size: 17px; /* Bump slightly for legibility */
+}
+
+/* 4. Reading Focus (High Legibility) */
+.font-inclusive { 
+    --heading-font: 'Atkinson Hyperlegible', sans-serif;
+    --body-font: 'Atkinson Hyperlegible', sans-serif; 
+}
+
+/* 5. Dyslexia Friendly (Specialized) */
+.font-dyslexia { 
+    --heading-font: 'Comic Neue', cursive;
+    --body-font: 'Comic Neue', cursive; 
+    letter-spacing: 0.03em; /* Slight increase for readability */
+}
+
+/* Legacy Mappings (Redirect to new system if user has old pref) */
+.font-minecraft { --heading-font: 'Press Start 2P', cursive; --body-font: 'VT323', monospace; }
+.font-retro { --heading-font: 'Press Start 2P', cursive; --body-font: 'VT323', monospace; }
+.font-hero { --heading-font: 'Luckiest Guy', cursive; --body-font: 'Patrick Hand', cursive; }

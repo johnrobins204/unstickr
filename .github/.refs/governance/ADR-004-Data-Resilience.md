@@ -8,7 +8,7 @@
 The current architecture uses SQLite in a Docker container. While this simplifies deployment, it presents a "Single Point of Failure" risk. If the container volume is corrupted or the host node fails, all student story data is lost. We currently rely on nightly volume snapshots, which implies a Recovery Point Objective (RPO) of up to 24 hours—unacceptable for student coursework.
 
 ## Decision
-We will integrate **Litestream** as a sidecar process within the Unstickd Docker container.
+We will integrate **Litestream** as a sidecar process within the StoryFort Docker container.
 
 ## Rationale
 Litestream performs streaming replication of SQLite WAL (Write-Ahead Log) pages to cloud object storage (S3-compatible) in real-time.
@@ -26,4 +26,5 @@ Litestream performs streaming replication of SQLite WAL (Write-Ahead Log) pages 
 ## Implementation Strategy
 1.  Configure `AppDbContext` to use `PRAGMA journal_mode=WAL;` (Completed in Pilot Patch).
 2.  Update `Dockerfile` to install Litestream.
-3.  Modify `entrypoint.sh` to run `litestream replicate -exec "dotnet Unstickd.dll"`.
+3.  Modify `entrypoint.sh` to run `litestream replicate -exec "dotnet StoryFort.dll"`.
+

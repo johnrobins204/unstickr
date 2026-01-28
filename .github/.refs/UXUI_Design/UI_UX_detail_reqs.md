@@ -143,7 +143,7 @@ This document serves as the detailed specification for downstream Agent implemen
 2.  **UI States**: Implement `TutorState` enum: `Idle`, `Watching`, `Offering`, `Active`.
 3.  **Animation**: Add CSS transitions for the "fade in" of the bubble.
 4.  **Rebound Timer**: Implement "Short-term Rebound" logic. If user resumes typing but stops again within < 5s, bypass Stage 1 and jump straight to Stage 2 (Offering Help), assuming they are still stuck.
-5.  **Input Interruption**: Add event listener on Editor to `Unstickd.dismissTutor()` on first keystroke.
+5.  **Input Interruption**: Add event listener on Editor to `StoryFort.dismissTutor()` on first keystroke.
 
 ## MS-3: The "Quick Reference" (Notebooks)
 **User Journey**: The user needs to verify a fact (e.g., character eye color) or create a new entity (e.g., a magic sword) without losing their writing flow.
@@ -355,6 +355,7 @@ This document serves as the detailed specification for downstream Agent implemen
 ### Expediency Principle
 - Use the fastest available method for iconography and CSS (e.g., Lucide JS, Tailwind, direct CSS variable manipulation).
 - Prioritize user experience and maintainability over strict adherence to any one framework if a more expedient solution is available.
+
 
 
 

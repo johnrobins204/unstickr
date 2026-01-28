@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="Unstickd.Tests.E2E/Unstickd.Tests.E2E.csproj" />
-  <Project Path="Unstickd.Tests.Integration/Unstickd.Tests.Integration.csproj" />
-  <Project Path="Unstickd.Tests.Unit/Unstickd.Tests.Unit.csproj" />
-  <Project Path="Unstickd/Unstickd.csproj" />
-</Solution>

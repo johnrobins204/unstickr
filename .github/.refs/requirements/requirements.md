@@ -1,7 +1,7 @@
-# Unstickd: Requirements Document
+# StoryFort: Requirements Document
 
 ## 🎯 Vision
-Unstickd is a child-focused creative writing tool that uses AI to provide passive, Socratic guidance without ghostwriting. The app simulates a "notebook" experience with themed pixel-art companions called "Unstickrs."
+StoryFort is a child-focused creative writing tool that uses AI to provide passive, Socratic guidance without ghostwriting. The app simulates a "notebook" experience with themed pixel-art companions called "Unstickrs."
 
 ---
 
@@ -341,3 +341,4 @@ Support MS Azure SSO
 3. Theme switching completes the transition animation without errors
 4. A child can create a Character, link it to a Story, and view the relationship
 5. Stories persist across browser refreshes
+

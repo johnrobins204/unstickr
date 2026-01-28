@@ -1,10 +1,10 @@
-# Unstickd UX Architecture: The Story Fort
+# StoryFort UX Architecture: The Story Fort
 
 **Status:** Authoritative 
 *(This document supersedes previous design specifications found in `UI_UX_detail_reqs.md` and redefines the aesthetic direction of all sub-requirements)*
 
 ## ⛺ Core Philosophy
-The Unstickd User Experience is designed as a **"Story Fort"**—a private, magical sanctuary where the child feels safe to pretend their stories are real. 
+The StoryFort User Experience is designed as a **"Story Fort"**—a private, magical sanctuary where the child feels safe to pretend their stories are real. 
 
 Gone is the "Retro Game" aesthetic (referenced in early wireframes). Instead, we embrace **Immersive Creativity**. The interface behaves like a personalized creative space (a blanket fort, a treehouse, a spaceship cockpit) that the child constructs "from the inside out." The workspace is not just a tool; it is a manifestation of the story they are writing, decorated with themes, pictures, and artifacts that ground them in their narrative world.
 
@@ -76,3 +76,4 @@ Profoundly expanded from simple font/color settings, the Design Lab is how the c
 **[📄 Details in Drafter Reqs](drafter_reqs.md)**
 *   **Visual Logic**: A physical chest or drawer system within the fort where collected "Treasures" (Characters, Places ratings) are kept safe.
 *   **Integration**: Items pinned in the Reading Nook appear here as physical cards or polaroids.
+

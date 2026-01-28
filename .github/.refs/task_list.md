@@ -1,4 +1,4 @@
-# Requirements & Task List: Unstickd Developer Diary
+# Requirements & Task List: StoryFort Developer Diary
 
 ## Design Principles
 *   **Separation of Powers**:
@@ -36,7 +36,7 @@
 
 ## 2. Frontend & UX Logic
 
-### [x] Update [inactivity.js](../Unstickd/wwwroot/js/inactivity.js) - Frustration Detection
+### [x] Update [inactivity.js](../StoryFort/wwwroot/js/inactivity.js) - Frustration Detection
 *   **Context**: "Hyper-activity" is a signal for help.
 *   **Requirement**: Listen for:
     *   **Rage Clicks**: >3 clicks on the same coordinates within 1s.
@@ -105,7 +105,7 @@
 *   **Context**: Auditor identified "Docker Volume" as a single point of failure (RPO 24h).
 *   **Action**:
     1.  Add `litestream` binary to Dockerfile.
-    2.  Configure `litestream.yml` to replicate `unstickd.db` to an S3-compatible bucket (e.g., OVH Object Storage).
+    2.  Configure `litestream.yml` to replicate `StoryFort.db` to an S3-compatible bucket (e.g., OVH Object Storage).
     3.  Update `entrypoint.sh` to restore DB on startup if missing.
 
 ### [ ] Network Resilience: "Disconnected Operation" Verification
@@ -118,7 +118,7 @@
 ### [ ] Security: Basic Threat Modeling
 *   **Context**: WebSocket spoofing risk.
 *   **Action**:
-    1.  Ensure `Unstickd` hub methods validate `Context.User.Identity`. *(Note: Requires Auth implementation first)*.
+    1.  Ensure `StoryFort` hub methods validate `Context.User.Identity`. *(Note: Requires Auth implementation first)*.
     2.  Review `TutorOrchestrator` for rate-limiting (prevent token exhaustion).
 
 ### [ ] Governance: Operational Sovereignty Policy
@@ -178,7 +178,7 @@
 ### [ ] DevOps: Prompt Version Control
 *   **Context**: Khan Academy treats prompts as versioned R&D artifacts.
 *   **Action**:
-    1.  Move System Prompts from inline strings to `.md` files in `Unstickd/Prompts/`.
+    1.  Move System Prompts from inline strings to `.md` files in `StoryFort/Prompts/`.
     2.  Add prompt version header (e.g., `# v1.2 - 2026-01-25`).
     3.  Consider a "Golden Dataset" of ideal AI responses for regression testing.
 
@@ -192,4 +192,5 @@
 ### [ ] Containerize Application (Docker)
 *   **Context**: Docker Desktop requires WSL2.
 *   **Action**: Re-introduce `Dockerfile` and `.devcontainer` once hardware constraints are resolved.
+
 

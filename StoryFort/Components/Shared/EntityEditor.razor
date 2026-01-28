@@ -1,0 +1,115 @@
+@using StoryFort.Models
+@inject AppDbContext DbContext
+
+@* Responsive Mode Support *@
+@code {
+    public enum EntityEditorMode { Modal, Inline }
+    [Parameter] public NotebookEntity? Entity { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EntityEditorMode Mode { get; set; } = EntityEditorMode.Modal;
+    private bool ShowModal = false;
+    private string Name = string.Empty;
+    private string Description = string.Empty;
+    private List<MetadataItem> MetadataFields = new();
+    private string Error = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (Entity != null)
+        {
+            Name = Entity.Name;
+            Description = Entity.Description;
+            try {
+                MetadataFields = System.Text.Json.JsonSerializer.Deserialize<List<MetadataItem>>(Entity.Metadata) ?? new();
+            } catch { MetadataFields = new(); }
+        }
+    }
+
+    private void AddField() => MetadataFields.Add(new MetadataItem());
+    private void RemoveField(MetadataItem item) => MetadataFields.Remove(item);
+
+    private async Task Save()
+    {
+        if (Entity == null) return;
+        Entity.Name = Name;
+        Entity.Description = Description;
+        Entity.Metadata = System.Text.Json.JsonSerializer.Serialize(MetadataFields);
+        DbContext.NotebookEntities.Update(Entity);
+        await DbContext.SaveChangesAsync();
+        ShowModal = false;
+        if (OnSaved.HasDelegate) await OnSaved.InvokeAsync();
+    }
+
+    public void Open() { ShowModal = true; StateHasChanged(); }
+    public void Close() { ShowModal = false; StateHasChanged(); }
+
+    public class MetadataItem
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
+}
+
+@if ((Mode == EntityEditorMode.Modal && ShowModal && Entity != null) || (Mode == EntityEditorMode.Inline && Entity != null))
+{
+    @if (Mode == EntityEditorMode.Modal)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.3);" role="dialog" aria-modal="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-person-lines-fill me-2"></i>Edit Entity</h5>
+                        <button type="button" class="btn-close" @onclick="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        @EditorForm()
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="Close">Cancel</button>
+                        <button class="btn btn-primary" @onclick="Save">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Mode == EntityEditorMode.Inline)
+    {
+        <div class="p-2 bg-light rounded border mb-3">
+            @EditorForm()
+            <div class="d-flex justify-content-end mt-2">
+                <button class="btn btn-primary w-100" @onclick="Save">Save</button>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private RenderFragment EditorForm() => __builder =>
+    {
+        <div class="mb-2">
+            <label class="form-label fw-bold">Name</label>
+            <input class="form-control" @bind="Name" />
+        </div>
+        <div class="mb-2">
+            <label class="form-label fw-bold">Description</label>
+            <input class="form-control" @bind="Description" />
+        </div>
+        <div class="mb-2">
+            <label class="form-label fw-bold">Attributes (Metadata)</label>
+            @foreach (var field in MetadataFields)
+            {
+                <div class="input-group mb-2">
+                    <input class="form-control" placeholder="Key" @bind="field.Key" />
+                    <input class="form-control" placeholder="Value" @bind="field.Value" />
+                    <button class="btn btn-outline-danger" type="button" @onclick="() => RemoveField(field)"><i class="bi bi-x"></i></button>
+                </div>
+            }
+            <button class="btn btn-sm btn-outline-primary" type="button" @onclick="AddField"><i class="bi bi-plus"></i> Add Field</button>
+        </div>
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <div class="alert alert-danger">@Error</div>
+        }
+    };
+}
+

@@ -1,0 +1,285 @@
+@page "/admin"
+@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.EntityFrameworkCore
+@using StoryFort.Data
+@using StoryFort.Models
+@inject AppDbContext DbContext
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<div class="p-6 font-mono text-xs h-screen flex flex-col">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-xl font-bold">🔧 Utilitarian Admin</h1>
+        <div class="text-gray-500">Warning: No Undo Button</div>
+    </div>
+    
+    <!-- Table Selector -->
+    <div class="flex gap-2 mb-6 flex-wrap">
+        @foreach(var type in _entityTypes)
+        {
+             <button class="px-3 py-1 border transition-colors @(_selectedType == type ? "bg-black text-white border-black" : "bg-white hover:bg-gray-100")"
+                     @onclick="() => SelectType(type)">
+                 @type.Name
+             </button>
+        }
+    </div>
+
+    @if(_selectedType != null)
+    {
+        <div class="flex gap-6 flex-1 overflow-hidden">
+            <!-- Data Grid -->
+            <div class="flex-1 flex flex-col border rounded bg-white shadow-sm overflow-hidden">
+                <div class="flex justify-between items-center p-3 bg-gray-50 border-b">
+                    <h2 class="font-bold text-sm">@_selectedType.Name Records (@_loadedData.Count)</h2>
+                     <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" @onclick="CreateNew"> + Add New </button>
+                </div>
+                
+                <div class="overflow-auto flex-1">
+                    <table class="w-full border-collapse text-left">
+                        <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th class="border-b p-2 w-24">Actions</th>
+                                @foreach(var prop in GetSimpleProperties(_selectedType))
+                                {
+                                    <th class="border-b p-2 font-semibold">@prop.Name</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var item in _loadedData)
+                            {
+                                <tr class="hover:bg-blue-50 transition-colors border-b last:border-0">
+                                    <td class="p-2 flex gap-2">
+                                        <button class="text-blue-600 hover:underline" @onclick="() => Edit(item)">Edit</button>
+                                        <button class="text-red-600 hover:underline" @onclick="() => Delete(item)">Del</button>
+                                    </td>
+                                    @foreach(var prop in GetSimpleProperties(_selectedType))
+                                    {
+                                        <td class="p-2 truncate max-w-[200px]" title="@GetPropValue(item, prop)">
+                                            @GetPropValue(item, prop)
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Edit Form (Fixed Side Panel) -->
+            @if(_currentModel != null)
+            {
+                <div class="w-96 border rounded bg-white shadow-xl flex flex-col z-20">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                        <h3 class="font-bold">@(_isNew ? "Create" : "Edit") @_selectedType.Name</h3>
+                        <button @onclick="Cancel" class="text-gray-500 hover:text-black">✕</button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                        @foreach(var prop in GetSimpleProperties(_selectedType))
+                        {
+                            var isKey = prop.Name == "Id" || Attribute.IsDefined(prop, typeof(KeyAttribute));
+                            // Disable auto-increment int keys on create, disable keys generally on edit
+                            var isDisabled = (!_isNew && isKey) || (_isNew && isKey && prop.PropertyType == typeof(int)); 
+
+                            <div>
+                                <label class="block font-bold mb-1 text-[10px] uppercase text-gray-500">@prop.Name</label>
+                                
+                                @if(prop.PropertyType == typeof(bool))
+                                {
+                                     <input type="checkbox" 
+                                            class="size-5"
+                                            checked="@((bool)prop.GetValue(_currentModel))" 
+                                            disabled="@isDisabled"
+                                            @onchange="@(e => SetValue(prop, e.Value))" />
+                                }
+                                else if(prop.PropertyType == typeof(int) || prop.PropertyType == typeof(long) || prop.PropertyType == typeof(double))
+                                {
+                                    <input type="number" step="any"
+                                           class="w-full border p-2 rounded focus:ring-2 ring-blue-500 outline-none @(isDisabled ? "bg-gray-100" : "")"
+                                           value="@prop.GetValue(_currentModel)" 
+                                           disabled="@isDisabled"
+                                           @onchange="@(e => SetValue(prop, e.Value))" />
+                                }
+                                else
+                                {
+                                     <textarea class="w-full border p-2 rounded focus:ring-2 ring-blue-500 outline-none h-24 font-mono text-xs @(isDisabled ? "bg-gray-100" : "")"
+                                            value="@prop.GetValue(_currentModel)" 
+                                            disabled="@isDisabled"
+                                            @onchange="@(e => SetValue(prop, e.Value))"></textarea>
+                                }
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="p-4 border-t bg-gray-50">
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 w-full rounded font-bold shadow" @onclick="Save">
+                            Save Changes
+                        </button>
+                         @if(!string.IsNullOrEmpty(_errorMsg))
+                         {
+                             <div class="text-red-500 mt-2 text-center">@_errorMsg</div>
+                         }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Type> _entityTypes = new();
+    private Type? _selectedType;
+    private List<object> _loadedData = new();
+    private object? _currentModel;
+    private bool _isNew;
+    private string _errorMsg = "";
+
+    protected override void OnInitialized()
+    {
+        // Discover entities from DbContext properties
+        _entityTypes = typeof(AppDbContext).GetProperties()
+            .Where(p => p.PropertyType.IsGenericType && 
+                       (p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>)))
+            .Select(p => p.PropertyType.GetGenericArguments()[0])
+            // Filter to just config-like tables for utilitarian view
+            .Where(t => 
+                t == typeof(Archetype) || 
+                t == typeof(ArchetypePoint) || 
+                t == typeof(ArchetypeExample) || 
+                t == typeof(NotebookType) || 
+                t == typeof(Theme) ||
+                t == typeof(Account)
+             )
+            .ToList();
+    }
+
+    private void SelectType(Type type)
+    {
+        _selectedType = type;
+        _currentModel = null;
+        _errorMsg = "";
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        if (_selectedType == null) return;
+        
+        try 
+        {
+            // Reflection magic to call DbContext.Set<T>().ToList()
+            var method = DbContext.GetType().GetMethod("Set", Type.EmptyTypes)?.MakeGenericMethod(_selectedType);
+            var queryable = method?.Invoke(DbContext, null) as IEnumerable<object>;
+            
+            if (queryable != null)
+            {
+                // Materialize to list of objects
+                _loadedData = queryable.ToList(); 
+            }
+        }
+        catch(Exception ex)
+        {
+            _errorMsg = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private PropertyInfo[] GetSimpleProperties(Type type)
+    {
+        // Only get primitive-ish properties, skip collections/relations
+        return type.GetProperties()
+            .Where(p => p.PropertyType.IsPrimitive || 
+                       p.PropertyType == typeof(string) || 
+                       p.PropertyType == typeof(decimal) ||
+                       p.PropertyType == typeof(DateTime) ||
+                       p.PropertyType == typeof(DateTime?))
+            .ToArray();
+    }
+
+    private object? GetPropValue(object item, PropertyInfo prop)
+    {
+        var val = prop.GetValue(item);
+        if (val == null) return null;
+        if (prop.Name.Contains("Svg") || prop.Name.Contains("Content")) return "(Long Content)";
+        return val;
+    }
+
+    private void CreateNew()
+    {
+        if(_selectedType == null) return;
+        _isNew = true;
+        _currentModel = Activator.CreateInstance(_selectedType);
+        _errorMsg = "";
+    }
+
+    private void Edit(object item)
+    {
+        _isNew = false;
+        _currentModel = item;
+        _errorMsg = "";
+    }
+
+    private void Cancel()
+    {
+        _currentModel = null;
+        if (!_isNew) LoadData(); // Refresh to undo local changes in memory
+    }
+
+    private void Delete(object item)
+    {
+        if(_selectedType == null) return;
+        try 
+        {
+            DbContext.Remove(item);
+            DbContext.SaveChanges();
+            LoadData();
+        }
+        catch(Exception ex)
+        {
+            _errorMsg = $"Delete failed: {ex.Message}";
+        }
+    }
+
+    private void Save()
+    {
+        if(_selectedType == null || _currentModel == null) return;
+        
+        try 
+        {
+            if (_isNew)
+            {
+                DbContext.Add(_currentModel);
+            }
+            else 
+            {
+                DbContext.Update(_currentModel);
+            }
+            
+            DbContext.SaveChanges();
+            _currentModel = null;
+            LoadData();
+        }
+        catch(Exception ex)
+        {
+            _errorMsg = $"Save failed: {ex.Message} (Check IDs/Foreign Keys)";
+        }
+    }
+
+    private void SetValue(PropertyInfo prop, object? value)
+    {
+        if (_currentModel == null) return;
+        try 
+        {
+            if (value == null) return;
+            var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+            var convertedValue = Convert.ChangeType(value, targetType);
+            prop.SetValue(_currentModel, convertedValue);
+        }
+        catch 
+        {
+            // Simple generic coercion fallback
+        }
+    }
+}
+

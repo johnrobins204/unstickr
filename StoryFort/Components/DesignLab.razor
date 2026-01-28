@@ -1,0 +1,243 @@
+@page "/design"
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+@inject StoryFort.Services.StoryState StoryState
+
+<PageTitle>StoryFort - Design Lab</PageTitle>
+
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="text-4xl">🎨</div>
+            <div>
+                <h2 class="font-['Press_Start_2P'] text-lg text-[var(--primary)] mb-2">Design Lab</h2>
+                <p class="text-sm text-[var(--muted-foreground)]">Mix your own interface style!</p>
+            </div>
+        </div>
+        <div class="flex flex-col items-end gap-2">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold">
+                <input type="checkbox" checked="@IsCustomTheme" @onchange="ToggleTheme" class="accent-[var(--primary)]" />
+                Custom Theme
+            </label>
+            <a href="/" class="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] border-4 border-[var(--border)] font-bold hover:brightness-110 transition-all font-['Press_Start_2P'] text-xs shadow-[4px_4px_0_var(--border)] active:translate-x-1 active:translate-y-1 active:shadow-none" style="border-radius: var(--radius)">
+                <i class="lucide lucide-arrow-left"></i> GO BACK
+            </a>
+        </div>
+    </div>
+
+    <!-- Color Mixer -->
+    <div class="pixel-card p-6 mb-8">
+        <h3 class="font-bold uppercase text-xs text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
+            <i class="lucide lucide-palette size-4"></i> Color Mixer
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            @foreach (var color in ColorOptions)
+            {
+                <div class="space-y-2">
+                    <label class="text-xs font-bold block">@color.Label</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="color" value="@color.Value" @oninput="e => OnColorChange(color.Variable, e.Value?.ToString())" class="w-10 h-10" />
+                        <span class="text-[10px] opacity-60">@color.Hint</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Typography Station -->
+    <div class="pixel-card p-6 mb-8">
+        <h3 class="font-bold uppercase text-xs text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
+            <i class="lucide lucide-type size-4"></i> Typography Station
+        </h3>
+        <div class="space-y-6">
+            <div>
+                <label class="text-xs font-bold block mb-2">Typography Theme</label>
+                <select @onchange="OnFontChange" class="w-full border-2 border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)] text-[var(--foreground)] rounded-[var(--radius)]">
+                    <option value="font-pixel">👾 Retro Gaming (8-bit + Terminal)</option>
+                    <option value="font-hand">✏️ Storybook (Fun + Handwritten)</option>
+                    <option value="font-rounded">📚 Modern School (Clean)</option>
+                    <option value="font-inclusive">👁️ Ultra-Clear (Accessible)</option>
+                    <option value="font-dyslexia">📖 Dyslexia Friendly</option>
+                </select>
+                <p class="text-[10px] opacity-60 mt-1">Sets complementary Heading and Paragraph fonts automatically.</p>
+            </div>
+            <div>
+                <label class="text-xs font-bold block mb-2">Text Size: <span>@FontSizeLabel</span></label>
+                <input type="range" min="12" max="24" value="@FontSize" step="1" @oninput="OnFontSizeChange" class="w-full h-2 bg-[var(--muted)] rounded-lg appearance-none cursor-pointer" />
+                <div class="flex justify-between text-[10px] opacity-60 mt-1">
+                    <span>Small</span>
+                    <span>Large</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shape Shifter -->
+    <div class="pixel-card p-6 mb-8">
+        <h3 class="font-bold uppercase text-xs text-[var(--muted-foreground)] mb-6 flex items-center gap-2">
+            <i class="lucide lucide-shapes size-4"></i> Shape Shifter
+        </h3>
+        <div class="flex items-center gap-4">
+            <button @onclick='() => OnRadiusChange("0px")' class="flex-1 p-4 border-2 border-[var(--border)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-center" style="border-radius: 0px">
+                <div class="w-8 h-8 border-2 border-[var(--foreground)] bg-[var(--primary)] mx-auto mb-2" style="border-radius: 0px"></div>
+                <span class="text-xs font-bold">Blocky (Pixel)</span>
+            </button>
+            <button @onclick='() => OnRadiusChange("12px")' class="flex-1 p-4 border-2 border-[var(--border)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-center" style="border-radius: 12px">
+                <div class="w-8 h-8 border-2 border-[var(--foreground)] bg-[var(--primary)] mx-auto mb-2" style="border-radius: 12px"></div>
+                <span class="text-xs font-bold">Round (Modern)</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool IsCustomTheme = true;
+    private List<(string Label, string Variable, string Value, string Hint)> ColorOptions = new()
+    {
+        ("Background", "--background", "#F2EAD3", "Base"),
+        ("Text Ink", "--foreground", "#1A2B3C", "Words"),
+        ("Buttons", "--primary", "#BC6D4F", "Action"),
+        ("Cards", "--card", "#F2EAD3", "Panels")
+    };
+    private string FontSizeLabel => $"{FontSize}px";
+    private int FontSize = 16;
+    
+    // --- Lifecycle Methods ---
+    protected override async Task OnInitializedAsync()
+    {
+        // Load existing preference from state if available
+        var pref = StoryState.ThemePreference;
+        if (pref != null)
+        {
+            // AUTO-MIGRATE: Check for "Legacy" default colors (Chocolate/Cream) and treat them as null/new default
+            // This fixes the issue where existing users are "stuck" on the old theme because it was saved explicitly.
+            if (pref.Primary == "#8b4513" || pref.Background == "#f5ebe0") 
+            {
+                StoryState.UpdateThemePreference(tp => {
+                    if (tp.Background == "#f5ebe0") tp.Background = null;
+                    if (tp.Foreground == "#2d1b00") tp.Foreground = null;
+                    if (tp.Primary == "#8b4513") tp.Primary = null;
+                    if (tp.Card == "#fff9ec") tp.Card = null;
+                });
+                pref = StoryState.ThemePreference; // Refresh local ref
+            }
+
+           // If all theme values are default/null, treat as not custom
+           IsCustomTheme = !(!string.IsNullOrEmpty(pref.Background) || !string.IsNullOrEmpty(pref.Foreground) || !string.IsNullOrEmpty(pref.Primary) || !string.IsNullOrEmpty(pref.Card) || (pref.FontSize != 16 && pref.FontSize != 0));
+           
+           // Apply existing state to inputs so they reflect reality
+           if(!string.IsNullOrEmpty(pref.Background)) UpdateColorOption("--background", pref.Background);
+           if(!string.IsNullOrEmpty(pref.Foreground)) UpdateColorOption("--foreground", pref.Foreground);
+           if(!string.IsNullOrEmpty(pref.Primary)) UpdateColorOption("--primary", pref.Primary);
+           if(!string.IsNullOrEmpty(pref.Card)) UpdateColorOption("--card", pref.Card);
+           FontSize = pref.FontSize > 0 ? pref.FontSize : 16;
+        }
+        else
+        {
+           IsCustomTheme = false;
+        }
+    }
+
+    private async Task ToggleTheme(ChangeEventArgs e)
+    {
+        IsCustomTheme = (bool?)e.Value == true;
+        if (!IsCustomTheme)
+        {
+            // Reset to default theme (Hearth & Ink)
+            await JS.InvokeVoidAsync("setCssVariable", "--background", "#F2EAD3");
+            await JS.InvokeVoidAsync("setCssVariable", "--foreground", "#1A2B3C");
+            await JS.InvokeVoidAsync("setCssVariable", "--primary", "#BC6D4F");
+            await JS.InvokeVoidAsync("setCssVariable", "--card", "#F2EAD3");
+            await JS.InvokeVoidAsync("setCssVariable", "--font-size", "16px");
+            await JS.InvokeVoidAsync("setCssVariable", "--radius", "8px");
+            FontSize = 16;
+            // Reset local state
+            UpdateColorOption("--background", "#F2EAD3");
+            UpdateColorOption("--foreground", "#1A2B3C");
+            UpdateColorOption("--primary", "#BC6D4F");
+            UpdateColorOption("--card", "#F2EAD3");
+            StoryState.UpdateThemePreference(tp =>
+            {
+                tp.Background = null;
+                tp.Foreground = null;
+                tp.Primary = null;
+                tp.Card = null;
+                tp.FontSize = 16;
+                tp.Radius = "8px";
+            });
+        }
+        else
+        {
+            // Re-apply custom theme from state
+            var pref = StoryState.ThemePreference;
+            if (pref != null)
+            {
+                if (!string.IsNullOrEmpty(pref.Background)) await JS.InvokeVoidAsync("setCssVariable", "--background", pref.Background);
+                if (!string.IsNullOrEmpty(pref.Foreground)) await JS.InvokeVoidAsync("setCssVariable", "--foreground", pref.Foreground);
+                if (!string.IsNullOrEmpty(pref.Primary)) await JS.InvokeVoidAsync("setCssVariable", "--primary", pref.Primary);
+                if (!string.IsNullOrEmpty(pref.Card)) await JS.InvokeVoidAsync("setCssVariable", "--card", pref.Card);
+                if (pref.FontSize > 0) await JS.InvokeVoidAsync("setCssVariable", "--font-size", $"{pref.FontSize}px");
+                if (!string.IsNullOrEmpty(pref.Radius)) await JS.InvokeVoidAsync("setCssVariable", "--radius", pref.Radius);
+                FontSize = pref.FontSize > 0 ? pref.FontSize : 16;
+            }
+        }
+        StateHasChanged();
+    }
+    
+    private void UpdateColorOption(string variable, string newValue)
+    {
+        var idx = ColorOptions.FindIndex(c => c.Variable == variable);
+        if (idx >= 0)
+        {
+            var opt = ColorOptions[idx];
+            ColorOptions[idx] = (opt.Label, opt.Variable, newValue, opt.Hint);
+        }
+    }
+
+    private async Task OnColorChange(string variable, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            // Immediate CSS Update via helper
+            await JS.InvokeVoidAsync("setCssVariable", variable, value);
+            
+            // Update Local State for Binding
+            UpdateColorOption(variable, value);
+
+            StoryState.UpdateThemePreference(tp =>
+            {
+                switch (variable)
+                {
+                    case "--background": tp.Background = value; break;
+                    case "--foreground": tp.Foreground = value; break;
+                    case "--primary": tp.Primary = value; break;
+                    case "--card": tp.Card = value; break;
+                }
+            });
+        }
+    }
+    private async Task OnFontChange(ChangeEventArgs e)
+    {
+        var fontClass = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(fontClass))
+        {
+            await JS.InvokeVoidAsync("setBodyClass", $"h-screen flex {fontClass}");
+            StoryState.UpdateThemePreference(tp => tp.FontClass = fontClass);
+        }
+    }
+    private async Task OnFontSizeChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var size))
+        {
+            FontSize = size;
+            await JS.InvokeVoidAsync("setCssVariable", "--font-size", $"{size}px");
+            StoryState.UpdateThemePreference(tp => tp.FontSize = size);
+        }
+    }
+    private async Task OnRadiusChange(string radius)
+    {
+        await JS.InvokeVoidAsync("setCssVariable", "--radius", radius);
+        StoryState.UpdateThemePreference(tp => tp.Radius = radius);
+    }
+}
+
