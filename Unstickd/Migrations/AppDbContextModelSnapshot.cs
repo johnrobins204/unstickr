@@ -68,6 +68,335 @@ namespace Unstickd.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Unstickd.Models.Archetype", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SvgPath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Archetypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "classic",
+                            Description = "A classic rise and fall structure suitable for most stories.",
+                            Name = "Classic Arc (Freytag)",
+                            SvgPath = "M0,320 L100,320 L300,50 L500,320 L800,320"
+                        },
+                        new
+                        {
+                            Id = "hero",
+                            Description = "A circular journey where the hero leaves home and returns changed.",
+                            Name = "Hero's Journey",
+                            SvgPath = "M0,320 L100,320 L250,150 L400,38 L550,150 L700,320 L800,320"
+                        },
+                        new
+                        {
+                            Id = "kisho",
+                            Description = "An East Asian structure with four acts: Intro, Development, Twist, and Conclusion.",
+                            Name = "The Twist (Kishōtenketsu)",
+                            SvgPath = "M0,320 L100,320 L300,200 L550,50 L750,320 L800,320"
+                        });
+                });
+
+            modelBuilder.Entity("Unstickd.Models.ArchetypeExample", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ArchetypePointId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArchetypePointId");
+
+                    b.ToTable("ArchetypeExamples");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ArchetypePointId = 7,
+                            Content = "Dorothy lives on a gray, dry prairie in Kansas with Aunt Em and Uncle Henry. Her life is dull, and she dreams of 'Somewhere Over the Rainbow'.",
+                            Title = "The Wizard of Oz"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ArchetypePointId = 8,
+                            Content = "The mean Miss Gulch takes Toto away with a sheriff's order to be destroyed. Toto escapes, but Dorothy decides she must run away to keep him safe.",
+                            Title = "The Wizard of Oz"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            ArchetypePointId = 9,
+                            Content = "A cyclone rips the farmhouse from the ground and deposits it in the colorful Land of Oz. Dorothy opens the door to a technicolor world, leaving the black-and-white Kansas behind.",
+                            Title = "The Wizard of Oz"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            ArchetypePointId = 10,
+                            Content = "Dorothy and her friends are captured by Flying Monkeys and trapped in the Wicked Witch's castle. The hour glass is running out!",
+                            Title = "The Wizard of Oz"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            ArchetypePointId = 11,
+                            Content = "The Wizard offers to take Dorothy home in his balloon, but it accidentally launches while she is chasing Toto, leaving her stranded again.",
+                            Title = "The Wizard of Oz"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            ArchetypePointId = 12,
+                            Content = "Dorothy learns she had the power all along. She taps her ruby slippers three times, says 'There's no place like home', and wakes up in her own bed surrounded by her family.",
+                            Title = "The Wizard of Oz"
+                        });
+                });
+
+            modelBuilder.Entity("Unstickd.Models.ArchetypePoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Align")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ArchetypeId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StepId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("X")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Y")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArchetypeId");
+
+                    b.ToTable("ArchetypePoints");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Align = "center",
+                            ArchetypeId = "classic",
+                            Label = "Beginning",
+                            Prompt = "How does the story start? Describe the normal world.",
+                            StepId = 1,
+                            X = 50.0,
+                            Y = 308.0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Align = "center",
+                            ArchetypeId = "classic",
+                            Label = "Inciting Incident",
+                            Prompt = "What event changes everything for the hero?",
+                            StepId = 2,
+                            X = 150.0,
+                            Y = 250.0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Align = "right",
+                            ArchetypeId = "classic",
+                            Label = "Rising Action",
+                            Prompt = "What obstacles does the hero face along the way?",
+                            StepId = 3,
+                            X = 225.0,
+                            Y = 150.0
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Align = "center",
+                            ArchetypeId = "classic",
+                            Label = "The Climax",
+                            Prompt = "The biggest battle or challenge!",
+                            StepId = 4,
+                            X = 300.0,
+                            Y = 38.0
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Align = "left",
+                            ArchetypeId = "classic",
+                            Label = "Falling Action",
+                            Prompt = "What happens immediately after the climax?",
+                            StepId = 5,
+                            X = 400.0,
+                            Y = 185.0
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Align = "center",
+                            ArchetypeId = "classic",
+                            Label = "Resolution",
+                            Prompt = "How does the story end? What is the new normal?",
+                            StepId = 6,
+                            X = 650.0,
+                            Y = 308.0
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Align = "center",
+                            ArchetypeId = "hero",
+                            Label = "Ordinary World",
+                            Prompt = "Describe the hero's life before the adventure.",
+                            StepId = 1,
+                            X = 50.0,
+                            Y = 308.0
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Align = "right",
+                            ArchetypeId = "hero",
+                            Label = "Call to Adventure",
+                            Prompt = "Who or what calls them to action?",
+                            StepId = 2,
+                            X = 175.0,
+                            Y = 235.0
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Align = "right",
+                            ArchetypeId = "hero",
+                            Label = "Threshold",
+                            Prompt = "The hero leaves home and enters the unknown.",
+                            StepId = 3,
+                            X = 250.0,
+                            Y = 150.0
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Align = "center",
+                            ArchetypeId = "hero",
+                            Label = "The Ordeal",
+                            Prompt = "The central crisis where the hero faces their greatest fear.",
+                            StepId = 4,
+                            X = 400.0,
+                            Y = 38.0
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Align = "left",
+                            ArchetypeId = "hero",
+                            Label = "The Road Back",
+                            Prompt = "The hero must return home with what they learned.",
+                            StepId = 5,
+                            X = 550.0,
+                            Y = 150.0
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Align = "center",
+                            ArchetypeId = "hero",
+                            Label = "Return w/ Elixir",
+                            Prompt = "The hero returns home, changed forever.",
+                            StepId = 6,
+                            X = 700.0,
+                            Y = 308.0
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Align = "center",
+                            ArchetypeId = "kisho",
+                            Label = "Introduction (Ki)",
+                            Prompt = "Introduce the characters and their world.",
+                            StepId = 1,
+                            X = 50.0,
+                            Y = 308.0
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Align = "center",
+                            ArchetypeId = "kisho",
+                            Label = "Development (Shō)",
+                            Prompt = "Deepen the story. What are they doing? (No major conflict yet)",
+                            StepId = 2,
+                            X = 200.0,
+                            Y = 250.0
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Align = "center",
+                            ArchetypeId = "kisho",
+                            Label = "The Twist (Ten)",
+                            Prompt = "Surprise! Something unexpected happens that changes everything.",
+                            StepId = 3,
+                            X = 550.0,
+                            Y = 50.0
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Align = "center",
+                            ArchetypeId = "kisho",
+                            Label = "Conclusion (Ketsu)",
+                            Prompt = "How does the story settle after the twist?",
+                            StepId = 4,
+                            X = 750.0,
+                            Y = 308.0
+                        });
+                });
+
             modelBuilder.Entity("Unstickd.Models.Notebook", b =>
                 {
                     b.Property<int>("Id")
@@ -444,6 +773,28 @@ namespace Unstickd.Migrations
                     b.Navigation("ActiveTheme");
                 });
 
+            modelBuilder.Entity("Unstickd.Models.ArchetypeExample", b =>
+                {
+                    b.HasOne("Unstickd.Models.ArchetypePoint", "ArchetypePoint")
+                        .WithMany("Examples")
+                        .HasForeignKey("ArchetypePointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ArchetypePoint");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.ArchetypePoint", b =>
+                {
+                    b.HasOne("Unstickd.Models.Archetype", "Archetype")
+                        .WithMany("Points")
+                        .HasForeignKey("ArchetypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Archetype");
+                });
+
             modelBuilder.Entity("Unstickd.Models.Notebook", b =>
                 {
                     b.HasOne("Unstickd.Models.Account", "Account")
@@ -529,6 +880,16 @@ namespace Unstickd.Migrations
                     b.Navigation("Notebooks");
 
                     b.Navigation("Stories");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.Archetype", b =>
+                {
+                    b.Navigation("Points");
+                });
+
+            modelBuilder.Entity("Unstickd.Models.ArchetypePoint", b =>
+                {
+                    b.Navigation("Examples");
                 });
 
             modelBuilder.Entity("Unstickd.Models.Notebook", b =>

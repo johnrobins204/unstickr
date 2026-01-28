@@ -1,0 +1,90 @@
+{
+  "brand_identity": {
+    "name": "StoryFort",
+    "legacy_name": "Unstickd",
+    "archetype": "The Sage & The Creator",
+    "core_aesthetic": "Heritage EdTech",
+    "mood_keywords": [
+      "Timeless",
+      "Cozy",
+      "Sovereign",
+      "Magical",
+      "Tactile"
+    ]
+  },
+  "color_palette": {
+    "palette_name": "Hearth & Ink",
+    "rationale": "Balances the 'Sovereign' security of Canadian data residency with the 'Cozy' warmth of a storybook fortress.",
+    "swatches": {
+      "background_canvas": {
+        "name": "Warm Parchment",
+        "hex": "#F2EAD3",
+        "role": "App Background / Canvas",
+        "description": "Replaces clinical white. Mimics the organic texture of high-quality paper or oatmeal."
+      },
+      "primary_ink": {
+        "name": "Oxford Navy",
+        "hex": "#1A2B3C",
+        "role": "Primary Text / Brand Anchor",
+        "description": "Deep, authoritative blue. Used for the word 'Story' and main UI headers."
+      },
+      "secondary_hearth": {
+        "name": "Terracotta Clay",
+        "hex": "#BC6D4F",
+        "role": "Accent / Action",
+        "description": "Warm, earthen orange. Used for the word 'Fort', call-to-action buttons, and the castle masonry."
+      },
+      "tertiary_growth": {
+        "name": "Cotswold Sage",
+        "hex": "#7A9A88",
+        "role": "Success States / Secondary UI",
+        "description": "Muted, dusty green. Used for floating hexagonal icons and 'correct' states."
+      },
+      "highlight_spark": {
+        "name": "Antique Brass",
+        "hex": "#D4AF37",
+        "role": "Spark Protocol / Highlights",
+        "description": "Metallic gold-yellow. Used for circuit traces and the 'Spark' of ideas."
+      }
+    }
+  },
+  "typography_system": {
+    "logo_typeface": {
+      "style": "Slab Serif / Humanist Serif",
+      "similar_fonts": ["Merriweather", "Caecilia", "Bookman Old Style"],
+      "characteristics": "Sturdy bracketed serifs, medium contrast, high x-height."
+    },
+    "ui_typeface": {
+      "style": "Rounded Sans or Clean Serif",
+      "recommendation": "Nunito (Rounded) or Lora (Serif)",
+      "rationale": "Needs to be legible for children but retain the 'softness' of the logo."
+    }
+  },
+  "visual_language": {
+    "imagery_style": "Vector-Pixel Hybrid",
+    "description": "Clean vector lines with subtle pixel-art nuances, referencing the 'Unstickr' sprites.",
+    "textures": {
+      "paper_grain": "Subtle noise overlay (5-10% opacity) to simulate paper.",
+      "matte_finish": "No high-gloss reflections. Soft, diffused lighting."
+    },
+    "shapes": {
+      "hexagons": "Represents the 'Hive' of ideas and the modular AI components.",
+      "circuits": "Gold filigree lines connecting elements, representing the 'Process Scaffolding'.",
+      "fortress": "Sturdy, thick-walled structures symbolizing safety and privacy."
+    }
+  },
+  "ui_components": {
+    "buttons": {
+      "primary": "Terracotta background, rounded corners (8px), subtle drop shadow.",
+      "secondary": "Oxford Navy border, transparent background, Navy text."
+    },
+    "containers": {
+      "card_style": "Warm Parchment background, Oxford Navy stroke (2px), slight inner glow."
+    }
+  },
+  "asset_generation_prompts": {
+    "instruction": "Use these descriptors when generating new assets to ensure consistency with the logo.",
+    "style_string": "isometric vector art, storybook illustration style, warm parchment background #F2EAD3, matte texture, soft lighting, Oxford Navy and Terracotta color palette, educational yet magical, subtle circuit board patterns in gold",
+    "negative_prompt": "neon, glossy, 3d render, photorealistic, harsh shadows, pure white background, cyberpunk, cold colors"
+  }
+}

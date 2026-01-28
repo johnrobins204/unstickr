@@ -47,6 +47,12 @@
                 window.lucide.createIcons();
             }
         };
+        window.setCssVariable = (name, value) => {
+            document.documentElement.style.setProperty(name, value);
+        };
+        window.setBodyClass = (className) => {
+            document.body.className = className;
+        };
     </script>
     <script src="js/inactivity.js"></script>
     <script src="js/editor.js"></script>

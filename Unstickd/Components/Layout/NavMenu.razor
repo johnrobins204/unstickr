@@ -1,5 +1,6 @@
 ﻿
-<div class="p-6 border-b-4 border-[var(--sidebar-border)]">
+<div class="p-6 border-b-4 border-[var(--sidebar-border)] flex flex-col items-center gap-2">
+    <img src="/images/story_fort_logo.png" alt="Story Fort Logo" style="width: 64px; height: 64px; object-fit: contain; margin-bottom: 0.5rem;" />
     <h1 class="font-['Press_Start_2P'] text-[10px] leading-relaxed uppercase">Story Quest</h1>
     <div class="mt-2 text-[var(--sidebar-foreground)] opacity-60 text-xs">✨ Young Writer</div>
 </div>
@@ -13,14 +14,24 @@
         <i data-lucide="book" class="size-4 shrink-0"></i>
         <span class="text-sm truncate">Notebooks</span>
     </NavLink>
+
+    <NavLink href="@($"planner/{(StoryState?.StoryId > 0 ? StoryState.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Planner">
+        <i data-lucide="map" class="size-4 shrink-0"></i>
+        <span class="text-sm truncate">Planner</span>
+    </NavLink>
+
     <NavLink href="design" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Design Lab">
         <i data-lucide="palette" class="size-4 shrink-0"></i>
         <span class="text-sm truncate">Design Lab</span>
     </NavLink>
-    <div class="mt-auto pt-8">
+    <div class="mt-auto pt-8 space-y-2">
         <NavLink href="settings" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Grown-ups">
             <i data-lucide="lock" class="size-4 shrink-0"></i>
             <span class="text-sm truncate">Grown-ups</span>
+        </NavLink>
+        <NavLink href="admin" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 border-[var(--sidebar-border)] text-left opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" ActiveClass="active" aria-label="Admin">
+            <i data-lucide="wrench" class="size-4 shrink-0"></i>
+            <span class="text-sm truncate">Admin</span>
         </NavLink>
     </div>
 </nav>

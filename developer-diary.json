@@ -1,0 +1,369 @@
+{
+    "project": "Unstickd",
+    "last_updated": "2026-01-27",
+    "sessions": [
+        {
+            "id": 1,
+            "title": "Project Initialization & Architecture",
+            "completed_tasks": [
+                {
+                    "category": "Project Scaffolding",
+                    "details": "Created .NET 10 Blazor Web App (Interactive Server) with .slnx solution."
+                },
+                {
+                    "category": "Core Libraries",
+                    "details": "Added Entity Framework Core (SQLite), Blazored.TextEditor (QuillJS)."
+                },
+                {
+                    "category": "Requirements Specification",
+                    "details": "Established 'passive' AI constraints (no ghostwriting) and 'notebook' metaphor interactions."
+                }
+            ],
+            "state_summary": "Initial project structure created with core dependencies and philosophical constraints defined."
+        },
+        {
+            "id": 2,
+            "title": "Data Layer & Onboarding",
+            "completed_tasks": [
+                {
+                    "category": "Data Models",
+                    "details": "Implemented Theme, Story, and StoryPage entities."
+                },
+                {
+                    "category": "Database Setup",
+                    "details": "Configured SQLite context and successfully ran InitialCreate migration."
+                },
+                {
+                    "category": "Seeding",
+                    "details": "Populated database with 8 classic literature themes (Wonderland, Oz, etc.)."
+                },
+                {
+                    "category": "Onboarding UI",
+                    "details": "Implemented Date of Birth 'Age Gate', ThemeChooser, and EmptyLayout."
+                }
+            ],
+            "state_summary": "Database layer operational. Onboarding flow (Age Gate -> Theme Chooser) implemented."
+        },
+        {
+            "id": 3,
+            "title": "DevOps & Debugging",
+            "completed_tasks": [
+                {
+                    "category": "Build Recovery",
+                    "details": "Resolved 'phantom' compilation errors via hard clean of bin/obj."
+                },
+                {
+                    "category": "Logging Strategy",
+                    "details": "Implemented Serilog with daily file rotation logs/unstickd-*.txt."
+                },
+                {
+                    "category": "Error Handling",
+                    "details": "Added Global <ErrorBoundary> and CustomErrorBoundaryLogger."
+                },
+                {
+                    "category": "Monitoring",
+                    "details": "Added UserCircuitHandler to trace WebSocket connection life-cycles."
+                }
+            ],
+            "state_summary": "Application stability features added (logging, error boundaries, connection tracing)."
+        },
+        {
+            "id": 4,
+            "title": "Troubleshooting & Stabilization",
+            "completed_tasks": [
+                {
+                    "category": "Static Assets",
+                    "details": "Resolved 404 errors for JS libraries by adding app.UseStaticFiles()."
+                },
+                {
+                    "category": "Dependency Resolution",
+                    "details": "Fixed QuillJS crash by aligning CDN version (1.3.6)."
+                },
+                {
+                    "category": "Ghost UI Fix",
+                    "details": "Resolved persistent 'An unhandled error has occurred' message in EmptyLayout via CSS fix."
+                }
+            ],
+            "state_summary": "App is stable. Onboarding flow works visually without errors."
+        },
+        {
+            "id": 5,
+            "title": "Core Features (The 'Meat')",
+            "completed_tasks": [
+                {
+                    "category": "Theme Logic",
+                    "details": "Implemented SelectTheme persistence and injection."
+                },
+                {
+                    "category": "Editor UI",
+                    "details": "Rebuilt Editor.razor with split-pane layout, persistence, and local AI (Ollama)."
+                },
+                {
+                    "category": "Critical Bug Fix",
+                    "details": "Resolved 'TypeError: removeChild' by decoupling Blazor/QuillJS DOM control."
+                }
+            ],
+            "state_summary": "Happy Path verified: Age -> Theme -> Editor -> Save -> AI Chat."
+        },
+        {
+            "id": 6,
+            "title": "Global Notebooks & Account Architecture",
+            "completed_tasks": [
+                {
+                    "category": "Conceptual Pivot",
+                    "details": "Shifted to an 'Account/World' model with reusable entities."
+                },
+                {
+                    "category": "Data Refactor",
+                    "details": "Introduced Account entity, reparented Notebook, added AccountId to Story."
+                },
+                {
+                    "category": "Database Migration",
+                    "details": "Reset DB and applied RefactorToAccountModel migration."
+                }
+            ],
+            "state_summary": "Architecture refactored to support global, shared entities across stories."
+        },
+        {
+            "id": 7,
+            "title": "Notebooks & Entities MVP",
+            "completed_tasks": [
+                {
+                    "category": "Hierarchy Refinement",
+                    "details": "Implemented NotebookType and StoryId linking for context."
+                },
+                {
+                    "category": "UI Enhancements",
+                    "details": "Added shelf management, named entity creation, link toggles, and context-aware display."
+                },
+                {
+                    "category": "Bug Fixes",
+                    "details": "Resolved UI list duplication and property renaming errors."
+                }
+            ],
+            "state_summary": "MVP for World Building active. Global entity creation and linking implemented."
+        },
+        {
+            "id": 8,
+            "title": "The Pagination Update",
+            "completed_tasks": [
+                {
+                    "category": "Core Requirement",
+                    "details": "Implemented FR-2.1 (Page-Based Architecture)."
+                },
+                {
+                    "category": "Backend",
+                    "details": "Updated StoryPage tracking (LastModified, CurrentPageNumber)."
+                },
+                {
+                    "category": "UI Implementation",
+                    "details": "Added footer pagination and resized editor."
+                },
+                {
+                    "category": "Stability Fix",
+                    "details": "Resolved crash on page navigation by decoupling InitialContent."
+                }
+            ],
+            "state_summary": "Multi-page story writing supported with state-preserving navigation."
+        },
+        {
+            "id": 9,
+            "title": "Research & Rationales ('The Passive AI')",
+            "completed_tasks": [
+                {
+                    "category": "Literature Review",
+                    "details": "Conducted UX research for child-specific AI interaction."
+                },
+                {
+                    "category": "Documentation",
+                    "details": "Created rationales.md detailing Locus of Control, Generative Pauses, and the 30-Second Rule."
+                },
+                {
+                    "category": "Algorithm Design",
+                    "details": "Defined Context-Sensitive Inactivity Trigger (15s/30s + Punctuation Multiplier)."
+                }
+            ],
+            "state_summary": "Psychological basis for 'Passive AI' established and documented."
+        },
+        {
+            "id": 10,
+            "title": "Implementing Passive Interventions",
+            "completed_tasks": [
+                {
+                    "category": "Client-Side Logic",
+                    "details": "Created inactive.js for keystroke monitoring and optimized interop."
+                },
+                {
+                    "category": "Blazor Integration",
+                    "details": "Implemented TutorState (Idle, LookingUp, OfferingHelp) and visual cues."
+                },
+                {
+                    "category": "Proactive AI",
+                    "details": "Implemented 'Offer Help' state with context-aware prompt button."
+                }
+            ],
+            "state_summary": "Passive AI system implemented. Editor 'watches' user and offers help based on inactivity."
+        },
+        {
+            "id": 11,
+            "title": "Passive AI Refinement",
+            "completed_tasks": [
+                {
+                    "category": "Visual Assets",
+                    "details": "Integrated custom Alice graphics."
+                },
+                {
+                    "category": "Timer Logic",
+                    "details": "Tightened logic to restrict activity monitoring to .ql-editor only."
+                },
+                {
+                    "category": "Transient Interactions",
+                    "details": "Implemented 'Brief Glance' logic preventing state reset on minor interactions."
+                }
+            ],
+            "state_summary": "Refined AI behavior for better 'Passive' contract compliance."
+        },
+        {
+            "id": 12,
+            "title": "Dashboard & Resume Improvements",
+            "completed_tasks": [
+                {
+                    "category": "Smart Resume",
+                    "details": "Editor now auto-opens on the last modified page."
+                },
+                {
+                    "category": "Deletion Safety",
+                    "details": "Added JS confirmation prevents accidental story deletion."
+                }
+            ],
+            "state_summary": "Improved user flow for returning writers."
+        },
+        {
+            "id": 13,
+            "title": "Feature Completeness (Notebooks, Settings, Themes)",
+            "completed_tasks": [
+                {
+                    "category": "Notebook Management",
+                    "details": "Implemented Delete/Rename with safeguards."
+                },
+                {
+                    "category": "Export System",
+                    "details": "Added HTML and TXT export/download functionality."
+                },
+                {
+                    "category": "Configuration Module",
+                    "details": "Added global /settings page and flexible AI backend config."
+                },
+                {
+                    "category": "Dynamic Theming",
+                    "details": "Decoupled themes from stories; implemented global dynamic styling."
+                }
+            ],
+            "state_summary": "Application feature-complete for Prototype. Create, Write, Organize, Customize, Export all working."
+        },
+        {
+            "id": 14,
+            "title": "Refactoring to Continuous Flow & Accessibility",
+            "completed_tasks": [
+                {
+                    "category": "Architecture Shift",
+                    "details": "Unified StoryPages into single Content blob for accessibility and flow."
+                },
+                {
+                    "category": "Visual Pager",
+                    "details": "Implemented CSS Columns to simulate book spread without data fragmentation."
+                },
+                {
+                    "category": "Component Refactoring",
+                    "details": "Decoupled Editor parts into Offcanvas NotebookPanel and Chat Bubble TutorPanel."
+                },
+                {
+                    "category": "Optimization",
+                    "details": "Fixed large paste layout thrashing."
+                }
+            ],
+            "state_summary": "Editor simplified to 'Book Reader' style; complex paging logic removed for robustness."
+        },
+        {
+            "id": 15,
+            "title": "The Spark Protocol (FR-3.4)",
+            "completed_tasks": [
+                {
+                    "category": "State Management",
+                    "details": "Added TutorMode enum and TutorSession tracking."
+                },
+                {
+                    "category": "Service Layer",
+                    "details": "Created TutorOrchestrator for multi-turn 'Spark Protocol' logic."
+                },
+                {
+                    "category": "AI Logic",
+                    "details": "Implemented JSON parsing for READY_TO_WRITE signal."
+                }
+            ],
+            "state_summary": "AI upgraded to support structured pedagogic 'Spark' protocols."
+        },
+        {
+            "id": 16,
+            "title": "Spark Protocol Handoff & UX Flow",
+            "completed_tasks": [
+                {
+                    "category": "Spark Protocol Handoff",
+                    "details": "Implemented full sensory loop (Sensory -> Attribute -> Scenario -> Handoff to Lore/Editor)."
+                },
+                {
+                    "category": "UI/UX Flow",
+                    "details": "Added JS interop for editor focus after handoff."
+                },
+                {
+                    "category": "Documentation",
+                    "details": "Created Mermaid diagram for Spark Protocol flow."
+                }
+            ],
+            "state_summary": "Spark Protocol is a complete, user-friendly brainstorming loop."
+        },
+        {
+            "id": 17,
+            "title": "Pilot Governance (Partial) & Rollback",
+            "date": "2026-01-26",
+            "completed_tasks": [
+                {
+                    "category": "Code Hardening",
+                    "details": "Enabled SQLite WAL Mode in Program.cs. Added ValidateSafeguards in TutorOrchestrator. Added OFFLINE UI in editor.js."
+                },
+                {
+                    "category": "Infrastructure & DevOps",
+                    "details": "Attempted Litestream/Docker pivot but encountered local virtualization constraints. Manually backed out Docker container strategy."
+                },
+                {
+                    "category": "Bug Fixes",
+                    "details": "Fixed TutorOrchestrator property mismatch (CurrentStory.Content -> Content)."
+                }
+            ],
+            "state_summary": "Application code is hardened (Safeguards, WAL), but infrastructure pivot to Docker/Litestream paused due to local environment issues."
+        },
+        {
+            "id": 18,
+            "title": "Literary Examples & UI Hardening",
+            "completed_tasks": [
+                {
+                    "category": "Planner Features",
+                    "details": "Implemented 'Literary Inspiration' feature in Map Room using ArchetypeExample entity."
+                },
+                {
+                    "category": "Data Seeding",
+                    "details": "Seeded 'The Wizard of Oz' examples for the Hero's Journey archetype."
+                },
+                {
+                    "category": "Admin Pane",
+                    "details": "Added ArchetypeExample table management to the Admin interface."
+                },
+                {
+                    "category": "Navigation",
+                    "details": "Added permanent 'Planner' link to sidebar, defaulting to Story #1 if no session active."
+                }
+            ],
+            "state_summary": "Planner now supports example content. Map Room is accessible via main nav. Admin pane fully CRUD capable for new entities."
+        }
+    ]
+}

@@ -5,6 +5,7 @@ public enum TutorMode
     Idle,
     Chat,
     SparkProtocol,
+    PlanningMode,
     ReviewMode
 }
 

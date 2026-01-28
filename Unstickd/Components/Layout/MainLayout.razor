@@ -60,12 +60,12 @@
         {
             // Re-apply persisted CSS variables on hard refresh
             var p = StoryState.ThemePreference;
-            if (!string.IsNullOrEmpty(p.Background)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--background", p.Background);
-            if (!string.IsNullOrEmpty(p.Foreground)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--foreground", p.Foreground);
-            if (!string.IsNullOrEmpty(p.Primary)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--primary", p.Primary);
-            if (!string.IsNullOrEmpty(p.Card)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--card", p.Card);
-            if (!string.IsNullOrEmpty(p.Radius)) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--radius", p.Radius);
-            if (p.FontSize > 0) await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--font-size", $"{p.FontSize}px");
+            if (!string.IsNullOrEmpty(p.Background)) await JS.InvokeVoidAsync("setCssVariable", "--background", p.Background);
+            if (!string.IsNullOrEmpty(p.Foreground)) await JS.InvokeVoidAsync("setCssVariable", "--foreground", p.Foreground);
+            if (!string.IsNullOrEmpty(p.Primary)) await JS.InvokeVoidAsync("setCssVariable", "--primary", p.Primary);
+            if (!string.IsNullOrEmpty(p.Card)) await JS.InvokeVoidAsync("setCssVariable", "--card", p.Card);
+            if (!string.IsNullOrEmpty(p.Radius)) await JS.InvokeVoidAsync("setCssVariable", "--radius", p.Radius);
+            if (p.FontSize > 0) await JS.InvokeVoidAsync("setCssVariable", "--font-size", $"{p.FontSize}px");
         }
     }
 

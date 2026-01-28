@@ -175,7 +175,7 @@
         var fontClass = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(fontClass))
         {
-            await JS.InvokeVoidAsync("eval", $"document.body.className = 'h-screen flex {fontClass}'");
+            await JS.InvokeVoidAsync("setBodyClass", $"h-screen flex {fontClass}");
             StoryState.UpdateThemePreference(p => p.FontClass = fontClass);
         }
     }

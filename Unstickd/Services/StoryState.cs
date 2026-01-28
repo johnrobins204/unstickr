@@ -99,4 +99,7 @@ public class StoryState
     // Added for prompt context
     public string? Age { get; set; } = null;
     public string? Archetype { get; set; } = null;
+
+    // Planner Data
+    public StoryPlanData CurrentPlan { get; set; } = new();
 }

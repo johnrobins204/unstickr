@@ -13,9 +13,15 @@
                 <p class="text-sm text-[var(--muted-foreground)]">Mix your own interface style!</p>
             </div>
         </div>
-        <a href="/" class="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] border-4 border-[var(--border)] font-bold hover:brightness-110 transition-all font-['Press_Start_2P'] text-xs shadow-[4px_4px_0_var(--border)] active:translate-x-1 active:translate-y-1 active:shadow-none" style="border-radius: var(--radius)">
-            <i class="lucide lucide-arrow-left"></i> GO BACK
-        </a>
+        <div class="flex flex-col items-end gap-2">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold">
+                <input type="checkbox" checked="@IsCustomTheme" @onchange="ToggleTheme" class="accent-[var(--primary)]" />
+                Custom Theme
+            </label>
+            <a href="/" class="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] border-4 border-[var(--border)] font-bold hover:brightness-110 transition-all font-['Press_Start_2P'] text-xs shadow-[4px_4px_0_var(--border)] active:translate-x-1 active:translate-y-1 active:shadow-none" style="border-radius: var(--radius)">
+                <i class="lucide lucide-arrow-left"></i> GO BACK
+            </a>
+        </div>
     </div>
 
     <!-- Color Mixer -->
@@ -92,6 +98,7 @@
 </div>
 
 @code {
+    private bool IsCustomTheme = true;
     private List<(string Label, string Variable, string Value, string Hint)> ColorOptions = new()
     {
         ("Background", "--background", "#f5ebe0", "Base"),
@@ -109,16 +116,65 @@
         var pref = StoryState.ThemePreference;
         if (pref != null)
         {
+           // If all theme values are default, treat as not custom
+           IsCustomTheme = !(string.IsNullOrEmpty(pref.Background) && string.IsNullOrEmpty(pref.Foreground) && string.IsNullOrEmpty(pref.Primary) && string.IsNullOrEmpty(pref.Card) && (pref.FontSize == 0 || pref.FontSize == 16));
            // Apply existing state to inputs so they reflect reality
-           // Colors
            if(!string.IsNullOrEmpty(pref.Background)) UpdateColorOption("--background", pref.Background);
            if(!string.IsNullOrEmpty(pref.Foreground)) UpdateColorOption("--foreground", pref.Foreground);
            if(!string.IsNullOrEmpty(pref.Primary)) UpdateColorOption("--primary", pref.Primary);
            if(!string.IsNullOrEmpty(pref.Card)) UpdateColorOption("--card", pref.Card);
-           
-           // Font Size
            FontSize = pref.FontSize > 0 ? pref.FontSize : 16;
         }
+        else
+        {
+           IsCustomTheme = false;
+        }
+    }
+
+    private async Task ToggleTheme(ChangeEventArgs e)
+    {
+        IsCustomTheme = (bool?)e.Value == true;
+        if (!IsCustomTheme)
+        {
+            // Reset to default theme
+            await JS.InvokeVoidAsync("setCssVariable", "--background", "#f5ebe0");
+            await JS.InvokeVoidAsync("setCssVariable", "--foreground", "#2d1b00");
+            await JS.InvokeVoidAsync("setCssVariable", "--primary", "#8b4513");
+            await JS.InvokeVoidAsync("setCssVariable", "--card", "#fff9ec");
+            await JS.InvokeVoidAsync("setCssVariable", "--font-size", "16px");
+            await JS.InvokeVoidAsync("setCssVariable", "--radius", "8px");
+            FontSize = 16;
+            // Reset local state
+            UpdateColorOption("--background", "#f5ebe0");
+            UpdateColorOption("--foreground", "#2d1b00");
+            UpdateColorOption("--primary", "#8b4513");
+            UpdateColorOption("--card", "#fff9ec");
+            StoryState.UpdateThemePreference(tp =>
+            {
+                tp.Background = null;
+                tp.Foreground = null;
+                tp.Primary = null;
+                tp.Card = null;
+                tp.FontSize = 16;
+                tp.Radius = "8px";
+            });
+        }
+        else
+        {
+            // Re-apply custom theme from state
+            var pref = StoryState.ThemePreference;
+            if (pref != null)
+            {
+                if (!string.IsNullOrEmpty(pref.Background)) await JS.InvokeVoidAsync("setCssVariable", "--background", pref.Background);
+                if (!string.IsNullOrEmpty(pref.Foreground)) await JS.InvokeVoidAsync("setCssVariable", "--foreground", pref.Foreground);
+                if (!string.IsNullOrEmpty(pref.Primary)) await JS.InvokeVoidAsync("setCssVariable", "--primary", pref.Primary);
+                if (!string.IsNullOrEmpty(pref.Card)) await JS.InvokeVoidAsync("setCssVariable", "--card", pref.Card);
+                if (pref.FontSize > 0) await JS.InvokeVoidAsync("setCssVariable", "--font-size", $"{pref.FontSize}px");
+                if (!string.IsNullOrEmpty(pref.Radius)) await JS.InvokeVoidAsync("setCssVariable", "--radius", pref.Radius);
+                FontSize = pref.FontSize > 0 ? pref.FontSize : 16;
+            }
+        }
+        StateHasChanged();
     }
     
     private void UpdateColorOption(string variable, string newValue)
@@ -135,8 +191,8 @@
     {
         if (!string.IsNullOrWhiteSpace(value))
         {
-            // Immediate CSS Update via JS
-            await JS.InvokeVoidAsync("document.documentElement.style.setProperty", variable, value);
+            // Immediate CSS Update via helper
+            await JS.InvokeVoidAsync("setCssVariable", variable, value);
             
             // Update Local State for Binding
             UpdateColorOption(variable, value);
@@ -158,7 +214,7 @@
         var fontClass = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(fontClass))
         {
-            await JS.InvokeVoidAsync("eval", $"document.body.className = 'h-screen flex {fontClass}'");
+            await JS.InvokeVoidAsync("setBodyClass", $"h-screen flex {fontClass}");
             StoryState.UpdateThemePreference(tp => tp.FontClass = fontClass);
         }
     }
@@ -167,13 +223,13 @@
         if (int.TryParse(e.Value?.ToString(), out var size))
         {
             FontSize = size;
-            await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--font-size", $"{size}px");
+            await JS.InvokeVoidAsync("setCssVariable", "--font-size", $"{size}px");
             StoryState.UpdateThemePreference(tp => tp.FontSize = size);
         }
     }
     private async Task OnRadiusChange(string radius)
     {
-        await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--radius", radius);
+        await JS.InvokeVoidAsync("setCssVariable", "--radius", radius);
         StoryState.UpdateThemePreference(tp => tp.Radius = radius);
     }
 }

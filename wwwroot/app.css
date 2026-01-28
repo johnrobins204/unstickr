@@ -1,20 +1,41 @@
 /* === Design System Variables (from wireframe) === */
 :root {
+    /* Typography */
     --font-size: 16px;
-    --background: #f5ebe0; 
+    --font-size-lg: 1.25rem;
+    --font-size-sm: 0.95rem;
+    --main-font: 'Silkscreen', cursive;
+    --heading-font: 'Luckiest Guy', cursive;
+    --body-font: 'Atkinson Hyperlegible', sans-serif;
+    --dyslexia-font: 'Comic Neue', cursive;
+
+    /* Color Palette */
+    --background: #f5ebe0;
     --foreground: #2d1b00;
     --card: #fff9ec;
     --card-foreground: #2d1b00;
     --primary: #8b4513;
     --primary-foreground: #fef6e4;
     --secondary: #f582ae;
+    --secondary-foreground: #2d1b00;
     --muted: #e8d5b7;
     --muted-foreground: #6b5842;
     --accent: #72a1e5;
     --accent-foreground: #2d1b00;
+    --success: #4caf50;
+    --warning: #ffb300;
+    --error: #e74c3c;
+    --info: #2196f3;
     --border: #8b7355;
-    --radius: 0px;
-    --main-font: 'Silkscreen', cursive;
+
+    /* Spacing & Radius */
+    --radius: 8px;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 32px;
+
+    /* Sidebar */
     --sidebar: var(--primary);
     --sidebar-foreground: var(--primary-foreground);
     --sidebar-primary: var(--secondary);
@@ -22,14 +43,94 @@
     --sidebar-border: #6b4423;
     --sidebar-accent: var(--card);
     --sidebar-accent-foreground: var(--foreground);
+
+    /* Accessibility */
+    --focus-outline: 2px solid var(--accent);
+    --high-contrast-bg: #fff;
+    --high-contrast-fg: #000;
+    --link: #1a0dab;
+    --link-hover: #0b0080;
+    --disabled: #bdbdbd;
+    --disabled-bg: #f0f0f0;
 }
 
 body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--main-font);
+    font-family: var(--body-font);
     font-size: var(--font-size);
-    transition: all 0.3s ease;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--heading-font);
+    color: var(--primary);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-md);
+    letter-spacing: 1px;
+}
+
+p, li, label, input, textarea, select, button {
+    font-family: var(--body-font);
+    font-size: var(--font-size);
+}
+
+a {
+    color: var(--link);
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+a:hover, a:focus {
+    color: var(--link-hover);
+    outline: none;
+}
+
+button, .btn {
+    font-family: var(--main-font);
+    font-size: var(--font-size-lg);
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: var(--radius);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--border);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+button:hover, .btn:hover, button:focus, .btn:focus {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    outline: var(--focus-outline);
+    box-shadow: 4px 4px 0 var(--border);
+}
+button:disabled, .btn:disabled {
+    background: var(--disabled-bg);
+    color: var(--disabled);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+input, textarea, select {
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size);
+    background: var(--card);
+    color: var(--foreground);
+    transition: border 0.2s, box-shadow 0.2s;
+}
+input:focus, textarea:focus, select:focus {
+    outline: var(--focus-outline);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
+::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
 }
 
 /* Pixel Grid Background */

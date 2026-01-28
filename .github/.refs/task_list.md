@@ -181,3 +181,15 @@
     1.  Move System Prompts from inline strings to `.md` files in `Unstickd/Prompts/`.
     2.  Add prompt version header (e.g., `# v1.2 - 2026-01-25`).
     3.  Consider a "Golden Dataset" of ideal AI responses for regression testing.
+
+## 3. Infrastructure & DevOps (Paused)
+
+### [ ] Re-implement Litestream for Disaster Recovery
+*   **Context**: Blocked by local Windows virtualization issues (WSL2 unavailable).
+*   **Impact**: Pilot will launch without real-time S3 replication (Daily backups only via manual export recommended).
+*   **Action**: Solve virtualization issue or deploy to Linux VM.
+
+### [ ] Containerize Application (Docker)
+*   **Context**: Docker Desktop requires WSL2.
+*   **Action**: Re-introduce `Dockerfile` and `.devcontainer` once hardware constraints are resolved.
+
