@@ -405,5 +405,44 @@
             ],
             "state_summary": "Design system remediated. App effectively fully themable with a cohesive, accessible default aesthetic."
         }
+        ,
+        {
+            "id": 21,
+            "title": "Map Room & E2E Verification",
+            "date": "2026-01-28",
+            "completed_tasks": [
+                {
+                    "category": "Planner UI",
+                    "details": "Centered plot point numbers by adding `dominant-baseline=\"middle\"` and introduced `map-point`/`map-dot` classes in Planner.razor."
+                },
+                {
+                    "category": "CSS Fixes",
+                    "details": "Added `transform-box: fill-box` and `transform-origin: center` rules plus pointer-event scoping in `wwwroot/app.css` to stabilize SVG transforms and prevent overlay pointer interception."
+                },
+                {
+                    "category": "E2E Tests",
+                    "details": "Added Playwright-based E2E test to capture Planner before/after screenshots and bounding-box measurements; installed Playwright browsers and saved artifacts to `StoryFort.Tests.E2E/bin/Debug/net10.0/test-artifacts/`."
+                },
+                {
+                    "category": "Hover Interaction Fix",
+                    "details": "Moved hover/scale behavior from the `<g>` to the inner `<circle>` and scoped pointer-events so hover actions no longer get intercepted by overlays; resolved long-running Playwright hover retries."
+                }
+            ],
+            "outstanding_tasks": [
+                {
+                    "category": "Visual Polish",
+                    "details": "Minor bounding-box shift (~3px) on hover remains; consider scaling only decorative strokes or using a pseudo-element to eliminate any layout changes during scale."
+                },
+                {
+                    "category": "QA",
+                    "details": "Manual visual verification across viewport sizes and touch devices; attach and review `planner_before.png` and `planner_hover.png`."
+                },
+                {
+                    "category": "Cleanup",
+                    "details": "Remove Playwright install stubs or guard Playwright browser downloads in CI; consider committing test-artifacts or adding to .gitignore as appropriate."
+                }
+            ],
+            "state_summary": "Stabilized Map Room rendering and fixed E2E hover flakiness; small visual delta remains to polish. Test artifacts and measurements produced for review."
+        }
     ]
 }

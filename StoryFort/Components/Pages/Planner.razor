@@ -82,9 +82,9 @@
                             var userPoint = GetUserPoint(point.Id);
                             var hasData = !string.IsNullOrWhiteSpace(userPoint?.Notes);
 
-                            <g transform="translate(@point.X, @point.Y)" 
-                               class="cursor-pointer transition-transform duration-200 hover:scale-110 @(isSelected ? "scale-125" : "")"
-                               @onclick="() => SelectPoint(point.Id)">
+                                     <g transform="translate(@point.X, @point.Y)" 
+                                         class="map-point cursor-pointer"
+                                         @onclick="() => SelectPoint(point.Id)">
                                 
                                 <!-- Halo for selection -->
                                 @if (isSelected) 
@@ -94,11 +94,12 @@
 
                                 <!-- Main Dot -->
                                 <circle r="12" 
-                                        fill="@(hasData ? "var(--primary)" : "var(--background)")" 
-                                        stroke="var(--foreground)" 
-                                        stroke-width="3" />
+                                    class="map-dot transition-transform duration-200 hover:scale-110 @(isSelected ? "scale-125" : "")"
+                                    fill="@(hasData ? "var(--primary)" : "var(--background)")" 
+                                    stroke="var(--foreground)" 
+                                    stroke-width="3" />
                                 
-                                <text y="5" text-anchor="middle" font-size="10" font-weight="bold" fill="@(hasData ? "var(--background)" : "var(--foreground)")" class="pointer-events-none">
+                                <text y="0" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="@(hasData ? "var(--background)" : "var(--foreground)")" class="pointer-events-none">
                                     @point.Id
                                 </text>
 

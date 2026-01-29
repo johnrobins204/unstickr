@@ -265,3 +265,35 @@ select {
 .font-minecraft { --heading-font: 'Press Start 2P', cursive; --body-font: 'VT323', monospace; }
 .font-retro { --heading-font: 'Press Start 2P', cursive; --body-font: 'VT323', monospace; }
 .font-hero { --heading-font: 'Luckiest Guy', cursive; --body-font: 'Patrick Hand', cursive; }
+
+/* Map Room: ensure SVG point scaling is centered and doesn't shift layout */
+svg .map-point {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+/* Give SVG point transforms a smooth, stable transition (redundant with Tailwind utilities) */
+svg .map-point {
+    transition: transform 0.18s ease-in-out;
+}
+
+/* Ensure labels vertically center against the circle */
+svg text[dominant-baseline="middle"] {
+    dominant-baseline: middle;
+}
+
+/* Ensure the dot scales around its center without shifting sibling text */
+svg .map-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+/* Ensure pointer events are only handled by the interactive circle, not the whole group */
+svg .map-point {
+    pointer-events: none;
+}
+
+svg .map-point .map-dot {
+    pointer-events: auto;
+    transition: transform 0.18s ease-in-out;
+}

@@ -1,0 +1,49 @@
+@using StoryFort.Services
+@inject StoryState StoryState
+<div class="explorer-journal">
+    <h3>Explorer's Journal</h3>
+    <ul>
+        <li>Spelling Flags: @(StoryState.ReviewFlags?.Count(f => f.Type == "Spelling") ?? 0)</li>
+        <li>Grammar Flags: @(StoryState.ReviewFlags?.Count(f => f.Type == "Grammar") ?? 0)</li>
+        <li>Repetition Flags: @(StoryState.ReviewFlags?.Count(f => f.Type == "Repetition") ?? 0)</li>
+        <li>User Notes: @(StoryState.ReviewFlags?.Count(f => f.Type == "Note") ?? 0)</li>
+    </ul>
+    <div class="progress-bar">
+        <div class="progress" style="width:@ProgressPercent%"></div>
+    </div>
+</div>
+
+@code {
+    private int ProgressPercent => (StoryState.ReviewFlags?.Count ?? 0) * 10;
+}
+
+<style scoped>
+.explorer-journal {
+    background: #1e222a;
+    color: #f8f8f2;
+    border-radius: 0.5em;
+    padding: 1em;
+    margin-top: 2em;
+    min-width: 220px;
+    box-shadow: 0 2px 8px #0006;
+}
+.explorer-journal h3 {
+    margin-top: 0;
+    font-family: 'Caveat', cursive;
+    font-size: 1.3em;
+    color: #fffa65;
+}
+.progress-bar {
+    background: #44475a;
+    border-radius: 0.3em;
+    height: 1em;
+    margin-top: 1em;
+    width: 100%;
+}
+.progress {
+    background: #50fa7b;
+    height: 100%;
+    border-radius: 0.3em;
+    transition: width 0.3s;
+}
+</style>

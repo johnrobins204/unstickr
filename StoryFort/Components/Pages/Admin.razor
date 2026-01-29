@@ -90,7 +90,7 @@
                                 {
                                      <input type="checkbox" 
                                             class="size-5"
-                                            checked="@((bool)prop.GetValue(_currentModel))" 
+                                            checked="@((bool?)prop.GetValue(_currentModel) ?? false)" 
                                             disabled="@isDisabled"
                                             @onchange="@(e => SetValue(prop, e.Value))" />
                                 }

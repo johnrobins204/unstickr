@@ -34,6 +34,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // State Management
 builder.Services.AddScoped<StoryState>();
 builder.Services.AddSingleton<ArchetypeService>();
+builder.Services.AddSingleton<TextTokenizer>();
 builder.Services.AddScoped<TutorOrchestrator>();
 builder.Services.AddScoped<ICohereTutorService, CohereTutorService>();
 

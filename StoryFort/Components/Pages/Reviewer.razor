@@ -1,0 +1,138 @@
+@page "/review/{StoryId:int}"
+@using StoryFort.Services
+@inject StoryState StoryState
+@inject TextTokenizer Tokenizer
+
+<div class="lantern-review" style="display:flex;gap:2em;align-items:flex-start;">
+    <div style="flex:3;">
+        <h2>The Lantern: Review Mode</h2>
+        <div class="review-text">
+            @if (StoryState.ReviewTokens != null)
+            {
+                foreach (var token in StoryState.ReviewTokens)
+                {
+                    <span class="review-token" data-index="@token.Index" @onclick="() => OnTokenClick(token)">@token.Text </span>
+                }
+            }
+        </div>
+        @if (ShowPopover && SelectedToken != null)
+        {
+            <div class="popover" style="position:absolute;left:@(PopoverX)px;top:@(PopoverY)px;z-index:1000;">
+                <div class="popover-content">
+                    <strong>Is there a problem?</strong>
+                    <button @onclick="() => MarkProblem(SelectedToken)">Yes</button>
+                    <button @onclick="ClosePopover">No</button>
+                    <button @onclick="() => AddNote(SelectedToken)">Add a Note</button>
+                </div>
+            </div>
+        }
+    </div>
+    <div style="flex:1;min-width:240px;">
+        <ExplorerJournal />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int StoryId { get; set; }
+
+    // Popover state
+    private bool ShowPopover = false;
+    private ReviewToken? SelectedToken;
+    private double PopoverX, PopoverY;
+
+    protected override void OnInitialized()
+    {
+        // Tokenize
+        if (StoryState.ReviewTokens == null)
+        {
+            StoryState.ReviewTokens = Tokenizer.TokenizeHtml(StoryState.Content)
+                .Select(t => new ReviewToken {
+                    Index = t.Index,
+                    Text = t.Text,
+                    HtmlTag = t.HtmlTag,
+                    IsPunctuation = t.IsPunctuation
+                }).ToList();
+        }
+        if (StoryState.ReviewFlags == null)
+            StoryState.ReviewFlags = new List<ReviewFlag>();
+    }
+
+    private void OnTokenClick(ReviewToken token)
+    {
+        SelectedToken = token;
+        ShowPopover = true;
+        PopoverX = 300;
+        PopoverY = 200; 
+        StateHasChanged();
+    }
+
+    private void ClosePopover()
+    {
+        ShowPopover = false;
+        SelectedToken = null;
+        StateHasChanged();
+    }
+
+    private void MarkProblem(ReviewToken token)
+    {
+        token.IsFlagged = true;
+        StoryState.ReviewFlags?.Add(new ReviewFlag { TokenIndex = token.Index, Type = "Unspecified" });
+        ClosePopover();
+    }
+
+    private void AddNote(ReviewToken token)
+    {
+        StoryState.ReviewFlags?.Add(new ReviewFlag { TokenIndex = token.Index, Type = "Note", Note = "User note" });
+        ClosePopover();
+    }
+}
+
+<style scoped>
+    .lantern-review {
+        background: #23272e;
+        color: #f8f8f2;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 0 32px #000a 0.5;
+    }
+    .review-text {
+        font-size: 1.2rem;
+        line-height: 2.2;
+        background: #181a20;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    .review-token {
+        cursor: pointer;
+        padding: 0 0.1em;
+        border-radius: 0.2em;
+        transition: background 0.2s;
+    }
+    .review-token:hover {
+        background: #44475a;
+    }
+    .popover {
+        background: #282a36;
+        color: #f8f8f2;
+        border: 1px solid #44475a;
+        border-radius: 0.5em;
+        padding: 1em;
+        min-width: 180px;
+        box-shadow: 0 2px 16px #000a;
+    }
+    .popover-content button {
+        margin: 0.5em 0.5em 0 0;
+        background: #44475a;
+        color: #fff;
+        border: none;
+        border-radius: 0.3em;
+        padding: 0.3em 0.8em;
+        cursor: pointer;
+        font-size: 1em;
+    }
+    .popover-content button:hover {
+        background: #6272a4;
+    }
+</style>

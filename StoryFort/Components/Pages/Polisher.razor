@@ -1,0 +1,238 @@
+@page "/polish/{StoryId:int}"
+@using StoryFort.Services
+@inject StoryState StoryState
+@inject TextTokenizer Tokenizer
+
+<div class="polishing-station" style="display:flex;gap:2em;align-items:flex-start;">
+    <div style="flex:3;">
+        <h2>The Polishing Station</h2>
+        <div class="edit-area">
+            @if (StoryState.ReviewTokens != null)
+            {
+                foreach (var token in StoryState.ReviewTokens)
+                {
+                    var isFlagged = StoryState.ReviewFlags?.Any(f => f.TokenIndex == token.Index && !f.IsResolved) ?? false;
+                    var highlight = HighlightedTokenIndex == token.Index;
+                    <span class="edit-token @(isFlagged ? "flagged" : null) @(highlight ? "highlighted" : null)" 
+                          data-index="@token.Index" 
+                          @onclick="() => OnTokenClick(token)">@token.Text </span>
+                }
+            }
+        </div>
+        @if (ShowPopover && SelectedToken != null && ActiveFlag != null)
+        {
+            <div class="popover" style="position:absolute;left:@(PopoverX)px;top:@(PopoverY)px;z-index:1000;">
+                <div class="popover-content">
+                    <strong>Edit: @SelectedToken.Text</strong>
+                    <div>Type: @ActiveFlag.Type</div>
+                    @if (!string.IsNullOrEmpty(ActiveFlag.Note))
+                    {
+                        <div class="note">Note: @ActiveFlag.Note</div>
+                    }
+                    <input @bind="EditValue" placeholder="Your Fix" />
+                    <button @onclick="ApplyFix">Apply Fix</button>
+                    <button @onclick="IgnoreFlag">Ignore</button>
+                    <button @onclick="ClosePopover">Cancel</button>
+                </div>
+            </div>
+        }
+    </div>
+    <div style="flex:1;min-width:240px;display:flex;flex-direction:column;">
+        <EditChecklist OnChecklistClick="OnChecklistClick" />
+         <div style="margin-top:2em;">
+            <button class="submit-btn" 
+                    @onclick="ShowSuccessModal" 
+                    disabled="@(AllFlagsResolved ? null : "disabled")" 
+                    style="opacity:@(AllFlagsResolved ? 1 : 0.5);animation:@(AllFlagsResolved ? "pulse 1.2s infinite alternate" : "none");">
+                Submit to Teacher
+            </button>
+        </div>
+    </div>
+</div>
+@if (ShowModal)
+{
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <h2> Submission Complete!</h2>
+            <p>Your story is polished and ready for the next adventure.</p>
+            <button @onclick="CloseModal">Back to Dashboard</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int StoryId { get; set; }
+
+    private int? HighlightedTokenIndex = null;
+    private bool ShowModal = false;
+    private bool AllFlagsResolved => (StoryState.ReviewFlags?.All(f => f.IsResolved) ?? true) && (StoryState.ReviewFlags?.Count > 0);
+    private bool ShowPopover = false;
+    private ReviewToken? SelectedToken;
+    private ReviewFlag? ActiveFlag;
+    private double PopoverX, PopoverY;
+    private string EditValue = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (StoryState.ReviewTokens == null)
+        {
+            StoryState.ReviewTokens = Tokenizer.TokenizeHtml(StoryState.Content)
+                .Select(t => new ReviewToken {
+                    Index = t.Index,
+                    Text = t.Text,
+                    HtmlTag = t.HtmlTag,
+                    IsPunctuation = t.IsPunctuation
+                }).ToList();
+        }
+        if (StoryState.ReviewFlags == null)
+            StoryState.ReviewFlags = new List<ReviewFlag>();
+    }
+
+    private void ShowSuccessModal()
+    {
+        if (AllFlagsResolved)
+            ShowModal = true;
+    }
+
+    private void CloseModal()
+    {
+        ShowModal = false;
+        // int navigation logic here eventually
+    }
+
+    private Task OnChecklistClick(int tokenIndex)
+    {
+        HighlightedTokenIndex = tokenIndex;
+        // Scroll logic or just highlight
+        var token = StoryState.ReviewTokens?.FirstOrDefault(t => t.Index == tokenIndex);
+        if (token != null)
+        {
+             // Trigger edit mode for that token
+             OnTokenClick(token);
+        }
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private void OnTokenClick(ReviewToken token)
+    {
+        // Check if there's a flag for this token
+        var flag = StoryState.ReviewFlags?.FirstOrDefault(f => f.TokenIndex == token.Index && !f.IsResolved);
+        if (flag != null)
+        {
+            SelectedToken = token;
+            ActiveFlag = flag;
+            EditValue = token.Text; // Pre-fill with existing text
+            ShowPopover = true;
+            PopoverX = 300; 
+            PopoverY = 200;
+        }
+    }
+
+    private void ClosePopover()
+    {
+        ShowPopover = false;
+        SelectedToken = null;
+        ActiveFlag = null;
+    }
+
+    private void IgnoreFlag()
+    {
+        if (ActiveFlag != null)
+        {
+            ActiveFlag.IsResolved = true;
+            ClosePopover();
+        }
+    }
+
+    private void ApplyFix()
+    {
+        if (SelectedToken != null && ActiveFlag != null && !string.IsNullOrWhiteSpace(EditValue))
+        {
+            // 1. Update token text
+            SelectedToken.Text = EditValue;
+            
+            // 2. Mark flag resolved
+            ActiveFlag.IsResolved = true;
+            
+            // 3. Patch the canonical HTML
+            StoryState.Content = Tokenizer.PatchHtml(StoryState.Content, SelectedToken.Index, EditValue);
+            
+            ClosePopover();
+            StateHasChanged();
+        }
+    }
+}
+
+<style scoped>
+    .polishing-station {
+        background: #23272e;
+        color: #f8f8f2;
+        padding: 2rem;
+        height: 100%;
+    }
+    .edit-area {
+        background: #181a20;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        line-height: 2.2;
+        font-size: 1.2rem;
+    }
+    .edit-token {
+        padding: 0 0.1em;
+        border-radius: 0.2em;
+        transition: background 0.2s;
+    }
+    .edit-token.flagged {
+        background: rgba(255, 80, 80, 0.2);
+        border-bottom: 2px dashed #ff5555;
+        cursor: pointer;
+    }
+    .edit-token.flagged:hover, .edit-token.highlighted {
+        background: rgba(255, 80, 80, 0.4);
+    }
+    
+    .popover {
+        background: #282a36;
+        border: 1px solid #44475a;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px #000c;
+        width: 300px;
+    }
+    .popover input {
+        width: 100%;
+        margin: 1rem 0;
+        padding: 0.5rem;
+        background: #44475a;
+        border: none;
+        color: #fff;
+    }
+    .submit-btn {
+        background: #50fa7b;
+        color: #282a36;
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: bold;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s;
+    }
+    .submit-btn:disabled {
+        background: #44475a;
+        color: #6272a4;
+        cursor: not-allowed;
+    }
+    @@keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 #50fa7b; }
+        100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(80, 250, 123, 0.6); }
+    }
+    .modal-overlay {
+        position: fixed; inset: 0; background: #000c; display:flex; justify-content:center; align-items:center; z-index: 2000;
+    }
+    .modal-content {
+        background: #282a36; padding: 2rem; border-radius: 1rem; text-align: center; border: 2px solid #50fa7b;
+    }
+</style>

@@ -1,0 +1,100 @@
+@using StoryFort.Services
+@inject StoryState StoryState
+
+<div class="edit-checklist">
+    <h3>Edit Checklist</h3>
+    <ul>
+        @if (StoryState.ReviewFlags != null)
+        {
+            var unresolved = StoryState.ReviewFlags.Where(f => !f.IsResolved).ToList();
+            foreach (var flag in unresolved)
+            {
+                <li class="checklist-item" data-index="@flag.TokenIndex">
+                    <span class="flag-type">@flag.Type</span>:
+                    <span class="flag-snippet">@GetTokenText(flag.TokenIndex)</span>
+                    @if (!string.IsNullOrEmpty(flag.Note))
+                    {
+                        <span class="note-indicator"></span>
+                    }
+                    <button @onclick="() => OnChecklistClick.InvokeAsync(flag.TokenIndex)">Fix</button>
+                </li>
+            }
+        }
+    </ul>
+    <div class="progress-bar">
+        <div class="progress" style="width:@(ProgressPercent)%"></div>
+    </div>
+    <div class="progress-status">@ProgressText</div>
+</div>
+
+@code {
+    private int ProgressPercent => (StoryState.ReviewFlags == null || StoryState.ReviewFlags.Count == 0)
+        ? 0
+        : (int)(100.0 * StoryState.ReviewFlags.Count(f => f.IsResolved) / StoryState.ReviewFlags.Count);
+
+    private string ProgressText => (StoryState.ReviewFlags == null)
+        ? "0/0 Fixed"
+        : $"{StoryState.ReviewFlags.Count(f => f.IsResolved)}/{StoryState.ReviewFlags.Count} Fixed";
+
+    private string GetTokenText(int index)
+    {
+        var token = StoryState.ReviewTokens?.FirstOrDefault(t => t.Index == index);
+        return token?.Text ?? "?";
+    }
+
+    [Parameter]
+    public EventCallback<int> OnChecklistClick { get; set; }
+}
+
+<style scoped>
+.edit-checklist {
+    background: #fffbe6;
+    color: #23272e;
+    border-radius: 0.5em;
+    padding: 1em;
+    margin-top: 2em;
+    min-width: 220px;
+    box-shadow: 0 2px 8px #0002;
+    border: 1px solid #ffe066;
+}
+.edit-checklist h3 {
+    margin-top: 0;
+    font-family: 'Caveat', cursive;
+    font-size: 1.5rem;
+    color: #d48806;
+}
+.checklist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5em 0;
+    border-bottom: 1px dashed #ffe58f;
+    font-size: 0.9rem;
+}
+.checklist-item button {
+    background: #d48806;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+.progress-bar {
+    height: 8px;
+    background: #fff1b8;
+    border-radius: 4px;
+    margin-top: 1em;
+    overflow: hidden;
+}
+.progress {
+    height: 100%;
+    background: #52c41a;
+    transition: width 0.3s ease;
+}
+.progress-status {
+    text-align: right;
+    font-size: 0.8rem;
+    color: #8c8c8c;
+    margin-top: 4px;
+}
+</style>

@@ -149,7 +149,7 @@
             }
         </div>
         <div class="border-t-4 border-[var(--border)] bg-[var(--muted)] p-2 text-center text-[var(--muted-foreground)] text-xs">
-            Continuous Flow &bull; @WordCount words
+            Continuous Flow &bull; @WordCount words &bull; @SaveStatus
         </div>
     </div>
     <TutorPanel CurrentAccount="CurrentAccount" />
@@ -186,13 +186,13 @@
         {
             var story = await DbContext.Stories
                 .Include(s => s.Account)
-                .ThenInclude(acc => acc != null ? acc.ActiveTheme : null)
+                .ThenInclude(acc => acc!.ActiveTheme)
                 .Include(s => s.Pages) // Load pages for migration if needed
                 .Include(s => s.EntityLinks)
                 .Include(s => s.Account)
-                .ThenInclude(a => a != null ? a.Notebooks : null)
-                .ThenInclude(n => n != null ? n.Entities : null)
-                .ThenInclude(e => e != null ? e.Entries : null)
+                .ThenInclude(a => a!.Notebooks)
+                .ThenInclude(n => n!.Entities)
+                .ThenInclude(e => e!.Entries)
                 .FirstOrDefaultAsync(s => s.Id == StoryId);
 
             if (story != null)

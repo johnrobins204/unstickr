@@ -102,5 +102,34 @@ public class StoryState
 
     // Planner Data
     public StoryPlanData CurrentPlan { get; set; } = new();
+
+    // Review Session: Holds tokenized words and flagged issues for the review phase
+    public List<ReviewToken>? ReviewTokens { get; set; }
+    public List<ReviewFlag>? ReviewFlags { get; set; }
+    public void ClearReviewSession()
+    {
+        ReviewTokens = null;
+        ReviewFlags = null;
+    }
+}
+
+// Represents a tokenized word in the review phase
+public class ReviewToken
+{
+    public int Index { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public string? HtmlTag { get; set; }
+    public bool IsPunctuation { get; set; }
+    public bool IsFlagged { get; set; } = false;
+    public string? FlagType { get; set; } // e.g., Spelling, Grammar, Repetition
+}
+
+// Represents a flagged issue in the review phase
+public class ReviewFlag
+{
+    public int TokenIndex { get; set; }
+    public string Type { get; set; } = string.Empty; // Spelling, Grammar, Repetition
+    public string? Note { get; set; }
+    public bool IsResolved { get; set; } = false;
 }
 

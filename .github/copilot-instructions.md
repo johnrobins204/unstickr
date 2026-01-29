@@ -1,83 +1,78 @@
-
 # Copilot Instructions for StoryFort
 
 **Summary:**
 These instructions are the authoritative, up-to-date guide for AI coding agents working on StoryFort. They summarize the architecture, workflows, and unique conventions of the project. Read this before making any code changes or answering developer queries.
 
 **Quick Start:**
-- StoryFort is a .NET 10 Blazor Server app (containerized) for creative writing tutoring.
-- AI agents must never generate story text—use the "Spark Protocol" (questioning) or review only.
-- All critical data is encrypted and regionally hosted (Canada).
-- Key files: requirements/requirements.md, developer-diary.md, architecture/ARCHITECTURE.md, governance/AI-System-Card.md, rationales.md, UXUI_Design/UI_UX_detail_reqs.md.
+- **Project**: .NET 10 Blazor Web App (Interactive Server), container-ready.
+- **Mission**: Creative writing tutor for children. **AI never writes the story** (Spark Protocol).
+- **Data**: SQLite (WAL enabled), EF Core, Regionally hosted (Canada) for data sovereignty.
+- **Key Files**: 
+  - [requirements/requirements.md](requirements/requirements.md) (Functional Truth)
+  - [developer-diary.json](developer-diary.json) (History & Current State) 
+  - [architecture/ARCHITECTURE.md](architecture/ARCHITECTURE.md) (Deep Dive)
+  - [governance/AI-System-Card.md](governance/AI-System-Card.md) (Safety & Ethics)
 
 ---
 
-You are assisting with **StoryFort**, a .NET 10 Blazor Web App (Interactive Server) designed as a creative writing tutor for children.
+##  Project Architecture
 
-## 🏗 Project Architecture
-- **Framework**: .NET 10 Blazor Server (containerized).
-- **Solution Format**: Uses `.slnx` (Visual Studio Solution XML).
-- **Data**: SQLite with **WAL Mode** enabled for concurrency.
-- **ORM**: Entity Framework Core.
-- **State**: `StoryState` (Scoped Service) acts as the central session cache (Story, Notebooks, Tutor).
-- **AI**: **Cohere Command R+** via `ICohereTutorService` / named HttpClient `"LLM"`.
+### Framework & Infrastructure
+- **Stack**: .NET 10, Blazor Server (Interactive Server).
+- **Solution**: \.slnx\ (Visual Studio Solution XML).
+- **Database**: SQLite with **WAL Mode** enabled (critical for concurrency).
+- **Logging**: Serilog to \logs/\, **NEVER** log \Story.Content\.
 
-## 🧩 Core Domain Concepts
-- **Story Model**: 
-  - `Story.Content` holds the full text (continuous scroll).
-  - `Story.Pages` is **deprecated** but retained for migration history. Do not use for new features.
-  - `Story.Genre` classifies stories (added via migration).
-- **Supervisor Primacy**: Critical settings (`Account` model) are gated behind adult roles.
-- **No Ghostwriting**: The AI **never** generates story text. It uses the "Spark Protocol" (questions) or reviews.
-- **Data Sovereignty**: Critical data is encrypted and regionally hosted (Canada).
+### Core Services (Scope & Lifecycle)
+- **\StoryState\ (Scoped)**: The central session manager. Caches the active Story, Notebooks, and Tutor context for the user's session.
+- **\TutorOrchestrator\ (Scoped)**: Manages appropriate conversational flow, state transitions, and usage of the LLM. 
+- **\ArchetypeService\ (Singleton)**: Read-only provider for character archetypes.
+- **\ICohereTutorService\ (Scoped)**: Typed client for the Cohere API (named client "LLM").
 
-## 🤖 AI Integration Patterns
-- **Orchestration**: `TutorOrchestrator` manages conversational flow and safeguards.
-- **Prompt Strategies**: Implements `IPromptStrategy` for different modes:
-  - `SparkPromptStrategy`: State-machine driven questioning (Sensory -> Attribute -> Conflict).
-  - `ReviewPromptStrategy`: Feedback analysis.
-- **Safeguards**: `ValidateSafeguards()` enforces "Defense in Depth" (PII, Prompt Injection) before API calls.
+##  Core Domain Concepts
 
-## 🛠 Developer Workflow
-- **Run**: `dotnet run --project StoryFort/StoryFort.csproj`
-- **Watch**: `dotnet watch --project StoryFort/StoryFort.csproj`
-- **Migrations**: `dotnet ef migrations add <Name> --project StoryFort/StoryFort.csproj`
-- **Testing**:
-    - **Unit** (`StoryFort.Tests.Unit`): Logic/JSON parsing. Mock all I/O.
-    - **Integration** (`StoryFort.Tests.Integration`): EF Core/SQLite. Use `EnsureDeleted()`/`EnsureCreated()`.
-    - **E2E** (`StoryFort.Tests.E2E`): Playwright. Use `GetByRole` selectors (accessibility first).
+### The Story Model
+- **Content**: \Story.Content\ (string) holds the full HTML text (QuillJS output).
+- **Genre**: \Story.Genre\ classifies the story (Default: "General").
+- **Pages**: \Story.Pages\ is **DEPRECATED**. Retained only for migration history; do not use for active features.
 
-## 📂 Key Code Patterns
-- **Rich Text**: `Blazored.TextEditor` (QuillJS).
-    - ⚠️ **Critical**: No two-way binding. Use `GetHTML()` and `LoadHTML()` explicitly.
-    - **Styles**: Use scoped CSS (`.razor.css`).
-- **Services**:
-    - `StoryState.cs`: Central point for active session data.
-    - `TutorOrchestrator.cs`: Conversational state manager.
-- **Logging**: Serilog writes to `logs/`. **NEVER** log `Story.Content` (Privacy).
+### AI Philosophy & Constraints
+- **No Ghostwriting**: The AI must **never** generate story text for the user. It may only ask questions (Spark Protocol) or review text.
+- **Spark Protocol**: A state-machine approach to questioning (Sensory -> Attribute -> Conflict) to unblock writers without doing the work for them.
+- **Supervisor Primacy**: \Account\ model settings are gated behind adult/supervisor roles.
 
-## ⚠️ Implementation Guidelines
-1. **Async/Await**: Mandatory for all I/O (Database, AI API).
-2. **Navigation**: `<BlazorDisableThrowNavigationException>` is `true`.
-3. **Themes**: Injected via `StoryState.CurrentTheme` (CSS variables).
-4. **Error Handling**: `CustomErrorBoundaryLogger` for circuit hardening.
+##  Developer Workflow
 
-## 📚 Read-In Plan for Agents
-To fully understand the project's constraints and philosophy, read these files in order:
+### CLI Commands
+- **Run**: \dotnet run --project StoryFort/StoryFort.csproj\
+- **Watch**: \dotnet watch --project StoryFort/StoryFort.csproj\
+- **Migrations**: \dotnet ef migrations add <Name> --project StoryFort/StoryFort.csproj\
+- **Database Update**: \dotnet ef database update --project StoryFort/StoryFort.csproj\
 
-1. **The Core "Truth"**:
-   - `requirements/requirements.md`: The functional bible. Defines the "No Ghostwriting" rule, Spark Protocol, and Inactivity triggers.
-   - `developer-diary.md`: The living history. Check this to see what was *just* built (e.g., Spark Handoff) and what's next.
+### Testing Strategy
+- **Unit (\StoryFort.Tests.Unit\)**: Pure logic, regex, JSON parsing. Mock all I/O.
+- **Integration (\StoryFort.Tests.Integration\)**: EF Core/SQLite interactions. Use \EnsureDeleted()\/\EnsureCreated()\.
+- **E2E (\StoryFort.Tests.E2E\)**: Playwright. Prioritize accessibility selectors (\GetByRole\).
 
-2. **Architecture & Decisions**:
-   - `architecture/ARCHITECTURE.md`: Explains the "Hybrid Engine" (Blazor + Cohere) and Data Sovereignty pillars.
-   - `governance/ADR-004-Data-Resilience.md`: Explains the Litestream integration for SQLite WAL replication (critical for understanding `entrypoint.sh`).
+##  Critical Implementation Details
 
-3. **Design & Psychology**:
-   - `rationales.md`: **Crucial** for understanding *why* the AI waits 30s or why there is no "Insert" button. (Locus of Control, CASA paradigm).
-   - `UXUI_Design/UI_UX_detail_reqs.md`: Read this before touching `Editor.razor` or `TutorPanel.razor`. Defines "Death of the Save Button" and accessibility specs.
+1. **Rich Text (QuillJS)**:
+   - component: \Blazored.TextEditor\.
+   - **Warning**: No automatic two-way binding. You must explicitly call \GetHTML()\ to save and \LoadHTML()\ to load.
+   - Styling: Use scoped CSS (\.razor.css\).
+
+2. **Async/Await**: 
+   - Mandatory for all I/O, especially Database and AI API calls.
+
+3. **Navigation**: 
+   - \BlazorDisableThrowNavigationException\ is set to \	rue\ in \.csproj\.
 
 4. **Safety & Governance**:
-   - `governance/AI-System-Card.md`: Defines the "Defense in Depth" strategy for AI inputs/outputs.
+   - **Defense in Depth**: \ValidateSafeguards()\ must be called before sending any prompt to the LLM.
+   - **Data Sovereignty**: Critical data is encrypted at rest.
 
-
+##  Read-In Priority
+1. [requirements/requirements.md](requirements/requirements.md) - The rules (No Ghostwriting, etc.).
+2. [developer-diary.json](developer-diary.json) - What has just been built (e.g., Archetypes).
+3. [architecture/ARCHITECTURE.md](architecture/ARCHITECTURE.md) - The "Hybrid Engine" design.
+4. [rationales.md](rationales.md) - Why we do things this way (Psychology).

@@ -1,0 +1,23 @@
+# .editorconfig for StoryFort
+root = true
+
+[*.{cs,csproj}]
+charset = utf-8-bom
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+
+# C# formatting and style rules
+[*.cs]
+# Use expression-bodied members where appropriate
+dotnet_style_prefer_expression_bodied_methods = true:suggestion
+dotnet_style_prefer_expression_bodied_properties = true:suggestion
+
+# Qualification
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+
+# Naming styles can be added here
+
+# Treat certain analyzer rules as warnings/errors in project file instead
