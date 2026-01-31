@@ -118,11 +118,8 @@
                     AccountId = 1 
                 };
                 
+                newStory.Content = string.Empty;
                 DbContext.Stories.Add(newStory);
-                await DbContext.SaveChangesAsync();
-
-                // 3. Add Page 1
-                DbContext.Pages.Add(new StoryPage { StoryId = newStory.Id, PageNumber = 1, Content = "" });
                 await DbContext.SaveChangesAsync();
 
                 Nav.NavigateTo($"/editor/{newStory.Id}");

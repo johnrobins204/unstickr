@@ -1,4 +1,6 @@
 using StoryFort.Components;
+using System.Linq;
+using StoryFort.Api;
 using StoryFort.Services;
 using StoryFort.Data;
 using Blazored.TextEditor;
@@ -37,6 +39,9 @@ builder.Services.AddSingleton<ArchetypeService>();
 builder.Services.AddSingleton<TextTokenizer>();
 builder.Services.AddScoped<TutorOrchestrator>();
 builder.Services.AddScoped<ICohereTutorService, CohereTutorService>();
+builder.Services.AddScoped<SparkPromptStrategy>();
+builder.Services.AddScoped<ReviewPromptStrategy>();
+builder.Services.AddScoped<ISafeguardService, SafeguardService>();
 // Reader helper service
 builder.Services.AddSingleton<ReaderHtmlHelper>();
 // Library Seeder
@@ -58,124 +63,8 @@ builder.Services.AddHttpClient("LLM", client =>
 var app = builder.Build();
 
 // Minimal API for reader pinning + notebook lookup
-app.MapGet("/api/notebooks", async (int? accountId, AppDbContext db) =>
-{
-    var acct = accountId ?? 1;
-    var list = await db.Notebooks
-        .Where(n => n.AccountId == acct)
-        .Select(n => new { id = n.Id, name = n.Name })
-        .ToListAsync();
-    return Results.Json(list);
-});
-
-app.MapPost("/api/pins", async (HttpRequest request, AppDbContext db, StoryFort.Services.ToastService toastService, StoryFort.Services.AchievementService achievementService) =>
-{
-    var accountId = 1; // single-user mode
-    using var doc = await System.Text.Json.JsonDocument.ParseAsync(request.Body);
-    var root = doc.RootElement;
-    int? notebookId = null;
-    if (root.TryGetProperty("notebookId", out var nbp) && nbp.ValueKind == System.Text.Json.JsonValueKind.Number)
-        notebookId = nbp.GetInt32();
-    int storyId = 0;
-    if (root.TryGetProperty("storyId", out var sp) && sp.ValueKind == System.Text.Json.JsonValueKind.Number)
-        storyId = sp.GetInt32();
-    string content = root.TryGetProperty("content", out var cp) ? cp.GetString() ?? string.Empty : string.Empty;
-    string? sentenceId = root.TryGetProperty("sentenceId", out var sp2) ? sp2.GetString() : null;
-
-    // Resolve or create notebook
-    StoryFort.Models.Notebook? notebook = null;
-    if (notebookId.HasValue)
-    {
-        notebook = await db.Notebooks.FindAsync(notebookId.Value);
-    }
-    if (notebook == null)
-    {
-        notebook = await db.Notebooks.FirstOrDefaultAsync(n => n.AccountId == accountId && n.Name == "Quick Pins");
-        if (notebook == null)
-        {
-            notebook = new StoryFort.Models.Notebook { Name = "Quick Pins", Icon = "bi-pin", AccountId = accountId };
-            db.Notebooks.Add(notebook);
-            await db.SaveChangesAsync();
-        }
-    }
-
-    // Ensure a "Pins" entity exists under the notebook
-    var entity = await db.NotebookEntities.FirstOrDefaultAsync(e => e.NotebookId == notebook.Id && e.Name == "Pins");
-    if (entity == null)
-    {
-        entity = new StoryFort.Models.NotebookEntity { Name = "Pins", NotebookId = notebook.Id };
-        db.NotebookEntities.Add(entity);
-        await db.SaveChangesAsync();
-    }
-
-    var entry = new StoryFort.Models.NotebookEntry
-    {
-        Content = content,
-        Created = DateTime.Now,
-        NotebookEntityId = entity.Id,
-        StoryId = storyId > 0 ? storyId : null
-    };
-
-    db.NotebookEntries.Add(entry);
-    await db.SaveChangesAsync();
-
-    // Persist a mapping of pinned sentence -> entry id in the Story.Metadata JSON to enable client-side indicators.
-    if (!string.IsNullOrWhiteSpace(sentenceId) && entry.StoryId.HasValue)
-    {
-        var story = await db.Stories.FindAsync(entry.StoryId.Value);
-        if (story != null)
-        {
-            try
-            {
-                var metadata = new System.Text.Json.Nodes.JsonObject();
-                if (!string.IsNullOrWhiteSpace(story.Metadata))
-                {
-                    var existing = System.Text.Json.JsonDocument.Parse(story.Metadata);
-                    foreach (var prop in existing.RootElement.EnumerateObject())
-                    {
-                        metadata[prop.Name] = System.Text.Json.Nodes.JsonNode.Parse(prop.Value.GetRawText());
-                    }
-                }
-
-                var pinned = metadata["pinnedSentences"] as System.Text.Json.Nodes.JsonObject;
-                if (pinned == null)
-                {
-                    pinned = new System.Text.Json.Nodes.JsonObject();
-                    metadata["pinnedSentences"] = pinned;
-                }
-                pinned[sentenceId] = entry.Id;
-
-                story.Metadata = metadata.ToJsonString();
-                db.Stories.Update(story);
-                await db.SaveChangesAsync();
-            }
-            catch
-            {
-                // ignore metadata failures
-            }
-        }
-    }
-
-    // Notify UI via toast
-    try
-    {
-        toastService.Show("Saved to Notebook", "Saved to Quick Pins", "primary", 3000);
-    }
-    catch { }
-
-    // Unlock research badge on first pin
-    try
-    {
-        if (!string.IsNullOrWhiteSpace(sentenceId))
-        {
-            var unlocked = await achievementService.UnlockBadgeAsync(accountId, "research_assistant", "Research Assistant");
-            if (unlocked) toastService.Show("Badge Unlocked", "Research Assistant — first pin", "danger", 4500);
-        }
-    }
-    catch { }
-
-    return Results.Created($"/api/pins/{entry.Id}", new { id = entry.Id });
-});
+// Move API endpoints to dedicated mapping extensions
+app.MapStoryEndpoints();
 
 // === PILOT HARDENING: Enable WAL Mode for Concurrency ===
 using (var scope = app.Services.CreateScope())
@@ -191,6 +80,20 @@ using (var scope = app.Services.CreateScope())
     // Seed Library (Alice)
     var seeder = scope.ServiceProvider.GetRequiredService<LibrarySeeder>();
     await seeder.SeedLibraryAsync(); // Fire and forget in real production, but wait here for demo
+
+    // Verification: log counts of seeded entities
+    try
+    {
+        var archetypeCount = db.Archetypes.Count();
+        var pointCount = db.ArchetypePoints.Count();
+        var themeCount = db.Themes.Count();
+        var accountCount = db.Accounts.Count();
+        Log.Information("Seed verification: Archetypes={ArchetypeCount}, Points={PointCount}, Themes={ThemeCount}, Accounts={AccountCount}", archetypeCount, pointCount, themeCount, accountCount);
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Unable to verify seed counts");
+    }
 }
 // ========================================================
 

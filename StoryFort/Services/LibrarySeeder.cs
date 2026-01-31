@@ -59,8 +59,7 @@ public class LibrarySeeder
                 AccountId = accountId,
                 Content = content,
                 Created = DateTime.Now,
-                LastModified = DateTime.Now,
-                Pages = new List<StoryPage>() // Deprecated but initialized
+                LastModified = DateTime.Now
             };
 
             db.Stories.Add(story);

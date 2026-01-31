@@ -156,7 +156,6 @@ else
         {
             // Load full story content (prefer Story.Content, fall back to concatenated pages)
             var full = await DbContext.Stories
-                .Include(s => s.Pages)
                 .FirstOrDefaultAsync(s => s.Id == story.Id);
 
             if (full == null)
@@ -164,15 +163,7 @@ else
                 return;
             }
 
-            string raw = string.Empty;
-            if (!string.IsNullOrWhiteSpace(full.Content))
-            {
-                raw = full.Content;
-            }
-            else
-            {
-                raw = string.Join("\n", full.Pages.OrderBy(p => p.PageNumber).Select(p => p.Content));
-            }
+            string raw = full.Content ?? string.Empty;
 
             // Parse pinned sentence IDs from story.Metadata if present
             var pinnedIds = new List<string>();
@@ -308,14 +299,7 @@ else
             AccountId = accountId,
             Created = DateTime.Now,
             LastModified = DateTime.Now,
-            Pages = new List<StoryPage>
-            {
-                new StoryPage 
-                { 
-                    PageNumber = 1,
-                    Content = initialContent 
-                }
-            }
+            Content = initialContent
         };
 
         DbContext.Stories.Add(newStory);

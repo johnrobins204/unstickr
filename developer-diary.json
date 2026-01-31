@@ -479,5 +479,78 @@
                 }
             ]
         }
+            ,
+            {
+                "id": 23,
+                "title": "Phase 1 Quick-Wins Audit Remediation",
+                "date": "2026-01-31",
+                "completed_tasks": [
+                    {
+                        "category": "Refactor",
+                        "details": "Extracted Minimal APIs to StoryEndpoints.cs and updated Program.cs to call MapStoryEndpoints()."
+                    },
+                    {
+                        "category": "Safety",
+                        "details": "Extracted ValidateSafeguards into ISafeguardService/SafeguardService and injected into TutorOrchestrator via DI."
+                    },
+                    {
+                        "category": "LLM Integration",
+                        "details": "Added Cohere DTOs and updated CohereTutorService to use typed deserialization for more robust parsing."
+                    },
+                    {
+                        "category": "Seeding",
+                        "details": "Externalized seed data to Data/seed/seeddata.json, added SeedDto, wired AppDbContext to load HasData from JSON, created SeedExternal migration, and verified runtime seeding (Archetypes=3, Points=16, Themes=8, Accounts=1)."
+                    },
+                    {
+                        "category": "Docs",
+                        "details": "Added .github/ONBOARDING.md, .github/AUDIT_PLAN.md, and .github/AUDIT_REPORT.md to track audit findings and plan."
+                    }
+                ],
+                "state_summary": "Completed Phase 1 quick-win refactors improving separation of concerns, LLM response handling, and externalized seeding. Build and runtime seed verification succeeded.",
+                "outstanding_tasks": [
+                    {
+                        "category": "Migrations",
+                        "details": "Consider converting large JSON seeds into deterministic migration InsertData for CI reproducibility or implement a startup data migrator."
+                    },
+                    {
+                        "category": "Cleanup",
+                        "details": "Remove deprecated StoryPage entity and add an EF migration to reconcile models."
+                    },
+                    {
+                        "category": "Security",
+                        "details": "Externalize and encrypt Cohere API keys; rotate any test keys used during development."
+                    },
+                    {
+                        "category": "CI",
+                        "details": "Add GitHub Actions workflow to build, run unit tests, and validate migrations on PRs."
+                    }
+                ]
+            },
+            {
+                "id": 24,
+                "title": "Cleanup & Verification",
+                "date": "2026-01-31",
+                "completed_tasks": [
+                    {
+                        "category": "Refactor",
+                        "details": "Removed deprecated StoryPage entity, updated all references to use Story.Content, and dropped 'Pages' table via RemoveStoryPageEntity migration."
+                    },
+                    {
+                        "category": "Verification",
+                        "details": "Verified E2E, Unit, and Integration tests passing. Verified runtime behavior of planner and reader."
+                    }
+                ],
+                "state_summary": "Codebase clean of deprecated entity. All tests passing. Ready for next feature phase.",
+                "outstanding_tasks": [
+                    {
+                        "category": "Security",
+                        "details": "Externalize Cohere API keys."
+                    },
+                    {
+                        "category": "CI",
+                        "details": "Implement GitHub Actions workflow."
+                    }
+                ]
+            }
     ]
 }

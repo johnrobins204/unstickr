@@ -187,7 +187,6 @@
             var story = await DbContext.Stories
                 .Include(s => s.Account)
                 .ThenInclude(acc => acc!.ActiveTheme)
-                .Include(s => s.Pages) // Load pages for migration if needed
                 .Include(s => s.EntityLinks)
                 .Include(s => s.Account)
                 .ThenInclude(a => a!.Notebooks)
@@ -224,15 +223,7 @@
                     StoryState.NotifyStateChanged(); 
                 }
                 
-                // MIGRATION LOGIC: If Content is empty but Pages exist, combine them
-                if (string.IsNullOrEmpty(story.Content) && story.Pages.Any())
-                {
-                    Log.Information("Migrating Pages to Continuous Content for Story {Id}", StoryId);
-                    var combined = string.Join("", story.Pages.OrderBy(p => p.PageNumber).Select(p => p.Content));
-                    story.Content = combined;
-                    DbContext.Stories.Update(story);
-                    await DbContext.SaveChangesAsync();
-                }
+                // Content is now the single source of truth; legacy Pages removed.
 
                 InitialContent = story.Content;
                 StoryState.Content = story.Content;

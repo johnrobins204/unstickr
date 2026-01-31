@@ -72,12 +72,10 @@
     private async Task OpenReader(Story story)
     {
         // Load full content
-        var full = await DbContext.Stories.Include(s => s.Pages).FirstOrDefaultAsync(s => s.Id == story.Id);
+        var full = await DbContext.Stories.FirstOrDefaultAsync(s => s.Id == story.Id);
         if (full == null) return;
 
-        string raw;
-        if (!string.IsNullOrWhiteSpace(full.Content)) raw = full.Content;
-        else raw = string.Join("\n", full.Pages.OrderBy(p => p.PageNumber).Select(p => p.Content));
+        string raw = full.Content ?? string.Empty;
 
         // Parse pinned sentence IDs from story.Metadata if present
         var pinnedIds = new List<string>();

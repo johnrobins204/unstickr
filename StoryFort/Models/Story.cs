@@ -12,10 +12,7 @@ public class Story
 
     // New Continuous Content Field
     public string Content { get; set; } = "";
-
-    // Deprecated but kept for migration history if needed, 
-    // though we will eventually drop StoryPage table
-    public ICollection<StoryPage> Pages { get; set; } = new List<StoryPage>();
+    // Pages removed: Content is now the single source of truth
     public ICollection<StoryEntityLink> EntityLinks { get; set; } = new List<StoryEntityLink>();
 
     public string Genre { get; set; } = "General";

@@ -1,6 +1,8 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Text.Json;
 using StoryFort.Models;
 
 namespace StoryFort.Services;
@@ -26,44 +28,30 @@ public class CohereTutorService : ICohereTutorService
         object payload = useReasoningModel
             ? new { message = prompt, model = "command-r-plus" }
             : new { prompt = prompt, model = "command-light" };
+
         var response = await client.PostAsJsonAsync($"https://api.cohere.com/{endpoint}", payload);
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode) return "AI service error.";
+
+        var json = await response.Content.ReadAsStringAsync();
+        try
         {
-            var json = await response.Content.ReadAsStringAsync();
-            try
+            if (useReasoningModel)
             {
-                if (useReasoningModel)
-                {
-                    // v1/chat: { message: { content: [ { type: "text", text: "..." } ] } }
-                    var chatObj = System.Text.Json.JsonDocument.Parse(json);
-                    var message = chatObj.RootElement.GetProperty("message");
-                    var contentArr = message.GetProperty("content");
-                    foreach (var item in contentArr.EnumerateArray())
-                    {
-                        if (item.TryGetProperty("text", out var textProp))
-                            return textProp.GetString() ?? "No response.";
-                    }
-                    return "No response.";
-                }
-                else
-                {
-                    // v1/generate: { generations: [ { text: "..." } ] }
-                    var genObj = System.Text.Json.JsonDocument.Parse(json);
-                    var generations = genObj.RootElement.GetProperty("generations");
-                    foreach (var item in generations.EnumerateArray())
-                    {
-                        if (item.TryGetProperty("text", out var textProp))
-                            return textProp.GetString() ?? "No response.";
-                    }
-                    return "No response.";
-                }
+                var chat = System.Text.Json.JsonSerializer.Deserialize<CohereChatResponse>(json);
+                var msg = chat?.Message?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
+                return msg ?? "No response.";
             }
-            catch
+            else
             {
-                return "AI service error (invalid response format).";
+                var gen = System.Text.Json.JsonSerializer.Deserialize<CohereGenerateResponse>(json);
+                var text = gen?.Generations?.FirstOrDefault()?.Text;
+                return text ?? "No response.";
             }
         }
-        return "AI service error.";
+        catch
+        {
+            return "AI service error (invalid response format).";
+        }
     }
 
     // Old response class removed; now using direct JSON parsing.

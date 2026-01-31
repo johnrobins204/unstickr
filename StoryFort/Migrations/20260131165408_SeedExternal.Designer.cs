@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StoryFort.Data;
 
@@ -10,9 +11,11 @@ using StoryFort.Data;
 namespace StoryFort.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260131165408_SeedExternal")]
+    partial class SeedExternal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
@@ -609,6 +612,32 @@ namespace StoryFort.Migrations
                     b.ToTable("StoryEntityLinks");
                 });
 
+            modelBuilder.Entity("StoryFort.Models.StoryPage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PageNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StoryId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoryId");
+
+                    b.ToTable("Pages");
+                });
+
             modelBuilder.Entity("StoryFort.Models.Theme", b =>
                 {
                     b.Property<int>("Id")
@@ -838,6 +867,17 @@ namespace StoryFort.Migrations
                     b.Navigation("Story");
                 });
 
+            modelBuilder.Entity("StoryFort.Models.StoryPage", b =>
+                {
+                    b.HasOne("StoryFort.Models.Story", "Story")
+                        .WithMany("Pages")
+                        .HasForeignKey("StoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Story");
+                });
+
             modelBuilder.Entity("StoryFort.Models.Account", b =>
                 {
                     b.Navigation("Notebooks");
@@ -870,6 +910,8 @@ namespace StoryFort.Migrations
             modelBuilder.Entity("StoryFort.Models.Story", b =>
                 {
                     b.Navigation("EntityLinks");
+
+                    b.Navigation("Pages");
                 });
 #pragma warning restore 612, 618
         }
