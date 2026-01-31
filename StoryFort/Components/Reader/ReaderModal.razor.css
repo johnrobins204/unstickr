@@ -1,0 +1,16 @@
+.reader-modal { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; z-index:1050; }
+.reader-container { width: 90%; max-width: 1100px; height: 80%; background: var(--card); display:flex; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-radius: 8px; overflow: hidden; }
+.reader-left { width: 280px; background: var(--card-muted); padding: 18px; border-right: 1px solid rgba(0,0,0,0.06); }
+.reader-right { flex:1; display:flex; flex-direction:column; background: white; }
+.reader-content { padding: 24px; overflow:auto; flex:1; }
+.reader-controls { padding: 12px 18px; border-top: 1px solid rgba(0,0,0,0.06); text-align:right; }
+.reader-sentence { cursor: pointer; transition: background .12s; }
+.reader-sentence:hover { background: rgba(255, 242, 0, 0.35); }
+.reader-sentence.pinned { outline: 2px solid rgba(255, 99, 132, 0.9); }
+
+/* 3D cover flip */
+.reader-container { perspective: 1200px; position: relative; }
+.reader-right { position: relative; }
+.reader-cover { position: absolute; inset: 0 0 48px 0; background: linear-gradient(90deg, var(--card) 0%, var(--card-muted) 100%); z-index: 30; transform-origin: left center; backface-visibility: hidden; transform: rotateY(0deg); transition: transform 700ms cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.reader-cover.flip { transform: rotateY(-140deg); }
+

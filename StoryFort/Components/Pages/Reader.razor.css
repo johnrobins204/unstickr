@@ -1,0 +1,17 @@
+.bookshelf { padding: 32px; }
+.shelf-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; justify-content:flex-start; }
+.book-spine { width: 64px; display:flex; align-items:center; justify-content:center; color: white; font-size:10px; writing-mode:vertical-rl; text-orientation: mixed; padding:6px; box-shadow: 4px 6px 0 rgba(0,0,0,0.15); cursor:pointer; transition: transform .12s ease, box-shadow .12s ease; border: 3px solid var(--border); }
+.book-spine:focus { outline: 3px dashed rgba(255,255,255,0.6); }
+.book-spine:hover { transform: translateY(-8px) scale(1.04); }
+.spine-label { transform: rotate(180deg); font-family: 'Silkscreen', 'Press Start 2P', monospace; font-size:10px; text-align:center; }
+.shelf-base { height: 18px; background: linear-gradient(90deg,#6b3e1d,#502b13); margin-top:12px; border-top:4px solid rgba(0,0,0,0.12); box-shadow: inset 0 4px 0 rgba(255,255,255,0.02); }
+
+/* color variants */
+.book-blue { background: linear-gradient(180deg,#2b6fb8,#184e8a); }
+.book-pink { background: linear-gradient(180deg,#d87aa9,#b0547f); }
+.book-brown { background: linear-gradient(180deg,#7b4b2e,#5a371f); }
+.book-green { background: linear-gradient(180deg,#4aa96c,#2c7d4b); }
+.book-yellow { background: linear-gradient(180deg,#f3c85b,#e0a72f); color:#2b2b2b }
+
+/* responsive */
+@media (max-width: 768px) { .book-spine { width: 48px; } .spine-label { font-size:9px } }

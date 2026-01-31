@@ -1,0 +1,162 @@
+@page "/"
+@page "/reader"
+@page "/reader/{StoryId:int}"
+@using Microsoft.EntityFrameworkCore
+@using StoryFort.Models
+@inject AppDbContext DbContext
+@inject IJSRuntime JS
+@inject StoryFort.Services.ReaderHtmlHelper ReaderHtmlHelper
+
+<PageTitle>Reading Nook</PageTitle>
+
+<div class="container py-5">
+    <h2 class="mb-4">Reading Nook</h2>
+
+    @if (Stories == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+        </div>
+    }
+    else if (!Stories.Any())
+    {
+        <div class="alert alert-light">No stories yet. Create one from the Bookcase.</div>
+    }
+    else
+    {
+        <div class="bookshelf">
+            <div class="shelf-row">
+                @foreach (var s in Stories)
+                {
+                    var style = GetSpineStyle(s.Id);
+                    var colorClass = GetSpineColor(s.Id);
+                    <div class="book-spine @colorClass" id="book-spine-@s.Id" style="@style" role="button" tabindex="0" @onclick='() => StartGhostAndRead(s.Id, "book-spine-" + s.Id)'>
+                        <div class="spine-label">@s.Title</div>
+                    </div>
+                }
+            </div>
+            <div class="shelf-base"></div>
+        </div>
+    }
+
+    @if (ShowReader)
+    {
+        <ReaderModal StoryId="@ReaderStoryId" Content="@ReaderContent" OnClose="CloseReader" />
+    }
+</div>
+
+@code {
+    [Parameter] public int? StoryId { get; set; }
+
+    private List<Story>? Stories;
+    private bool ShowReader = false;
+    private int ReaderStoryId = 0;
+    private string ReaderContent = string.Empty;
+    private DotNetObjectReference<object>? ghostDotNetRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStories();
+        if (StoryId.HasValue)
+        {
+            var s = await DbContext.Stories.FindAsync(StoryId.Value);
+            if (s != null) await OpenReader(s);
+        }
+    }
+
+    private async Task LoadStories()
+    {
+        Stories = await DbContext.Stories.OrderByDescending(s => s.LastModified).ToListAsync();
+    }
+
+    private async Task OpenReader(Story story)
+    {
+        // Load full content
+        var full = await DbContext.Stories.Include(s => s.Pages).FirstOrDefaultAsync(s => s.Id == story.Id);
+        if (full == null) return;
+
+        string raw;
+        if (!string.IsNullOrWhiteSpace(full.Content)) raw = full.Content;
+        else raw = string.Join("\n", full.Pages.OrderBy(p => p.PageNumber).Select(p => p.Content));
+
+        // Parse pinned sentence IDs from story.Metadata if present
+        var pinnedIds = new List<string>();
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(full.Metadata))
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(full.Metadata);
+                if (doc.RootElement.TryGetProperty("pinnedSentences", out var pinnedElem) && pinnedElem.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    foreach (var prop in pinnedElem.EnumerateObject()) pinnedIds.Add(prop.Name);
+                }
+            }
+        }
+        catch { }
+
+        // Wrap content server-side so the reader receives sentence spans (with pinned markers)
+        ReaderContent = ReaderHtmlHelper.WrapSentences(raw, pinnedIds);
+
+        ReaderStoryId = full.Id;
+        ShowReader = true;
+
+        try
+        {
+            await JS.InvokeVoidAsync("reader.init");
+        }
+        catch
+        {
+            // Swallow JS init errors to avoid breaking the UI — modal should still open.
+        }
+    }
+
+    private Task CloseReader()
+    {
+        ShowReader = false;
+        ReaderContent = string.Empty;
+        ReaderStoryId = 0;
+        return Task.CompletedTask;
+    }
+
+    private async Task StartGhostAndRead(int storyId, string elementId)
+    {
+        ghostDotNetRef?.Dispose();
+        ghostDotNetRef = DotNetObjectReference.Create<object>(this);
+        await JS.InvokeVoidAsync("reader.animateGhostFromElement", elementId, storyId, ghostDotNetRef);
+    }
+
+    private string GetSpineStyle(int id)
+    {
+        // deterministic pseudo-random height and tilt based on id
+        var h = 220 + (id * 37 % 80); // px
+        var tilt = -6 + (id * 53 % 13); // degrees
+        return $"height:{h}px; transform: rotate({tilt}deg);";
+    }
+
+    private string GetSpineColor(int id)
+    {
+        var idx = id % 5;
+        return idx switch
+        {
+            0 => "book-blue",
+            1 => "book-pink",
+            2 => "book-brown",
+            3 => "book-green",
+            _ => "book-yellow",
+        };
+    }
+
+    [JSInvokable]
+    public async Task OnGhostAnimationComplete(int storyId)
+    {
+        var story = await DbContext.Stories.FindAsync(storyId);
+        if (story != null)
+        {
+            await OpenReader(story);
+        }
+
+        ghostDotNetRef?.Dispose();
+        ghostDotNetRef = null;
+        StateHasChanged();
+    }
+}

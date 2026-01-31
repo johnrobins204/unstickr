@@ -1,0 +1,204 @@
+@using StoryFort.Services
+@using StoryFort.Models
+@using Microsoft.EntityFrameworkCore
+@using System.Net.Http.Json
+@using StoryFort.Data
+@inject IJSRuntime JS
+@inject AchievementService AchievementService
+@inject ToastService ToastService
+@inject AppDbContext DbContext
+@inject HttpClient Http
+
+@code {
+    [Parameter] public int StoryId { get; set; }
+    [Parameter] public string? Content { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool StartWithFlip { get; set; }
+
+    private string renderedContent = string.Empty;
+    private bool hasFlipped = false;
+    private int secondsRead = 0;
+    private int pagesRead = 0;
+    private DotNetObjectReference<ReaderModal>? dotnetRef;
+    private const int ACCOUNT_ID = 1; // single-user for pilot
+    // Context menu state
+    private bool ContextMenuVisible = false;
+    private double ContextMenuX = 0;
+    private double ContextMenuY = 0;
+    private string ContextMenuHtml = string.Empty;
+    private string? ContextMenuSentenceId = null;
+    private List<StoryFort.Models.Notebook>? ContextNotebooks;
+
+    protected override void OnParametersSet()
+    {
+        renderedContent = Content ?? string.Empty;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (StartWithFlip && !hasFlipped)
+        {
+            hasFlipped = true;
+            await JS.InvokeVoidAsync("reader.flipCover", $"reader-cover-{StoryId}");
+        }
+        if (firstRender)
+        {
+            dotnetRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("reader.startReaderTimer", dotnetRef);
+            }
+            catch { }
+
+            // Award "Bookworm Beginnings" on first open
+            var unlocked = await AchievementService.UnlockBadgeAsync(ACCOUNT_ID, "bookworm_beginnings", "Bookworm Beginnings");
+            if (unlocked)
+            {
+                ToastService.Show("Badge Unlocked", "Bookworm Beginnings", "danger", 4500);
+            }
+        }
+    }
+
+    private async Task Close()
+    {
+        try { await JS.InvokeVoidAsync("reader.stopReaderTimer"); } catch { }
+        dotnetRef?.Dispose();
+        dotnetRef = null;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task OnSentenceClicked(string sid)
+    {
+        await JS.InvokeVoidAsync("reader.onSentenceClicked", sid);
+    }
+
+    private Task PrevPage() => JS.InvokeVoidAsync("reader.prevPage", StoryId).AsTask();
+    private Task NextPage() => JS.InvokeVoidAsync("reader.nextPage", StoryId).AsTask();
+
+    [JSInvokable]
+    public async Task OnReaderTick()
+    {
+        secondsRead++;
+        if (secondsRead == 300)
+        {
+            var unlocked = await AchievementService.UnlockBadgeAsync(ACCOUNT_ID, "deep_reader", "Deep Reader");
+            if (unlocked) ToastService.Show("Badge Unlocked", "Deep Reader — 5 minutes reading", "danger", 5000);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnContextMenuRequested(double x, double y, string contentHtml, int? storyId, string? sentenceId)
+    {
+        ContextMenuX = x;
+        ContextMenuY = y;
+        ContextMenuHtml = contentHtml ?? string.Empty;
+        ContextMenuSentenceId = sentenceId;
+        // load user's notebooks
+        ContextNotebooks = await DbContext.Notebooks.Where(n => n.AccountId == ACCOUNT_ID).OrderBy(n => n.Name).ToListAsync();
+        ContextMenuVisible = true;
+        StateHasChanged();
+    }
+
+    private async Task QuickPin()
+    {
+        var body = new { accountId = ACCOUNT_ID, storyId = StoryId, content = ContextMenuHtml, sentenceId = ContextMenuSentenceId };
+        var res = await Http.PostAsJsonAsync("/api/pins", body);
+        if (res.IsSuccessStatusCode)
+        {
+            ToastService.Show("Saved to Notebook", "Quick Pin saved", "primary", 3000);
+            if (!string.IsNullOrEmpty(ContextMenuSentenceId))
+            {
+                // mark UI
+                await JS.InvokeVoidAsync("(sid) => { var el=document.querySelector(`[data-sid='${sid}']`); if(el) el.classList.add('pinned'); }", ContextMenuSentenceId);
+            }
+        }
+        ContextMenuVisible = false;
+    }
+
+    private async Task PinToNotebook(int notebookId)
+    {
+        var body = new { accountId = ACCOUNT_ID, notebookId = notebookId, storyId = StoryId, content = ContextMenuHtml, sentenceId = ContextMenuSentenceId };
+        var res = await Http.PostAsJsonAsync("/api/pins", body);
+        if (res.IsSuccessStatusCode)
+        {
+            ToastService.Show("Saved to Notebook", "Saved successfully", "primary", 3000);
+            if (!string.IsNullOrEmpty(ContextMenuSentenceId))
+            {
+                await JS.InvokeVoidAsync("(sid) => { var el=document.querySelector(`[data-sid='${sid}']`); if(el) el.classList.add('pinned'); }", ContextMenuSentenceId);
+            }
+        }
+        ContextMenuVisible = false;
+    }
+
+    private void CloseContextMenu()
+    {
+        ContextMenuVisible = false;
+    }
+
+    private async Task OnNextPage()
+    {
+        pagesRead++;
+        if (pagesRead == 3)
+        {
+            var unlocked = await AchievementService.UnlockBadgeAsync(ACCOUNT_ID, "page_turner", "Page Turner");
+            if (unlocked) ToastService.Show("Badge Unlocked", "Page Turner — 3 pages read", "danger", 4500);
+        }
+        await JS.InvokeVoidAsync("reader.nextPage", StoryId);
+    }
+
+    private async Task OnPrevPage()
+    {
+        await JS.InvokeVoidAsync("reader.prevPage", StoryId);
+    }
+}
+
+<div class="reader-modal" role="dialog" aria-modal="true" tabindex="0" @onkeydown="@(async (e) => { if (e.Key == "Escape") await Close(); })">
+    <script src="/js/reader.js"></script>
+    <div class="reader-container">
+        <aside class="reader-left">
+            <div class="meta">
+                <h4>Reader</h4>
+                <div>Story: @StoryId</div>
+                <div class="page-counter">Page 1</div>
+            </div>
+        </aside>
+
+        <main class="reader-right">
+            <div id="reader-cover-@StoryId" class="reader-cover" aria-hidden="true"></div>
+            <div class="reader-content" @onclick:stopPropagation>
+                @((MarkupString)renderedContent)
+            </div>
+            <div class="reader-controls">
+                <button class="btn btn-outline-secondary" @onclick="OnPrevPage">Prev</button>
+                <button class="btn btn-outline-secondary" @onclick="OnNextPage">Next</button>
+                <button class="btn btn-danger ms-2" @onclick="Close">Close</button>
+            </div>
+        </main>
+    </div>
+</div>
+
+@if (ContextMenuVisible)
+{
+    <div class="reader-blazor-context-menu" style="position:fixed; left:@(ContextMenuX)px; top:@(ContextMenuY)px; z-index:20000; background:white; border:1px solid rgba(0,0,0,0.12); box-shadow:0 6px 18px rgba(0,0,0,0.12); padding:8px; min-width:180px;">
+        <div style="margin-bottom:6px">
+            <button class="btn btn-sm btn-primary me-2" @onclick="QuickPin">Quick Pin</button>
+            <button class="btn btn-sm btn-secondary" @onclick="CloseContextMenu">Cancel</button>
+        </div>
+        <div style="font-weight:600;margin-bottom:6px">Save to notebook</div>
+        @if (ContextNotebooks != null && ContextNotebooks.Count > 0)
+        {
+            <div style="max-height:220px; overflow:auto">
+                @foreach (var nb in ContextNotebooks)
+                {
+                    <div style="padding:6px 4px;">
+                        <button class="btn btn-sm btn-outline-primary w-100 text-start" @onclick="() => PinToNotebook(nb.Id)">@nb.Name</button>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div>No notebooks</div>
+        }
+    </div>
+}

@@ -1,4 +1,4 @@
-@page "/"
+@page "/home"
 @using Microsoft.EntityFrameworkCore
 @using StoryFort.Models
 @using StoryFort.Components.Layout
@@ -9,6 +9,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject StoryState StoryState
+@inject ReaderHtmlHelper ReaderHtmlHelper
 @rendermode InteractiveServer
 
 <PageTitle>StoryFort - My Bookcase</PageTitle>
@@ -108,9 +109,14 @@ else
                                 </p>
                             </div>
                             <div class="card-footer bg-white border-0 text-end">
-                                <button class="btn btn-outline-primary btn-sm" @onclick="() => OpenStory(story)">
-                                    Open Book
-                                </button>
+                                <div class="d-flex justify-content-end gap-2">
+                                                    <button class="btn btn-outline-primary btn-sm" @onclick="() => OpenStory(story)">
+                                                        Open Book
+                                                    </button>
+                                                    <button id="read-btn-@story.Id" class="btn btn-secondary btn-sm" @onclick='() => StartGhostAndRead(story.Id, "read-btn-" + story.Id)'>
+                                                        Read
+                                                    </button>
+                                                </div>
                             </div>
                         </div>
                     </div>
@@ -123,6 +129,11 @@ else
         .story-card { transition: transform 0.2s; }
         .story-card:hover { transform: translateY(-5px); }
     </style>
+
+    @if (ShowReader)
+    {
+        <ReaderModal StoryId="@ReaderStoryId" Content="@ReaderContent" OnClose="CloseReader" />
+    }
 }
 
 @code {
@@ -135,6 +146,93 @@ else
     private DateOnly? DateOfBirth;
     private bool ShowAgeError = false;
     private bool IsButtonDisabled => !DateOfBirth.HasValue;
+
+        // Reader modal state
+        private bool ShowReader = false;
+        private int ReaderStoryId = 0;
+        private string ReaderContent = string.Empty;
+
+        private async Task OpenReader(Story story)
+        {
+            // Load full story content (prefer Story.Content, fall back to concatenated pages)
+            var full = await DbContext.Stories
+                .Include(s => s.Pages)
+                .FirstOrDefaultAsync(s => s.Id == story.Id);
+
+            if (full == null)
+            {
+                return;
+            }
+
+            string raw = string.Empty;
+            if (!string.IsNullOrWhiteSpace(full.Content))
+            {
+                raw = full.Content;
+            }
+            else
+            {
+                raw = string.Join("\n", full.Pages.OrderBy(p => p.PageNumber).Select(p => p.Content));
+            }
+
+            // Parse pinned sentence IDs from story.Metadata if present
+            var pinnedIds = new List<string>();
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(full.Metadata))
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(full.Metadata);
+                    if (doc.RootElement.TryGetProperty("pinnedSentences", out var pinnedElem) && pinnedElem.ValueKind == System.Text.Json.JsonValueKind.Object)
+                    {
+                        foreach (var prop in pinnedElem.EnumerateObject())
+                        {
+                            pinnedIds.Add(prop.Name);
+                        }
+                    }
+                }
+            }
+            catch { /* ignore malformed metadata */ }
+
+            // Pre-wrap HTML with sentence spans and include pinned markers
+            ReaderContent = ReaderHtmlHelper.WrapSentences(raw, pinnedIds);
+
+            ReaderStoryId = full.Id;
+            ShowReader = true;
+            await JS.InvokeVoidAsync("reader.init");
+        }
+
+        private Task CloseReader()
+        {
+            ShowReader = false;
+            ReaderContent = string.Empty;
+            ReaderStoryId = 0;
+            return Task.CompletedTask;
+        }
+
+        // Ghost animation: start from element then callback into OnGhostAnimationComplete
+        private DotNetObjectReference<object>? ghostDotNetRef;
+
+        private async Task StartGhostAndRead(int storyId, string elementId)
+        {
+            // Create a dotnet reference to receive callback
+            ghostDotNetRef?.Dispose();
+            ghostDotNetRef = DotNetObjectReference.Create<object>(this);
+            await JS.InvokeVoidAsync("reader.animateGhostFromElement", elementId, storyId, ghostDotNetRef);
+        }
+
+        [JSInvokable]
+        public async Task OnGhostAnimationComplete(int storyId)
+        {
+            // Find story and open reader (reuse existing OpenReader behavior)
+            var story = await DbContext.Stories.FindAsync(storyId);
+            if (story != null)
+            {
+                await OpenReader(story);
+            }
+
+            ghostDotNetRef?.Dispose();
+            ghostDotNetRef = null;
+            StateHasChanged();
+        }
 
     protected override async Task OnInitializedAsync()
     {

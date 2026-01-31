@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @using StoryFort.Services
+@using StoryFort.Components.Shared
 @inject StoryState StoryState
 @inject IJSRuntime JS
 @implements IDisposable
@@ -47,6 +48,9 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">??</span>
 </div>
+
+@* Global toast container *@
+<ToastContainer />
 
 @code {
     protected override void OnInitialized()

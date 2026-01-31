@@ -1,0 +1,53 @@
+@inject StoryFort.Services.ToastService ToastService
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2147483647;">
+    @foreach (var t in toasts)
+    {
+        <div class="toast show align-items-center text-bg-@t.Variant border-0 mb-2" role="status" aria-live="polite">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong>@t.Title</strong>
+                    <div class="small">@t.Message</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" @onclick="() => Dismiss(t.Id)" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<StoryFort.Services.ToastItem> toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnToast += AddToast;
+    }
+
+    private void AddToast(StoryFort.Services.ToastItem t)
+    {
+        toasts.Insert(0, t);
+        StateHasChanged();
+        _ = DismissAfter(t.Id, t.DurationMs);
+    }
+
+    private async Task DismissAfter(string id, int ms)
+    {
+        await Task.Delay(ms);
+        Dismiss(id);
+    }
+
+    private void Dismiss(string id)
+    {
+        var it = toasts.FirstOrDefault(x => x.Id == id);
+        if (it != null)
+        {
+            toasts.Remove(it);
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnToast -= AddToast;
+    }
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personas Index</title>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Roboto:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="personas-common.css">
+    <style>
+        a.persona-card { text-decoration: none; color: inherit; display: block; }
+        .index-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+        .index-intro { max-width: 1100px; margin: 24px auto 12px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-title">Personas Library</div>
+    <p class="index-intro">A collection of business UX infographics sharing a common visual style. Click a card to open the matching HTML.</p>
+
+    <div class="index-grid">
+        <a class="persona-card" href="curious_accelerator_persona.html">
+            <div class="card-header">
+                <div class="name-role">
+                    <h2>The Curious Accelerator</h2>
+                    <span>High-energy, loves the big picture</span>
+                </div>
+                <div class="icon">🚀</div>
+            </div>
+            <div class="quote-box">Fast-moving parent who takes over tasks to speed things up. Design mandates: Co-Pilot Mode, high-frequency interactions.</div>
+        </a>
+
+        <a class="persona-card" href="process_purist_persona.html">
+            <div class="card-header">
+                <div class="name-role">
+                    <h2>The Process Purist</h2>
+                    <span>Values learning through struggle</span>
+                </div>
+                <div class="icon">🧠</div>
+            </div>
+            <div class="quote-box">Prefers the process over shortcuts. Design mandates: Socratic questions, revision history, prompt literacy.</div>
+        </a>
+
+        <a class="persona-card" href="empathy_map.html">
+            <div class="card-header">
+                <div class="name-role">
+                    <h2>The Reluctant Guardian</h2>
+                    <span>The Skeptic</span>
+                </div>
+                <div class="icon">👤</div>
+            </div>
+            <div class="quote-box">Low trust and low tolerance for friction; needs plain language and minimal setup.</div>
+        </a>
+    </div>
+
+</div>
+
+</body>
+</html>

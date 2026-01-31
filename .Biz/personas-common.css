@@ -1,0 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&family=Fira+Code&display=swap');
+
+:root {
+    /* Brand Palette: Hearth & Ink */
+    --bg-board: #F2EAD3; /* Warm Parchment */
+    --canvas-bg: #FCF9F2; /* Lighter sheet for contrast */
+    --ink-color: #1A2B3C; /* Oxford Navy */
+    --muted: #5A6B7C; /* Softened Navy */
+    
+    --accent: #BC6D4F; /* Terracotta Clay */
+    --accent-sage: #7A9A88; /* Cotswold Sage */
+    --accent-spark: #D4AF37; /* Antique Brass */
+    
+    --note-bg: #FFFDF5; /* Creamy white */
+    --note-variant: rgba(188, 109, 79, 0.08); /* Terracotta tint */
+    
+    /* Tactile UI: 2px Borders & Soft Shadows */
+    --card-shadow: 0 4px 12px rgba(26, 43, 60, 0.08);
+    --border-thick: 2px solid var(--ink-color);
+}
+
+/* Global body & layout helpers */
+body {
+    /* UI Typeface: Nunito (Rounded) per spec */
+    font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--bg-board);
+    /* Grain texture (simulated) */
+    background-image: linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px);
+    background-size: 40px 40px;
+    margin: 0;
+    color: var(--ink-color);
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, .header-title {
+    /* Logo Typeface Style: Merriweather */
+    font-family: 'Merriweather', serif;
+}
+
+/* Two container patterns used by the two docs */
+.canvas {
+    max-width: 1200px;
+    width: 100%;
+    background: var(--canvas-bg);
+    padding: 40px;
+    box-shadow: var(--card-shadow), 0 0 0 1px rgba(26, 43, 60, 0.05);
+    border-radius: 8px; /* Slightly squarer than before */
+    position: relative;
+    margin: 40px auto;
+    border: 1px solid rgba(26, 43, 60, 0.1);
+}
+.container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 20px auto;
+}
+
+/* Header styles */
+.header, .header-title {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.header h1, .header-title { 
+    text-transform: none; /* Merriweather looks better normal/small-caps */
+    letter-spacing: 0.5px; 
+    font-size: 2.2rem; 
+    margin: 0 0 10px 0; 
+    color: var(--ink-color);
+}
+.header p { color: var(--muted); font-family: 'Nunito', sans-serif; }
+
+.persona-badge { 
+    background: var(--accent); 
+    color: white; 
+    padding: 6px 18px; 
+    border-radius: 20px; 
+    font-weight: 700; 
+    font-family: 'Nunito', sans-serif;
+    display: inline-block; 
+    box-shadow: 0 2px 4px rgba(188, 109, 79, 0.3); 
+}
+
+/* Grid used by both files */
+.grid-container, .persona-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 40px;
+}
+
+.center-anchor { 
+    position: absolute; 
+    left: 50%; top: 50%; 
+    transform: translate(-50%, -50%); 
+    background: var(--bg-board); 
+    width: 90px; height: 90px; 
+    border-radius: 50%; 
+    display:flex; align-items:center; justify-content:center; 
+    font-size: 3rem; 
+    color: var(--ink-color);
+    box-shadow: 0 0 0 8px var(--canvas-bg), 0 0 0 10px var(--ink-color);
+    z-index:10; 
+}
+
+/* Quadrants and sticky notes */
+.quadrant { padding: 10px; }
+.quadrant h2 { 
+    font-size: 1.1rem; 
+    text-transform: uppercase; 
+    letter-spacing: 1px;
+    color: var(--accent); 
+    border-left: 4px solid var(--ink-color); 
+    padding-left: 12px; 
+    margin-bottom: 25px; 
+    font-weight: 900;
+}
+.sticky-note {
+    /* Use 'Handwritten' feel or clean Nunito */
+    font-family: 'Nunito', sans-serif; 
+    background-color: var(--note-bg);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 2px 3px 0 rgba(26,43,60,0.1); /* Tactile offset shadow */
+    border: 1px solid rgba(26,43,60,0.08);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    transform: rotate(-0.5deg);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    border-radius: 2px;
+}
+.sticky-note:nth-child(even) { transform: rotate(0.5deg); }
+.sticky-note:hover { transform: scale(1.01) rotate(0); z-index:5; box-shadow: 4px 6px 0 rgba(26,43,60,0.15); }
+.code-snippet { font-family: 'Fira Code', monospace; font-size: 0.9rem; border-left: 3px solid var(--accent-sage); padding-left: 10px; background: rgba(255,255,255,0.5); }
+
+.q-says .sticky-note { border-top: 3px solid var(--accent); }
+.q-thinks .sticky-note { border-top: 3px solid var(--accent-spark); }
+.q-does .sticky-note { border-top: 3px solid var(--accent-sage); }
+.q-feels .sticky-note { border-top: 3px solid var(--ink-color); }
+
+/* Insights section shared look */
+.insights-section { 
+    background: #fff; /* White insert on parchment */
+    border-radius: 8px; 
+    padding: 30px; 
+    border: 2px solid var(--ink-color); 
+    box-shadow: 4px 4px 0 rgba(26,43,60,0.1);
+}
+.insights-title { 
+    font-family: 'Merriweather', serif;
+    font-weight: 900; 
+    margin-bottom: 20px; 
+    font-size: 1.4rem; 
+    display:flex; align-items:center; gap:12px; 
+    color: var(--ink-color); 
+}
+.insight-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+.insight-card { 
+    background: var(--bg-board); /* Parchment card inside white section */
+    padding: 20px; 
+    border-radius: 6px; 
+    border-left: 4px solid var(--accent); 
+    box-shadow: none;
+}
+.insight-card h4 { 
+    font-family: 'Merriweather', serif;
+    margin: 0 0 10px 0; 
+    color: var(--ink-color); 
+    font-size: 1.1rem; 
+    font-weight: 700;
+}
+.insight-card p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+/* Persona cards (from second file) */
+.persona-card { 
+    background: var(--canvas-bg); 
+    border-radius: 8px; 
+    box-shadow: 0 4px 10px rgba(26,43,60,0.05); 
+    padding: 24px; 
+    display:flex; flex-direction:column; 
+    border: 2px solid var(--ink-color); /* "Card Style: Oxford Navy stroke (2px)" */
+    transition: transform 0.18s ease; 
+}
+.persona-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(26,43,60,0.1); }
+.card-header { 
+    display:flex; justify-content:space-between; align-items:center; 
+    margin-bottom:12px; padding-bottom:12px; 
+    border-bottom: 1px dashed rgba(26,43,60,0.2); 
+}
+.name-role h2 { margin:0; font-size:1.4rem; font-weight:900; color: var(--ink-color); }
+.name-role span { font-size:0.85rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; color:var(--accent); font-family: 'Nunito', sans-serif;}
+.icon { font-size:1.8rem; }
+.quote-box { 
+    font-family: 'Merriweather', serif;
+    font-style:italic; 
+    color: var(--ink-color); 
+    background: var(--note-bg); 
+    padding: 16px; 
+    border-radius: 4px; 
+    margin-bottom: 18px; 
+    position: relative; 
+    border-left: 2px solid var(--accent-spark);
+}
+.quote-box::before { content: "\201C"; font-size:3rem; position:absolute; top:-10px; right:10px; left: auto; opacity:0.1; color: var(--accent); }
+
+/* Reuse grid and font settings from new system */
+.insights { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:auto; }
+.insight-block h4 { margin:0 0 5px 0; font-size:0.8rem; text-transform:uppercase; color:var(--muted); font-weight: 700; }
+.insight-block p { margin:0; font-size:0.95rem; line-height:1.4; font-weight:600; color: var(--ink-color); }
+.tag { display:inline-block; padding:4px 10px; border-radius:12px; font-size:0.75rem; color:white; font-weight:bold; margin-top:8px; background-color: var(--ink-color); }
+
+/* Persona Specific borders if needed, but keeping unified for now, or subtle */
+.card-sarah { border-top: 6px solid var(--accent); }
+.card-david { border-top: 6px solid var(--ink-color); }
+.card-elena { border-top: 6px solid var(--accent-spark); }
+.card-marcus { border-top: 6px solid var(--accent-sage); }
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .grid-container, .persona-grid { grid-template-columns: 1fr; gap: 30px; }
+    .center-anchor { display: none; }
+    .canvas { padding: 20px; }
+}
+
+/* Utility */
+.w-100 { width: 100%; }
