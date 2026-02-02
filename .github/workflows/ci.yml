@@ -35,8 +35,8 @@ jobs:
       - name: Build
         run: dotnet build StoryFort/StoryFort.csproj --configuration Release --no-restore
 
-      - name: Test - Unit
-        run: dotnet test StoryFort.Tests.Unit/StoryFort.Tests.Unit.csproj --no-build --verbosity normal
+      - name: Test - Unit (with coverage)
+        run: dotnet test StoryFort.Tests.Unit/StoryFort.Tests.Unit.csproj --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults/Unit
 
       - name: EF Core version check
         run: |
@@ -57,5 +57,18 @@ jobs:
           fi
         shell: bash
 
-      - name: Test - Integration
-        run: dotnet test StoryFort.Tests.Integration/StoryFort.Tests.Integration.csproj --no-build --verbosity normal
+      - name: Test - Integration (with coverage)
+        run: dotnet test StoryFort.Tests.Integration/StoryFort.Tests.Integration.csproj --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults/Integration
+
+      - name: Generate merged coverage report
+        uses: dpa99c/reportgenerator-action@v3
+        with:
+          reports: './TestResults/**/coverage.cobertura.xml'
+          targetdir: './TestResults/CoverageReport'
+          reporttypes: 'Html'
+
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: TestResults/CoverageReport
