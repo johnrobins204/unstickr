@@ -9,11 +9,12 @@ using Serilog;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 
-// 1. Setup Serilog ASAP
+// 1. Setup Serilog ASAP with redaction enricher
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("logs/StoryFort-.txt", rollingInterval: RollingInterval.Day)
     .Enrich.FromLogContext()
+    .Enrich.With(new RedactEnricher())
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,15 +34,35 @@ builder.Services.AddScoped<CircuitHandler, UserCircuitHandler>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=StoryFort.db"));
 
+// Data Protection for API key encryption
+builder.Services.AddDataProtection();
+builder.Services.AddSingleton<IApiKeyProtector, ApiKeyProtector>();
+builder.Services.AddSingleton<IStoryContentProtector, StoryContentProtector>();
+// Bind prompt options
+builder.Services.Configure<SparkPromptOptions>(builder.Configuration.GetSection("Prompts:Spark"));
+builder.Services.Configure<SafeguardOptions>(builder.Configuration.GetSection("Safeguards"));
+
 // State Management
-builder.Services.AddScoped<StoryState>();
+builder.Services.AddScoped<SessionState>();
+builder.Services.AddScoped<StoryContext>();
+builder.Services.AddScoped<StoryPersistenceService>();
 builder.Services.AddSingleton<ArchetypeService>();
 builder.Services.AddSingleton<TextTokenizer>();
 builder.Services.AddScoped<TutorOrchestrator>();
 builder.Services.AddScoped<ICohereTutorService, CohereTutorService>();
 builder.Services.AddScoped<SparkPromptStrategy>();
 builder.Services.AddScoped<ReviewPromptStrategy>();
+// Default IPromptStrategy implementation
+builder.Services.AddScoped<IPromptStrategy, SparkPromptStrategy>();
 builder.Services.AddScoped<ISafeguardService, SafeguardService>();
+// Theme persistence service
+builder.Services.AddScoped<ThemeService>();
+// Tutor session service (extracted from StoryState)
+builder.Services.AddScoped<TutorSessionService>();
+// Prompt repository for loading prompt templates from disk (Prompts/)
+builder.Services.AddSingleton<PromptRepository>();
+// Prompt templating service
+builder.Services.AddSingleton<IPromptService, PromptService>();
 // Reader helper service
 builder.Services.AddSingleton<ReaderHtmlHelper>();
 // Library Seeder
@@ -57,10 +78,10 @@ builder.Services.AddHttpClient("LLM", client =>
     client.Timeout = TimeSpan.FromMinutes(5); // LLMs can be slow
 });
 
-// Database (Future To-Do: AddDbContext<AppDbContext>(...))
-// builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=StoryFort.db"));
-
 var app = builder.Build();
+
+// Initialize static encryption provider for EF Core Value Converters
+StoryFort.Services.StoryEncryptionProvider.Protector = app.Services.GetRequiredService<StoryFort.Services.IStoryContentProtector>();
 
 // Minimal API for reader pinning + notebook lookup
 // Move API endpoints to dedicated mapping extensions
@@ -115,4 +136,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+// Expose Program for WebApplicationFactory in integration tests
+public partial class Program { }
 

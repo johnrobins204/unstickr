@@ -1,11 +1,12 @@
 @inherits LayoutComponentBase
 @using StoryFort.Services
 @using StoryFort.Components.Shared
-@inject StoryState StoryState
+@inject SessionState Session
+@inject StoryContext StoryContext
 @inject IJSRuntime JS
 @implements IDisposable
 
-<div class="h-screen flex @(StoryState.ThemePreference.FontClass) antialiased relative">
+<div class="h-screen flex @(Session.ThemePreference.FontClass) antialiased relative">
     <!-- Pixel grid background -->
     <div class="pixel-grid"></div>
     <!-- Sidebar -->
@@ -55,15 +56,16 @@
 @code {
     protected override void OnInitialized()
     {
-        StoryState.OnChange += StateHasChanged;
+        // Subscribe to session-level changes for UI updates
+        Session.OnChange += StateHasChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && StoryState.ThemePreference != null)
+        if (firstRender && Session.ThemePreference != null)
         {
             // Re-apply persisted CSS variables on hard refresh
-            var p = StoryState.ThemePreference;
+            var p = Session.ThemePreference;
             if (!string.IsNullOrEmpty(p.Background)) await JS.InvokeVoidAsync("setCssVariable", "--background", p.Background);
             if (!string.IsNullOrEmpty(p.Foreground)) await JS.InvokeVoidAsync("setCssVariable", "--foreground", p.Foreground);
             if (!string.IsNullOrEmpty(p.Primary)) await JS.InvokeVoidAsync("setCssVariable", "--primary", p.Primary);
@@ -75,7 +77,7 @@
 
     public void Dispose()
     {
-        StoryState.OnChange -= StateHasChanged;
+        Session.OnChange -= StateHasChanged;
     }
 
     // Breadcrumbs Logic

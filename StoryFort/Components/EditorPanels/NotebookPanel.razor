@@ -4,7 +4,9 @@
 @using StoryFort.Data
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext DbContext
-@inject StoryState StoryState
+@inject StoryContext StoryContext
+@inject SessionState SessionState
+@inject StoryPersistenceService Persistence
 @inject IJSRuntime JS
 
 <div class="p-3 h-100 d-flex flex-column">
@@ -40,9 +42,9 @@
 
         <!-- List of Notebooks -->
         <div class="list-group list-group-flush flex-grow-1 overflow-auto">
-            @if (StoryState.Notebooks != null)
+            @if (SessionState.Notebooks != null)
             {
-                @foreach (var nb in StoryState.Notebooks)
+                @foreach (var nb in SessionState.Notebooks)
                 {
                     <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
                         <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3 d-flex justify-content-between align-items-center"
@@ -102,7 +104,7 @@
         <div class="list-group flex-grow-1 overflow-auto">
             @foreach (var entity in SelectedNotebook.Entities)
             {
-                var isLinked = StoryState.LinkedEntityIds.Contains(entity.Id);
+                var isLinked = StoryContext.LinkedEntityIds.Contains(entity.Id);
                 <div class="list-group-item list-group-item-action p-0 d-flex group-action-row">
                     <button class="btn btn-link text-decoration-none flex-grow-1 text-start text-reset p-3" 
                             @onclick="() => SelectedEntity = entity">
@@ -257,7 +259,7 @@
         DbContext.Notebooks.Add(newNotebook);
         await DbContext.SaveChangesAsync();
 
-        StoryState.Notebooks.Add(newNotebook);
+        SessionState.Notebooks.Add(newNotebook);
         IsCreatingNotebook = false;
         NewNotebookTypeId = 0;
         CustomNotebookName = "";
@@ -285,7 +287,7 @@
             };
             DbContext.StoryEntityLinks.Add(link);
             await DbContext.SaveChangesAsync();
-            StoryState.LinkedEntityIds.Add(newEntity.Id);
+            StoryContext.LinkedEntityIds.Add(newEntity.Id);
         }
 
         if (!SelectedNotebook.Entities.Contains(newEntity))
@@ -299,7 +301,7 @@
 
     private async Task ToggleEntityLink(NotebookEntity entity)
     {
-        if (StoryState.LinkedEntityIds.Contains(entity.Id))
+        if (StoryContext.LinkedEntityIds.Contains(entity.Id))
         {
             var link = await DbContext.StoryEntityLinks
                 .FirstOrDefaultAsync(l => l.StoryId == StoryId && l.NotebookEntityId == entity.Id);
@@ -309,7 +311,7 @@
                 DbContext.StoryEntityLinks.Remove(link);
                 await DbContext.SaveChangesAsync();
             }
-            StoryState.LinkedEntityIds.Remove(entity.Id);
+            StoryContext.LinkedEntityIds.Remove(entity.Id);
         }
         else
         {
@@ -320,7 +322,7 @@
             };
             DbContext.StoryEntityLinks.Add(link);
             await DbContext.SaveChangesAsync();
-            StoryState.LinkedEntityIds.Add(entity.Id);
+            StoryContext.LinkedEntityIds.Add(entity.Id);
         }
     }
 
@@ -355,7 +357,7 @@
 
         DbContext.Notebooks.Remove(nb);
         await DbContext.SaveChangesAsync();
-        StoryState.Notebooks.Remove(nb);
+        SessionState.Notebooks.Remove(nb);
         
         if (SelectedNotebook == nb)
         {
@@ -388,9 +390,9 @@
             SelectedNotebook.Entities.Remove(entity);
         }
         
-        if (StoryState.LinkedEntityIds.Contains(entity.Id))
+        if (StoryContext.LinkedEntityIds.Contains(entity.Id))
         {
-            StoryState.LinkedEntityIds.Remove(entity.Id);
+            StoryContext.LinkedEntityIds.Remove(entity.Id);
         }
 
         if (SelectedEntity == entity)
@@ -405,8 +407,7 @@
         if (!string.IsNullOrWhiteSpace(newName) && newName != entity.Name)
         {
             entity.Name = newName;
-            DbContext.NotebookEntities.Update(entity);
-            await DbContext.SaveChangesAsync();
+            await Persistence.UpdateEntityAsync(entity);
         }
     }
 }

@@ -148,23 +148,25 @@ The data model centers around the `Account` (User Context) and `Story` (Creative
 - **NotebookEntity** (1) ---- (N) **NotebookEntry** (Notes, Lore)
 
 ### 5.2 Key Data Attributes
-- **Story.Content**: Stores the raw HTML of the story. *Note: We recently migrated from a Page-based model to a continuous scroll model.*
+- **Story.Content**: Stores the raw HTML of the story as a single continuous document.
 - **NotebookEntity.Metadata**: A flexible JSON blob allowing users to define custom attributes (e.g., "Strength", "Home Planet") without schema migrations. Suggests a future move to a Document-based approach for some features if complexity grows.
+
+**Migration Note (2026-01):** The `StoryPage` entity is retained in the database schema for historical migration compatibility but is no longer actively used. All story content is now stored in `Story.Content` as a continuous HTML document. The page-based model was replaced with a single-scroll editor experience.
 
 ---
 
 ## 6. Gap Analysis (Current Code vs. Target Architecture)
 
-This section highlights discrepancies between the documented architecture and the codebase as of Jan 24, 2026.
+This section highlights discrepancies between the documented architecture and the codebase as of Feb 1, 2026.
 
 | ID | Feature | Target State | Current State | Risk Level |
 |----|---------|--------------|---------------|------------|
-| G-01 | **Teacher Gate** | Sensitive settings protected by PIN/Challenge. | Settings are openly accessible. | **High** |
-| G-02 | **Input Guardrails** | "Bad Word" regex filter on AI inputs. | No filtering implemented. | **Med** |
+| G-01 | **Teacher Gate** | Sensitive settings protected by PIN/Challenge. | ✅ **Resolved** - Implemented in Settings.razor with 4-digit PIN gate (lines 32-57). API keys and account settings locked behind supervisor unlock. | **Closed** |
+| G-02 | **Input Guardrails** | "Bad Word" regex filter on AI inputs. | 🚧 **In Progress** - Being implemented in SafeguardService with configurable banned word patterns. | **Med** |
 | G-03 | **Age Gating** | Onboarding calculates age for themes. | Onboarding UI exists but logic checks are minimal. | **Low** |
 | G-04 | **Assignment Mode** | "Curriculum Workflow" & Split-view Assignments. | Not started. | **Feature Gap** |
-| G-05 | **Cohere Integration** | HttpClient targeting `api.cohere.com`. | Code is updated to target Cohere, but `Gap Analysis` row retained until E2E verified. | **InProgress** |
-| G-06 | **Automated Tests** | Full pyramid (Unit/Int/E2E). | Scaffolding exists, coverage is 0%. | **High** |
+| G-05 | **Cohere Integration** | HttpClient targeting `api.cohere.com`. | ✅ **Resolved** - Named HttpClient "LLM" configured (Program.cs:75-79). CohereTutorService integrated with TutorOrchestrator. | **Closed** |
+| G-06 | **Automated Tests** | Full pyramid (Unit/Int/E2E). | ✅ **Strong Coverage** - 18 tests passing across 3 test projects. Line coverage: 79% (10,868/13,744 lines). Core services well-tested: SafeguardService (71.4%), TutorOrchestrator (71.4%), StoryPersistenceService (84.9%), ApiKeyProtector (76.9%). | **Resolved** |
 
 ---
 
@@ -273,6 +275,6 @@ sequenceDiagram
 
 ### 13.2 Key Architectural Patterns
 1.  **Late Binding of Context**: We do not bake user details into the HttpClient. The TutorOrchestrator injects Age, Genre, and Archetype at the *moment of request*, ensuring the AI adapts immediately if settings change.
-2.  **Strategy Pattern (Future)**: Currently functional, the roadmap calls for refactoring prompt generation into IPromptStrategy implementations (e.g., SparkStrategy, ReviewStrategy), allowing the Orchestrator to switch behavior polymorphically based on StoryState.CurrentMode.
+2.  **Strategy Pattern (Implemented)**: Prompt generation uses the `IPromptStrategy` interface with concrete implementations (`SparkPromptStrategy`, `ReviewPromptStrategy`), allowing the `TutorOrchestrator` to switch behavior polymorphically based on `StoryContext.CurrentMode`. Both strategies are registered in Program.cs and injected into the orchestrator constructor.
 3.  **The "Context Window" Management**: To maintain speed and lower costs, we only send the *relevant tail* of the story (last ~4-6 paragraphs) rather than the full manuscript, unless a specific "Whole Story Review" is requested.
 

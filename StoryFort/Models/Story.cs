@@ -1,3 +1,7 @@
+using System.Text.Json;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace StoryFort.Models;
 
 public class Story
@@ -18,5 +22,25 @@ public class Story
     public string Genre { get; set; } = "General";
     // Flexible story metadata (MVP)
     public string Metadata { get; set; } = "{}";
+
+    [NotMapped]
+    public Dictionary<string, JsonElement> MetadataMap
+    {
+        get
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Metadata) ?? new Dictionary<string, JsonElement>();
+            }
+            catch
+            {
+                return new Dictionary<string, JsonElement>();
+            }
+        }
+        set
+        {
+            Metadata = JsonSerializer.Serialize(value);
+        }
+    }
 }
 

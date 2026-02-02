@@ -8,7 +8,7 @@
 @inject AppDbContext DbContext
 @inject NavigationManager Nav
 @inject IJSRuntime JS
-@inject StoryState StoryState
+@inject StoryContext StoryContext
 @inject ReaderHtmlHelper ReaderHtmlHelper
 @rendermode InteractiveServer
 
@@ -307,8 +307,8 @@ else
         Log.Information("Created new Story Id: {StoryId} via Quick Onboarding", newStory.Id);
 
         // 4. Update In-Memory State
-        StoryState.Title = newStory.Title;
-        StoryState.Content = initialContent;    
+        StoryContext.Title = newStory.Title;
+        StoryContext.Content = initialContent;    
         
         // 5. Navigate to Editor
         Nav.NavigateTo($"/editor/{newStory.Id}");

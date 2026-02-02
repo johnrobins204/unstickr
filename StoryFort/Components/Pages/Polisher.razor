@@ -1,17 +1,17 @@
 @page "/polish/{StoryId:int}"
 @using StoryFort.Services
-@inject StoryState StoryState
+@inject StoryContext StoryContext
 @inject TextTokenizer Tokenizer
 
 <div class="polishing-station" style="display:flex;gap:2em;align-items:flex-start;">
     <div style="flex:3;">
         <h2>The Polishing Station</h2>
         <div class="edit-area">
-            @if (StoryState.ReviewTokens != null)
+            @if (StoryContext.ReviewTokens != null)
             {
-                foreach (var token in StoryState.ReviewTokens)
+                foreach (var token in StoryContext.ReviewTokens)
                 {
-                    var isFlagged = StoryState.ReviewFlags?.Any(f => f.TokenIndex == token.Index && !f.IsResolved) ?? false;
+                    var isFlagged = StoryContext.ReviewFlags?.Any(f => f.TokenIndex == token.Index && !f.IsResolved) ?? false;
                     var highlight = HighlightedTokenIndex == token.Index;
                     <span class="edit-token @(isFlagged ? "flagged" : null) @(highlight ? "highlighted" : null)" 
                           data-index="@token.Index" 
@@ -66,7 +66,7 @@
 
     private int? HighlightedTokenIndex = null;
     private bool ShowModal = false;
-    private bool AllFlagsResolved => (StoryState.ReviewFlags?.All(f => f.IsResolved) ?? true) && (StoryState.ReviewFlags?.Count > 0);
+    private bool AllFlagsResolved => (StoryContext.ReviewFlags?.All(f => f.IsResolved) ?? true) && (StoryContext.ReviewFlags?.Count > 0);
     private bool ShowPopover = false;
     private ReviewToken? SelectedToken;
     private ReviewFlag? ActiveFlag;
@@ -75,9 +75,9 @@
 
     protected override void OnInitialized()
     {
-        if (StoryState.ReviewTokens == null)
+        if (StoryContext.ReviewTokens == null)
         {
-            StoryState.ReviewTokens = Tokenizer.TokenizeHtml(StoryState.Content)
+            StoryContext.ReviewTokens = Tokenizer.TokenizeHtml(StoryContext.Content)
                 .Select(t => new ReviewToken {
                     Index = t.Index,
                     Text = t.Text,
@@ -85,8 +85,8 @@
                     IsPunctuation = t.IsPunctuation
                 }).ToList();
         }
-        if (StoryState.ReviewFlags == null)
-            StoryState.ReviewFlags = new List<ReviewFlag>();
+        if (StoryContext.ReviewFlags == null)
+            StoryContext.ReviewFlags = new List<ReviewFlag>();
     }
 
     private void ShowSuccessModal()
@@ -105,7 +105,7 @@
     {
         HighlightedTokenIndex = tokenIndex;
         // Scroll logic or just highlight
-        var token = StoryState.ReviewTokens?.FirstOrDefault(t => t.Index == tokenIndex);
+        var token = StoryContext.ReviewTokens?.FirstOrDefault(t => t.Index == tokenIndex);
         if (token != null)
         {
              // Trigger edit mode for that token
@@ -118,7 +118,7 @@
     private void OnTokenClick(ReviewToken token)
     {
         // Check if there's a flag for this token
-        var flag = StoryState.ReviewFlags?.FirstOrDefault(f => f.TokenIndex == token.Index && !f.IsResolved);
+        var flag = StoryContext.ReviewFlags?.FirstOrDefault(f => f.TokenIndex == token.Index && !f.IsResolved);
         if (flag != null)
         {
             SelectedToken = token;
@@ -157,7 +157,7 @@
             ActiveFlag.IsResolved = true;
             
             // 3. Patch the canonical HTML
-            StoryState.Content = Tokenizer.PatchHtml(StoryState.Content, SelectedToken.Index, EditValue);
+            StoryContext.Content = Tokenizer.PatchHtml(StoryContext.Content, SelectedToken.Index, EditValue);
             
             ClosePopover();
             StateHasChanged();

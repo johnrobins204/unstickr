@@ -1,5 +1,5 @@
 @using StoryFort.Services
-@inject StoryState StoryState
+@inject StoryContext StoryContext
 
 <div class="p-6 border-b-4 border-[var(--sidebar-border)] flex flex-col items-center gap-2">
     <img src="/images/story_fort_logo.png" alt="Story Fort Logo" style="width: 64px; height: 64px; object-fit: contain; margin-bottom: 0.5rem;" />
@@ -12,7 +12,7 @@
         <div class="font-bold text-xs text-[var(--sidebar-foreground)] mb-1 tracking-widest">Writing Desk</div>
         <ul class="space-y-1 ml-2">
             <li>
-                <NavLink href="@($"planner/{(StoryState?.StoryId > 0 ? StoryState.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-2 px-3 py-2 border-[var(--sidebar-border)] text-left" ActiveClass="active" aria-label="Map Room">
+                <NavLink href="@($"planner/{(StoryContext?.StoryId > 0 ? StoryContext.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-2 px-3 py-2 border-[var(--sidebar-border)] text-left" ActiveClass="active" aria-label="Map Room">
                     <i data-lucide="map" class="size-4 shrink-0"></i>
                     <span class="text-xs">Map Room</span>
                 </NavLink>
@@ -24,13 +24,13 @@
                 </NavLink>
             </li>
             <li>
-                <NavLink href="@($"review/{(StoryState?.StoryId > 0 ? StoryState.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-2 px-3 py-2 border-[var(--sidebar-border)] text-left" ActiveClass="active" aria-label="Lantern">
+                <NavLink href="@($"review/{(StoryContext?.StoryId > 0 ? StoryContext.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-2 px-3 py-2 border-[var(--sidebar-border)] text-left" ActiveClass="active" aria-label="Lantern">
                     <i data-lucide="search" class="size-4 shrink-0"></i>
                     <span class="text-xs">Lantern</span>
                 </NavLink>
             </li>
             <li>
-                <NavLink href="@($"polish/{(StoryState?.StoryId > 0 ? StoryState.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-2 px-3 py-2 border-[var(--sidebar-border)] text-left" ActiveClass="active" aria-label="Polishing Station">
+                <NavLink href="@($"polish/{(StoryContext?.StoryId > 0 ? StoryContext.StoryId : 1)}")" class="sidebar-btn w-full flex items-center gap-2 px-3 py-2 border-[var(--sidebar-border)] text-left" ActiveClass="active" aria-label="Polishing Station">
                     <i data-lucide="sparkles" class="size-4 shrink-0"></i>
                     <span class="text-xs">Polishing Station</span>
                 </NavLink>

@@ -11,7 +11,10 @@
 <div class="p-6 font-mono text-xs h-screen flex flex-col">
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-xl font-bold">🔧 Utilitarian Admin</h1>
-        <div class="text-gray-500">Warning: No Undo Button</div>
+        <div class="flex items-center gap-3">
+            <button class="bg-indigo-600 text-white px-3 py-1 rounded" @onclick='() => Nav.NavigateTo("/admin/api-key")'>Manage API Key</button>
+            <div class="text-gray-500">Warning: No Undo Button</div>
+        </div>
     </div>
     
     <!-- Table Selector -->

@@ -1,7 +1,8 @@
 @page "/design"
 @rendermode InteractiveServer
 @inject IJSRuntime JS
-@inject StoryFort.Services.StoryState StoryState
+@inject StoryFort.Services.SessionState Session
+@inject StoryFort.Services.StoryContext StoryContext
 
 <PageTitle>StoryFort - Design Lab</PageTitle>
 
@@ -106,20 +107,20 @@
     protected override async Task OnInitializedAsync()
     {
         // Load existing preference from state if available
-        var pref = StoryState.ThemePreference;
+        var pref = Session.ThemePreference;
         if (pref != null)
         {
             // AUTO-MIGRATE: Check for "Legacy" default colors (Chocolate/Cream) and treat them as null/new default
             // This fixes the issue where existing users are "stuck" on the old theme because it was saved explicitly.
             if (pref.Primary == "#8b4513" || pref.Background == "#f5ebe0") 
             {
-                StoryState.UpdateThemePreference(tp => {
+                Session.UpdateThemePreference(tp => {
                     if (tp.Background == "#f5ebe0") tp.Background = null;
                     if (tp.Foreground == "#2d1b00") tp.Foreground = null;
                     if (tp.Primary == "#8b4513") tp.Primary = null;
                     if (tp.Card == "#fff9ec") tp.Card = null;
                 });
-                pref = StoryState.ThemePreference; // Refresh local ref
+                pref = Session.ThemePreference; // Refresh local ref
             }
 
            // If all theme values are default/null, treat as not custom
@@ -156,7 +157,7 @@
             UpdateColorOption("--foreground", "#1A2B3C");
             UpdateColorOption("--primary", "#BC6D4F");
             UpdateColorOption("--card", "#F2EAD3");
-            StoryState.UpdateThemePreference(tp =>
+            Session.UpdateThemePreference(tp =>
             {
                 tp.Background = null;
                 tp.Foreground = null;
@@ -169,7 +170,7 @@
         else
         {
             // Re-apply custom theme from state
-            var pref = StoryState.ThemePreference;
+            var pref = Session.ThemePreference;
             if (pref != null)
             {
                 if (!string.IsNullOrEmpty(pref.Background)) await JS.InvokeVoidAsync("setCssVariable", "--background", pref.Background);
@@ -204,7 +205,7 @@
             // Update Local State for Binding
             UpdateColorOption(variable, value);
 
-            StoryState.UpdateThemePreference(tp =>
+                Session.UpdateThemePreference(tp =>
             {
                 switch (variable)
                 {
@@ -222,7 +223,7 @@
         if (!string.IsNullOrWhiteSpace(fontClass))
         {
             await JS.InvokeVoidAsync("setBodyClass", $"h-screen flex {fontClass}");
-            StoryState.UpdateThemePreference(tp => tp.FontClass = fontClass);
+            Session.UpdateThemePreference(tp => tp.FontClass = fontClass, StoryContext.Account);
         }
     }
     private async Task OnFontSizeChange(ChangeEventArgs e)
@@ -231,13 +232,13 @@
         {
             FontSize = size;
             await JS.InvokeVoidAsync("setCssVariable", "--font-size", $"{size}px");
-            StoryState.UpdateThemePreference(tp => tp.FontSize = size);
+            Session.UpdateThemePreference(tp => tp.FontSize = size, StoryContext.Account);
         }
     }
     private async Task OnRadiusChange(string radius)
     {
         await JS.InvokeVoidAsync("setCssVariable", "--radius", radius);
-        StoryState.UpdateThemePreference(tp => tp.Radius = radius);
+        Session.UpdateThemePreference(tp => tp.Radius = radius, StoryContext.Account);
     }
 }
 

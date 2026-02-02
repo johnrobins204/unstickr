@@ -1,0 +1,44 @@
+@page "/admin/api-key"
+@inject HttpClient Http
+
+<h3>Manage Cohere API Key</h3>
+
+<div class="mb-3">
+    <label for="keyInput" class="form-label">Cohere API Key</label>
+    <input id="keyInput" class="form-control" @bind="Key" />
+ </div>
+
+<div class="mb-3 form-check">
+    <input type="checkbox" class="form-check-input" id="archiveOld" @bind="ArchiveOld" />
+    <label class="form-check-label" for="archiveOld">Archive previous key</label>
+</div>
+
+<button class="btn btn-primary" @onclick="SubmitKey">Save Key</button>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert alert-info mt-3">@Message</div>
+}
+
+@code {
+    private string Key { get; set; } = string.Empty;
+    private bool ArchiveOld { get; set; } = true;
+    private string Message { get; set; } = string.Empty;
+
+    private async Task SubmitKey()
+    {
+        Message = "Saving...";
+        var payload = new { key = Key, archiveOld = ArchiveOld };
+        var resp = await Http.PostAsJsonAsync($"/api/accounts/1/cohere-key", payload);
+        if (resp.IsSuccessStatusCode)
+        {
+            Message = "Key saved (protected) successfully.";
+            Key = string.Empty;
+        }
+        else
+        {
+            var text = await resp.Content.ReadAsStringAsync();
+            Message = $"Save failed: {resp.StatusCode} - {text}";
+        }
+    }
+}

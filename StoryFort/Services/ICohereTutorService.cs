@@ -15,15 +15,24 @@ public interface ICohereTutorService
 public class CohereTutorService : ICohereTutorService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    public CohereTutorService(IHttpClientFactory httpClientFactory)
+    private readonly IApiKeyProtector _protector;
+
+    public CohereTutorService(IHttpClientFactory httpClientFactory, IApiKeyProtector protector)
     {
         _httpClientFactory = httpClientFactory;
+        _protector = protector;
     }
 
     public async Task<string> GetSocraticPromptAsync(string prompt, Account account, bool useReasoningModel)
     {
         var client = _httpClientFactory.CreateClient("LLM");
-        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", account.CohereApiKey);
+        var key = account?.ProtectedCohereApiKey is string p && !string.IsNullOrEmpty(p)
+            ? _protector.Unprotect(p)
+            : string.Empty;
+
+        if (!string.IsNullOrEmpty(key))
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", key);
+
         var endpoint = useReasoningModel ? "v1/chat" : "v1/generate";
         object payload = useReasoningModel
             ? new { message = prompt, model = "command-r-plus" }

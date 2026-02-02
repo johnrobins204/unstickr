@@ -2,8 +2,10 @@
 @using Microsoft.EntityFrameworkCore
 @using StoryFort.Models
 @using StoryFort.Data
+@using StoryFort.Services
 @inject AppDbContext DbContext
 @inject NavigationManager Nav
+@inject IApiKeyProtector ApiKeyProtector
 @rendermode InteractiveServer
 
 <PageTitle>StoryFort - Settings</PageTitle>
@@ -82,7 +84,7 @@
                                 <label class="form-label fw-bold">Cohere API Key</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-key"></i></span>
-                                    <input type="text" class="form-control" @bind="Account.CohereApiKey" placeholder="sk-..." />
+                                    <input type="text" class="form-control" @bind="PlaintextApiKey" placeholder="sk-..." />
                                 </div>
                                 <div class="form-text">Your Cohere API key (kept private, required for AI features).</div>
                             </div>
@@ -113,10 +115,12 @@
     }
 </div>
 
+@using Serilog
 @code {
     private Account? Account;
     private bool IsLoading = true;
     private string StatusMessage = "";
+    private string PlaintextApiKey = "";
 
     // Teacher Gate State
     private bool IsTeacherGatePassed = false;
@@ -133,14 +137,18 @@
             if (Account == null)
             {
                 // Fallback / Self-Heal
-                Account = new Account { Id = 1, Name = "Writer", CohereApiKey = string.Empty, UseReasoningModel = true };
+                Account = new Account { Id = 1, Name = "Writer", UseReasoningModel = true };
                 DbContext.Accounts.Add(Account);
                 await DbContext.SaveChangesAsync();
+            }
+            else if (!string.IsNullOrEmpty(Account.ProtectedCohereApiKey))
+            {
+                PlaintextApiKey = "********";
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading settings: {ex.Message}");
+            Log.Error(ex, "Error loading settings for Settings page");
         }
         finally
         {
@@ -168,16 +176,22 @@
 
         try
         {
+            if (!string.IsNullOrEmpty(PlaintextApiKey) && PlaintextApiKey != "********")
+            {
+                Account.ProtectedCohereApiKey = ApiKeyProtector.Protect(PlaintextApiKey);
+            }
+
             DbContext.Accounts.Update(Account);
             await DbContext.SaveChangesAsync();
             StatusMessage = "Settings Saved!";
+            PlaintextApiKey = string.IsNullOrEmpty(Account.ProtectedCohereApiKey) ? "" : "********";
             await Task.Delay(3000);
             StatusMessage = "";
         }
         catch (Exception ex)
         {
             StatusMessage = "Error saving settings.";
-            Console.WriteLine(ex);
+            Log.Error(ex, "Error saving settings for Account {AccountId}", Account?.Id);
         }
     }
 }

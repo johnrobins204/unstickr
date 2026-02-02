@@ -9,38 +9,40 @@ namespace StoryFort.Services;
 public class TutorOrchestrator
 {
     private readonly ICohereTutorService _cohereTutorService;
-    private readonly StoryState _storyState;
-    private readonly SparkPromptStrategy _sparkStrategy;
-    private readonly ReviewPromptStrategy _reviewStrategy;
+    private readonly StoryContext _storyContext;
+    private readonly IPromptStrategy _sparkStrategy;
+    private readonly IPromptStrategy _reviewStrategy;
     private readonly ISafeguardService _safeguardService;
+    private readonly TutorSessionService _tutorSessionService;
 
-    public TutorOrchestrator(ICohereTutorService cohereTutorService, StoryState storyState, SparkPromptStrategy sparkStrategy, ReviewPromptStrategy reviewStrategy, ISafeguardService safeguardService)
+    public TutorOrchestrator(ICohereTutorService cohereTutorService, StoryContext storyContext, IPromptStrategy sparkStrategy, IPromptStrategy reviewStrategy, ISafeguardService safeguardService, TutorSessionService tutorSessionService)
     {
         _cohereTutorService = cohereTutorService;
-        _storyState = storyState;
+        _storyContext = storyContext;
         _sparkStrategy = sparkStrategy;
         _reviewStrategy = reviewStrategy;
         _safeguardService = safeguardService;
+        _tutorSessionService = tutorSessionService;
     }
 
     public async Task<string> RunSparkProtocolAsync(string modelName = "llama3")
     {
         // Guardrails
-        var (isValid, error) = _safeguardService.ValidateSafeguards(_storyState);
+        var (isValid, error) = _safeguardService.ValidateSafeguards(_storyContext);
         if (!isValid) return error!;
 
-        _storyState.TutorSession.CurrentMode = TutorMode.SparkProtocol;
-        return await _sparkStrategy.BuildPromptAsync(_storyState, modelName);
+        _tutorSessionService.SetMode(TutorMode.SparkProtocol);
+        return await _sparkStrategy.BuildPromptAsync(_storyContext, modelName);
     }
 
     public async Task<string> RunReviewProtocolAsync(ReviewType type, string? modelName = null)
     {
         // Guardrails
-        var (isValid, error) = _safeguardService.ValidateSafeguards(_storyState);
+        var (isValid, error) = _safeguardService.ValidateSafeguards(_storyContext);
         if (!isValid) return error!;
 
-        _storyState.TutorSession.CurrentMode = TutorMode.ReviewMode;
-        return await _reviewStrategy.BuildPromptAsync(_storyState, modelName ?? "llama3");
+        _tutorSessionService.SetMode(TutorMode.ReviewMode);
+        return await _reviewStrategy.BuildPromptAsync(_storyContext, modelName ?? "llama3");
     }
 
     // ...other orchestrator logic as needed...

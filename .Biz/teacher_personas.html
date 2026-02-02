@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Persona Empathy Maps</title>
+    <link rel="stylesheet" href="personas-common.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Quadrant Colors */
+        .q-says-bg { background-color: #e8f6f3; }
+        .q-thinks-bg { background-color: #fef9e7; }
+        .q-does-bg { background-color: #f4ecf7; }
+        .q-feels-bg { background-color: #ebf5fb; }
+        .early-primary { color: #e67e22; }
+        .early-accent { color: #d35400; }
+        .senior-primary { color: #2980b9; }
+        .senior-accent { color: #2c3e50; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2d3436;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #636e72;
+            font-size: 1.1rem;
+        }
+
+        /* Main Split Layout */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Column Styles */
+        .column {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .column-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .column-header i {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+
+        .column-header h2 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Specific Column Theming */
+        .early-years {
+            border-top: 5px solid #e67e22;
+        }
+        .early-years .column-header i { color: #e67e22; }
+        .early-years .tag { background: #fff3e0; color: #d35400; }
+
+        .senior-years {
+            border-top: 5px solid #2980b9;
+        }
+        .senior-years .column-header i { color: #2980b9; }
+        .senior-years .tag { background: #ebf5fb; color: #2c3e50; }
+
+        /* Persona Card */
+        .persona-card {
+            margin-bottom: 3rem;
+        }
+        
+        .persona-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .persona-header {
+            margin-bottom: 1rem;
+        }
+
+        .persona-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .persona-role {
+            font-size: 0.9rem;
+            color: #636e72;
+            font-weight: 400;
+            margin-top: 0.2rem;
+        }
+
+        /* Empathy Map Grid */
+        .empathy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .quadrant {
+            padding: 1.5rem;
+            border-radius: 12px;
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+
+        .quadrant:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .q-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .q-content {
+            font-size: 0.95rem;
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        /* Quadrant Colors */
+        .q-says { background-color: #e8f6f3; border-left: 4px solid #1abc9c; }
+        .q-thinks { background-color: #fef9e7; border-left: 4px solid #f1c40f; }
+        .q-does { background-color: #f4ecf7; border-left: 4px solid #9b59b6; }
+        .q-feels { background-color: #ebf5fb; border-left: 4px solid #3498db; }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        /* Quote Marks */
+        .q-content::before {
+            content: '"';
+            opacity: 0.5;
+        }
+        .q-content::after {
+            content: '"';
+            opacity: 0.5;
+        }
+
+        .pain-point {
+            margin-top: 1rem;
+            background: #2d3436;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Teacher Empathy Maps</h1>
+        <p>Pedagogical Friction Points: 2024-2026</p>
+    </div>
+
+    <div class="container">
+        
+        <!-- LEFT COLUMN: Early & Middle Years -->
+        <div class="column early-years">
+            <div class="column-header">
+                <i class="fas fa-shapes"></i>
+                <div>
+                    <h2>Early & Middle Years</h2>
+                    <span style="font-size: 0.9rem; color: #7f8c8d;">Focus: Developmental & Tactile</span>
+                </div>
+            </div>
+
+            <!-- Persona 1 -->
+            <div class="persona-card">
+                <div class="persona-header">
+                    <div class="persona-title">
+                        The Tactile Guardian
+                        <span class="tag">Grade 3</span>
+                    </div>
+                    <div class="persona-role">Battling cognitive & motor atrophy</div>
+                </div>
+                <div class="empathy-grid">
+                    <div class="quadrant q-says">
+                        <div class="q-label"><i class="fas fa-comment"></i> Says</div>
+                        <div class="q-content">Put the iPads away. Today we are using scissors and glue, not prompts.</div>
+                    </div>
+                    <div class="quadrant q-thinks">
+                        <div class="q-label"><i class="fas fa-brain"></i> Thinks</div>
+                        <div class="q-content">If they never struggle to draw a circle, they will never understand geometry.</div>
+                    </div>
+                    <div class="quadrant q-does">
+                        <div class="q-label"><i class="fas fa-hand-paper"></i> Does</div>
+                        <div class="q-content">Creates "Analog Zones" where digital tools are physically banned.</div>
+                    </div>
+                    <div class="quadrant q-feels">
+                        <div class="q-label"><i class="fas fa-heart"></i> Feels</div>
+                        <div class="q-content">Protective. Like the last line of defense against a physically helpless generation.</div>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    <i class="fas fa-exclamation-triangle"></i> Core Friction: Loss of Process
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px dashed #ddd; margin: 2rem 0;">
+
+            <!-- Persona 2 -->
+            <div class="persona-card">
+                <div class="persona-header">
+                    <div class="persona-title">
+                        The Wonder Facilitator
+                        <span class="tag">Grade 5 Arts</span>
+                    </div>
+                    <div class="persona-role">Managing infinite imagination vs. limited skill</div>
+                </div>
+                <div class="empathy-grid">
+                    <div class="quadrant q-says">
+                        <div class="q-label"><i class="fas fa-comment"></i> Says</div>
+                        <div class="q-content">Okay, you made a dragon. Now, can you explain *why* you chose green scales?</div>
+                    </div>
+                    <div class="quadrant q-thinks">
+                        <div class="q-label"><i class="fas fa-brain"></i> Thinks</div>
+                        <div class="q-content">The output is beautiful, but did they learn anything about shading or perspective?</div>
+                    </div>
+                    <div class="quadrant q-does">
+                        <div class="q-label"><i class="fas fa-hand-paper"></i> Does</div>
+                        <div class="q-content">Attempts to grade the "Prompting Journey" rather than the final artifact.</div>
+                    </div>
+                    <div class="quadrant q-feels">
+                        <div class="q-label"><i class="fas fa-heart"></i> Feels</div>
+                        <div class="q-content">Conflicted. Excited by engagement, but worried about shallow learning.</div>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    <i class="fas fa-exclamation-triangle"></i> Core Friction: Assessment of Creativity
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Senior Years -->
+        <div class="column senior-years">
+            <div class="column-header">
+                <i class="fas fa-university"></i>
+                <div>
+                    <h2>Senior Years</h2>
+                    <span style="font-size: 0.9rem; color: #7f8c8d;">Focus: Integrity & Verification</span>
+                </div>
+            </div>
+
+            <!-- Persona 3 -->
+            <div class="persona-card">
+                <div class="persona-header">
+                    <div class="persona-title">
+                        The Integrity Hawk
+                        <span class="tag">Grade 11 English</span>
+                    </div>
+                    <div class="persona-role">Policing the "Transactional Cheat"</div>
+                </div>
+                <div class="empathy-grid">
+                    <div class="quadrant q-says">
+                        <div class="q-label"><i class="fas fa-comment"></i> Says</div>
+                        <div class="q-content">This vocabulary doesn't match your in-class speaking style. Come see me.</div>
+                    </div>
+                    <div class="quadrant q-thinks">
+                        <div class="q-label"><i class="fas fa-brain"></i> Thinks</div>
+                        <div class="q-content">I am spending more time being a forensic detective than a teacher.</div>
+                    </div>
+                    <div class="quadrant q-does">
+                        <div class="q-label"><i class="fas fa-hand-paper"></i> Does</div>
+                        <div class="q-content">Reverts to oral exams (Viva Voce) and in-class handwritten essays to ensure authenticity.</div>
+                    </div>
+                    <div class="quadrant q-feels">
+                        <div class="q-label"><i class="fas fa-heart"></i> Feels</div>
+                        <div class="q-content">Exhausted. Distrustful. Feels the student-teacher bond is breaking.</div>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    <i class="fas fa-exclamation-triangle"></i> Core Friction: Erosion of Trust
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px dashed #ddd; margin: 2rem 0;">
+
+            <!-- Persona 4 -->
+            <div class="persona-card">
+                <div class="persona-header">
+                    <div class="persona-title">
+                        The Pragmatist
+                        <span class="tag">Grade 12 Tech/Biz</span>
+                    </div>
+                    <div class="persona-role">Leveraging efficiency vs. critical thought</div>
+                </div>
+                <div class="empathy-grid">
+                    <div class="quadrant q-says">
+                        <div class="q-label"><i class="fas fa-comment"></i> Says</div>
+                        <div class="q-content">Don't just copy the summary. Use AI to find the flaws in the argument.</div>
+                    </div>
+                    <div class="quadrant q-thinks">
+                        <div class="q-label"><i class="fas fa-brain"></i> Thinks</div>
+                        <div class="q-content">Banning it is useless. But they are using it to be lazy, not to be smart.</div>
+                    </div>
+                    <div class="quadrant q-does">
+                        <div class="q-label"><i class="fas fa-hand-paper"></i> Does</div>
+                        <div class="q-content">Assigns "Impossible without AI" tasks, expecting higher-level critique.</div>
+                    </div>
+                    <div class="quadrant q-feels">
+                        <div class="q-label"><i class="fas fa-heart"></i> Feels</div>
+                        <div class="q-content">Frustrated by colleagues who ban it, but disappointed by students who misuse it.</div>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    <i class="fas fa-exclamation-triangle"></i> Core Friction: Scaffolding Complexity
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

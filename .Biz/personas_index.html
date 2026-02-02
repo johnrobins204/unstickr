@@ -8,49 +8,154 @@
     <link rel="stylesheet" href="personas-common.css">
     <style>
         a.persona-card { text-decoration: none; color: inherit; display: block; }
-        .index-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+        .index-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 3rem; }
         .index-intro { max-width: 1100px; margin: 24px auto 12px; text-align: center; }
+        .phase-section { margin-bottom: 4rem; }
+        .phase-header {
+            font-family: 'Merriweather', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+            border-left: 4px solid var(--accent-spark);
+        }
+        .phase-description {
+            color: var(--muted);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            padding-left: 0.5rem;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-title">Personas Library</div>
-    <p class="index-intro">A collection of business UX infographics sharing a common visual style. Click a card to open the matching HTML.</p>
+    <div class="header-title">Design Thinking Documentation</div>
+    <p class="index-intro">A collection of UX research and design artifacts organized by design thinking framework phases. Click any card to view the full document.</p>
 
-    <div class="index-grid">
-        <a class="persona-card" href="curious_accelerator_persona.html">
-            <div class="card-header">
-                <div class="name-role">
-                    <h2>The Curious Accelerator</h2>
-                    <span>High-energy, loves the big picture</span>
+    <!-- EMPATHIZE PHASE -->
+    <div class="phase-section">
+        <h2 class="phase-header">🔍 Empathize</h2>
+        <p class="phase-description">Understanding users through research, observation, and engagement to gain insights into their needs, behaviors, and motivations.</p>
+        
+        <div class="index-grid">
+            <a class="persona-card" href="curious_accelerator_persona.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>The Curious Accelerator</h2>
+                        <span>Parent Persona</span>
+                    </div>
+                    <div class="icon">🚀</div>
                 </div>
-                <div class="icon">🚀</div>
-            </div>
-            <div class="quote-box">Fast-moving parent who takes over tasks to speed things up. Design mandates: Co-Pilot Mode, high-frequency interactions.</div>
-        </a>
+                <div class="quote-box">High-energy parent who takes over tasks to speed things up. Empathy map exploring their thoughts, feelings, and needs.</div>
+            </a>
 
-        <a class="persona-card" href="process_purist_persona.html">
-            <div class="card-header">
-                <div class="name-role">
-                    <h2>The Process Purist</h2>
-                    <span>Values learning through struggle</span>
+            <a class="persona-card" href="Reluctant_Guardian.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>The Reluctant Guardian</h2>
+                        <span>Parent Persona</span>
+                    </div>
+                    <div class="icon">🛡️</div>
                 </div>
-                <div class="icon">🧠</div>
-            </div>
-            <div class="quote-box">Prefers the process over shortcuts. Design mandates: Socratic questions, revision history, prompt literacy.</div>
-        </a>
+                <div class="quote-box">Skeptical parent with low trust and low tolerance for friction. Values nature and analog experiences over digital.</div>
+            </a>
 
-        <a class="persona-card" href="empathy_map.html">
-            <div class="card-header">
-                <div class="name-role">
-                    <h2>The Reluctant Guardian</h2>
-                    <span>The Skeptic</span>
+            <a class="persona-card" href="volatile_creator_persona.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>The Volatile Creator</h2>
+                        <span>Student Persona</span>
+                    </div>
+                    <div class="icon">⚡</div>
                 </div>
-                <div class="icon">👤</div>
-            </div>
-            <div class="quote-box">Low trust and low tolerance for friction; needs plain language and minimal setup.</div>
-        </a>
+                <div class="quote-box">Emotionally intense young writer experiencing high creative energy followed by frustration and abandonment.</div>
+            </a>
+
+            <a class="persona-card" href="parent_empathy_map.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>Parent Archetypes</h2>
+                        <span>Empathy Map Collection</span>
+                    </div>
+                    <div class="icon">👨‍👩‍👧‍👦</div>
+                </div>
+                <div class="quote-box">Multiple parent personas including Process Purist and Curious Accelerator archetypes with their fears and needs.</div>
+            </a>
+
+            <a class="persona-card" href="teacher_personas.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>Teacher Personas</h2>
+                        <span>Educator Empathy Maps</span>
+                    </div>
+                    <div class="icon">🍎</div>
+                </div>
+                <div class="quote-box">Early years and senior years teacher perspectives on AI writing tools in educational contexts.</div>
+            </a>
+
+            <a class="persona-card" href="childrens_empathy_map.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>Student Personas</h2>
+                        <span>Age-Grouped Analysis</span>
+                    </div>
+                    <div class="icon">📚</div>
+                </div>
+                <div class="quote-box">Student personas across different age groups exploring their relationship with AI writing tutors.</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- DEFINE PHASE -->
+    <div class="phase-section">
+        <h2 class="phase-header">🎯 Define</h2>
+        <p class="phase-description">Synthesizing research insights into clear problem statements and point-of-view frameworks that guide solution development.</p>
+        
+        <div class="index-grid">
+            <a class="persona-card" href="pov_synthesis_wall.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>POV Synthesis Wall</h2>
+                        <span>Problem Statement Framework</span>
+                    </div>
+                    <div class="icon">📌</div>
+                </div>
+                <div class="quote-box">Point-of-view statements synthesizing user needs, insights, and design implications across all personas.</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- IDEATE PHASE -->
+    <div class="phase-section">
+        <h2 class="phase-header">💡 Ideate</h2>
+        <p class="phase-description">Generating creative solutions and exploring design possibilities based on defined problems and user needs.</p>
+        
+        <div class="index-grid">
+            <a class="persona-card" href="infograph.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>Writing Quest Journey</h2>
+                        <span>Pedagogical Framework</span>
+                    </div>
+                    <div class="icon">🗺️</div>
+                </div>
+                <div class="quote-box">Five-stage pedagogical journey showing how students progress from spark to published story.</div>
+            </a>
+
+            <a class="persona-card" href="Design_one_pager.html">
+                <div class="card-header">
+                    <div class="name-role">
+                        <h2>System Blueprint</h2>
+                        <span>Unified Architecture</span>
+                    </div>
+                    <div class="icon">🏗️</div>
+                </div>
+                <div class="quote-box">Complete system architecture showing the Hybrid Engine, Spark Protocol, and data sovereignty layers.</div>
+            </a>
+        </div>
     </div>
 
 </div>

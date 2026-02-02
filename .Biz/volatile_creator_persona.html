@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="personas-common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <title>Empathy Map: The Volatile Creator</title>
+    <style>
+        .handwritten {
+            font-family: 'Kalam', cursive;
+        }
+
+        .sticky {
+            box-shadow: 2px 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .sticky:hover {
+            transform: scale(1.02) rotate(-1deg);
+            z-index: 10;
+        }
+
+        .tape {
+            background-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            backdrop-filter: blur(2px);
+            transform: rotate(-2deg);
+        }
+
+        .quadrant-label {
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Arrows to show flow */
+        .arrow-flow {
+            position: absolute;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-8 flex flex-col items-center">
+
+    <!-- Header / Context -->
+    <header class="max-w-6xl w-full mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">Empathy Map: "The Volatile Creator"</h1>
+            <p class="text-slate-600">Composite View: The "Entry Point Paralysis" &rarr; The "Runaway Train"</p>
+        </div>
+        <div class="bg-rose-100 text-rose-800 px-4 py-2 rounded-full text-sm font-semibold border border-rose-200">
+            Persona Match: The Wish-Granter (Age 7)
+        </div>
+    </header>
+
+    <!-- The Board -->
+    <main class="max-w-6xl w-full bg-white rounded-xl shadow-xl p-8 border border-slate-200 relative overflow-hidden">
+        <!-- Grid Lines for Whiteboard feel -->
+        <div class="absolute inset-0 pointer-events-none border-l border-slate-100 left-1/2 hidden md:block"></div>
+        <div class="absolute inset-0 pointer-events-none border-t border-slate-100 top-1/2 hidden md:block"></div>
+        
+        <!-- Center User Icon -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg z-20 hidden md:flex">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .008-.318.008-.318 0 0 .008.318.008.318 0z" />
+            </svg>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
+
+            <!-- Quadrant 1: SAYS -->
+            <div class="min-h-[250px]">
+                <div class="quadrant-label">
+                    <span class="w-2 h-2 rounded-full bg-blue-400"></span> Says
+                </div>
+                <div class="space-y-4 pl-4 relative">
+                    <!-- Phase 1 Quote -->
+                    <div class="sticky bg-yellow-100 p-4 rounded-sm rotate-1 w-full max-w-xs relative z-10">
+                        <div class="tape absolute -top-2 left-1/2 w-16 h-4 transform -translate-x-1/2"></div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 block">Phase 1: The Bottleneck</span>
+                        <p class="handwritten text-xl text-slate-800">"I don't know where to start! Everything is happening at once!"</p>
+                    </div>
+                    
+                    <!-- Phase 2 Quote -->
+                    <div class="sticky bg-yellow-50 p-4 rounded-sm -rotate-2 w-full max-w-xs ml-12 relative border border-yellow-200 z-20">
+                         <div class="tape absolute -top-2 left-1/2 w-12 h-4 transform -translate-x-1/2"></div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 block">Phase 2: The Flood</span>
+                        <p class="handwritten text-lg text-slate-800">"And then the aliens came! And then they ate pizza! And then..."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quadrant 2: THINKS -->
+            <div class="min-h-[250px]">
+                <div class="quadrant-label">
+                    <span class="w-2 h-2 rounded-full bg-purple-400"></span> Thinks
+                </div>
+                <div class="space-y-4 pl-4">
+                    <div class="sticky bg-purple-100 p-4 rounded-sm rotate-2 w-full max-w-xs relative">
+                        <p class="handwritten text-lg text-slate-800">"I see the whole movie in my head but I can't find the play button."</p>
+                        <p class="text-xs text-slate-500 mt-2 font-sans">(Entry Point Paralysis)</p>
+                    </div>
+                    <div class="sticky bg-purple-100 p-4 rounded-sm -rotate-1 w-full max-w-xs ml-8 relative">
+                        <p class="handwritten text-lg text-slate-800">"My hands are too slow for my brain."</p>
+                        <p class="text-xs text-slate-500 mt-2 font-sans">(Input/Output Mismatch)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quadrant 3: DOES -->
+            <div class="min-h-[250px]">
+                <div class="quadrant-label">
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span> Does
+                </div>
+                <div class="space-y-4 pl-4">
+                    <!-- Action 1 -->
+                    <div class="sticky bg-green-100 p-4 rounded-sm -rotate-1 w-full max-w-xs relative">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 block">Before Prompting</span>
+                        <p class="handwritten text-lg text-slate-800">Vibrates with energy. Physically fights sitting still. Giggling from over-stimulation.</p>
+                    </div>
+                    <!-- Action 2 -->
+                    <div class="sticky bg-green-50 p-4 rounded-sm rotate-1 w-full max-w-xs ml-12 relative border border-green-200">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1 block">After Prompting</span>
+                        <p class="handwritten text-lg text-slate-800">Hurried, manic spurts of creation. High velocity, low coherence.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quadrant 4: FEELS -->
+            <div class="min-h-[250px]">
+                <div class="quadrant-label">
+                    <span class="w-2 h-2 rounded-full bg-rose-400"></span> Feels
+                </div>
+                <div class="space-y-4 pl-4">
+                    <div class="sticky bg-rose-100 p-4 rounded-sm rotate-2 w-full max-w-xs relative">
+                         <div class="tape absolute -top-2 left-1/2 w-16 h-4 transform -translate-x-1/2"></div>
+                        <p class="handwritten text-xl text-slate-800 font-bold">Traffic Jam</p>
+                        <p class="text-sm text-slate-600 font-sans mt-1">Cognitively bursting. The ideas are too big to squeeze through a keyboard.</p>
+                    </div>
+                    <div class="sticky bg-rose-50 p-3 rounded-sm -rotate-2 w-full max-w-xs ml-8 relative border border-rose-100">
+                        <p class="handwritten text-lg text-slate-800">Relief (When Valved)</p>
+                        <p class="text-xs text-slate-500 mt-1 font-sans">Feels better when someone isolates ONE thing for him.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Synthesis Footer -->
+        <div class="mt-12 pt-8 border-t-2 border-dashed border-slate-200">
+            <h3 class="text-lg font-bold text-slate-700 mb-4">Composite Design Mandates</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Insight 1 -->
+                <div class="bg-blue-50 p-5 rounded-lg border border-blue-100 shadow-sm">
+                    <h4 class="font-bold text-blue-900 mb-2">1. The "Valve" Mechanism</h4>
+                    <p class="text-sm text-slate-600"><strong>Problem:</strong> It's not a lack of ideas (writer's block); it's a flood (traffic jam). <br><strong>Solution:</strong> The AI acts as a <strong>Valve</strong>, isolating ONE variable at a time ("Just pick the setting first") to prevent cognitive washout.</p>
+                </div>
+
+                <!-- Insight 2 -->
+                <div class="bg-orange-50 p-5 rounded-lg border border-orange-100 shadow-sm">
+                    <h4 class="font-bold text-orange-900 mb-2">2. The "Fire" Needs a Fireplace</h4>
+                    <p class="text-sm text-slate-600"><strong>Problem:</strong> Once the valve opens, the ideas rush out without structure. <br><strong>Solution:</strong> The tool acts as the <strong>Narrative Container</strong>. It must hold the plot points (Beginning, Middle, End) visible at all times so he can't get lost.</p>
+                </div>
+
+                <!-- Insight 3 -->
+                <div class="bg-indigo-50 p-5 rounded-lg border border-indigo-100 shadow-sm">
+                    <h4 class="font-bold text-indigo-900 mb-2">3. Voice > Typing</h4>
+                    <p class="text-sm text-slate-600"><strong>Problem:</strong> Hand speed < Brain speed. <br><strong>Solution:</strong> A <strong>Voice-First Interface</strong> captures the manic burst of ideas, then the AI transcribes and organizes them for him to review calmly.</p>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

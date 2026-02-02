@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore StoryFort/StoryFort.csproj
+
+      - name: Configure mock LLM usage when secret missing
+        run: |
+          if [ -z "$COHERE_API_KEY" ]; then
+            echo "COHERE_API_KEY is not set. Tests will use mocked LLM implementation.";
+            echo "USE_MOCK_LLM=true" >> $GITHUB_ENV
+          else
+            echo "USE_MOCK_LLM=false" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Build
+        run: dotnet build StoryFort/StoryFort.csproj --configuration Release --no-restore
+
+      - name: Test - Unit
+        run: dotnet test StoryFort.Tests.Unit/StoryFort.Tests.Unit.csproj --no-build --verbosity normal
+
+      - name: EF Core version check
+        run: |
+          echo "Checking EF Core package versions across projects..."
+          tempfile=$(mktemp)
+          for proj in $(git ls-files '*.csproj'); do
+            echo "--- $proj ---" >> $tempfile
+            dotnet list "$proj" package --include-transitive | grep "Microsoft.EntityFrameworkCore" || true >> $tempfile
+          done
+          echo "Versions found:" && cat $tempfile
+          versions=$(grep -oP "Microsoft.EntityFrameworkCore\s+\K[0-9]+\.[0-9]+\.[0-9]+" "$tempfile" | sort -u)
+          count=$(echo "$versions" | wc -l)
+          if [ "$count" -gt 1 ]; then
+            echo "Detected multiple Microsoft.EntityFrameworkCore versions:";
+            echo "$versions";
+            echo "Please align EF Core package versions across projects.";
+            exit 1;
+          fi
+        shell: bash
+
+      - name: Test - Integration
+        run: dotnet test StoryFort.Tests.Integration/StoryFort.Tests.Integration.csproj --no-build --verbosity normal

@@ -1,12 +1,12 @@
 @using StoryFort.Services
-@inject StoryState StoryState
+@inject StoryContext StoryContext
 <div class="explorer-journal">
     <h3>Explorer's Journal</h3>
     <ul>
-        <li>Spelling Flags: @(StoryState.ReviewFlags?.Count(f => f.Type == "Spelling") ?? 0)</li>
-        <li>Grammar Flags: @(StoryState.ReviewFlags?.Count(f => f.Type == "Grammar") ?? 0)</li>
-        <li>Repetition Flags: @(StoryState.ReviewFlags?.Count(f => f.Type == "Repetition") ?? 0)</li>
-        <li>User Notes: @(StoryState.ReviewFlags?.Count(f => f.Type == "Note") ?? 0)</li>
+        <li>Spelling Flags: @(StoryContext.ReviewFlags?.Count(f => f.Type == "Spelling") ?? 0)</li>
+        <li>Grammar Flags: @(StoryContext.ReviewFlags?.Count(f => f.Type == "Grammar") ?? 0)</li>
+        <li>Repetition Flags: @(StoryContext.ReviewFlags?.Count(f => f.Type == "Repetition") ?? 0)</li>
+        <li>User Notes: @(StoryContext.ReviewFlags?.Count(f => f.Type == "Note") ?? 0)</li>
     </ul>
     <div class="progress-bar">
         <div class="progress" style="width:@ProgressPercent%"></div>
@@ -14,7 +14,7 @@
 </div>
 
 @code {
-    private int ProgressPercent => (StoryState.ReviewFlags?.Count ?? 0) * 10;
+    private int ProgressPercent => (StoryContext.ReviewFlags?.Count ?? 0) * 10;
 }
 
 <style scoped>

@@ -5,6 +5,6 @@ namespace StoryFort.Services;
 
 public interface IPromptStrategy
 {
-    Task<string> BuildPromptAsync(StoryState state, string modelName);
+    Task<string> BuildPromptAsync(StoryContext context, string modelName);
 }
 

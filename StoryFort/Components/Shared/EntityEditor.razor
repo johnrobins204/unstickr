@@ -1,5 +1,6 @@
 @using StoryFort.Models
-@inject AppDbContext DbContext
+@using StoryFort.Services
+@inject StoryPersistenceService Persistence
 
 @* Responsive Mode Support *@
 @code {
@@ -31,11 +32,13 @@
     private async Task Save()
     {
         if (Entity == null) return;
+        
         Entity.Name = Name;
         Entity.Description = Description;
         Entity.Metadata = System.Text.Json.JsonSerializer.Serialize(MetadataFields);
-        DbContext.NotebookEntities.Update(Entity);
-        await DbContext.SaveChangesAsync();
+        
+        await Persistence.UpdateEntityAsync(Entity);
+        
         ShowModal = false;
         if (OnSaved.HasDelegate) await OnSaved.InvokeAsync();
     }

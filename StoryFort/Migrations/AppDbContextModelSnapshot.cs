@@ -26,11 +26,11 @@ namespace StoryFort.Migrations
                     b.Property<int?>("ActiveThemeId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("CohereApiKey")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("ProtectedCohereApiKey")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -59,13 +59,39 @@ namespace StoryFort.Migrations
                         new
                         {
                             Id = 1,
-                            CohereApiKey = "",
                             Name = "Writer",
+                            ProtectedCohereApiKey = "",
                             SupervisorEmail = "",
                             SupervisorName = "",
                             ThemePreferenceJson = "{}",
                             UseReasoningModel = true
                         });
+                });
+
+            modelBuilder.Entity("StoryFort.Models.AccountApiKeyHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ProtectedKey")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("AccountApiKeyHistories");
                 });
 
             modelBuilder.Entity("StoryFort.Models.Archetype", b =>
@@ -745,6 +771,17 @@ namespace StoryFort.Migrations
                         .HasForeignKey("ActiveThemeId");
 
                     b.Navigation("ActiveTheme");
+                });
+
+            modelBuilder.Entity("StoryFort.Models.AccountApiKeyHistory", b =>
+                {
+                    b.HasOne("StoryFort.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("StoryFort.Models.ArchetypeExample", b =>

@@ -1,205 +1,0 @@
-StoryFort Technical Architecture Governance Document
-Establishing Principles for Secure, Resilient, and Child-Centric AI Creative Tools
-Status: DRAFT | Version: 0.4 | Date: 2026-01-24
-1. Executive Summary
-The Vision: StoryFort is a hybrid, AI-augmented creative writing environment purpose-built for children. The platform is designed to foster creativity while maintaining user agency, with a focus on guiding the writing process rather than generating content on behalf of the user.
-Process over Output: StoryFort differentiates itself from traditional generative AI tools by emphasizing process scaffolding. Leveraging Cohere’s Intelligence API for both reasoning and chat, the system provides passive, Socratic guidance to help users develop their ideas independently, ensuring that the locus of control remains with the child author.
-Technical Foundation: The application is architected as a .NET 10 Blazor Server solution, containerized with Docker and hosted within Canada. This approach upholds strict data sovereignty requirements and delivers the accessibility and responsiveness expected from a modern web platform.
-2. Architecture Pillars
-?? Pillar 1: The Sovereign Hybrid Engine
-High-Performance Reasoning Meets Canadian Data Sovereignty
-* Containerized Core: The platform’s foundation is a .NET 10 Blazor Server application deployed in a Docker container, exclusively hosted on Canadian infrastructure. This ensures compliance with Canadian privacy and data sovereignty regulations, distinguishing StoryFort from competitors that default to US-based data hosting.
-* Hybrid Intelligence Layer: StoryFort employs a hybrid AI strategy, integrating Cohere’s Command R+ reasoning models through a secure API. This enables advanced logic and brainstorming capabilities—such as the proprietary “Spark Protocol”—while strictly adhering to a non-training, non-persistent data policy. User data is never retained or used for model training, supporting both privacy and ethical AI commitments.
-* The Intelligence Layer: StoryFort employs a hybrid AI strategy, leveraging Cohere’s advanced Reasoning models (Command R+) through secure API access. This approach enables sophisticated logic, such as the Spark Protocol brainstorming loop, while maintaining strict data boundaries by ensuring user data is never stored or used for model training. By bypassing standard chatbot architectures, the platform upholds a strict non-training agreement, reinforcing privacy and compliance with Canadian standards.
-* The Value: Schools and parents benefit from the convenience of a responsive web application, backed by robust legal assurances of Canadian data residency. The system delivers enterprise-grade privacy boundaries, giving stakeholders confidence that sensitive information remains within Canadian jurisdiction.
-??? Pillar 2: Rights-First Data Governance
-* Child-Centric Encryption: Beyond simple local storage, StoryFort implements server-side encryption at rest. All story content is encrypted to the child’s account, and access is gated so that it must be shared with at least one Adult Supervisor.
-* Intellectual Property & Privacy: The system is designed to respect and protect the child’s intellectual property rights. Unlike many platforms, StoryFort never claims ownership of user content—stories remain the property of the child author. Research initiatives are limited to collecting strictly anonymized metadata, and only on a fully opt-in basis.
-* The Value: This governance model addresses the “Privacy Paradox” in EdTech, enabling necessary data collection for improvement while guaranteeing children retain exclusive ownership of their creative work.
-?? Pillar 3: "Pedagogy-as-Code" Scaffolding
-* The "No Ghostwriting" Firewall: StoryFort uses strict design principles and guardrails to ensure the LLM is never doing the creative work. The system prompt acts as an invariant firewall (“You do not write the story”), and the UI is intentionally designed without “Insert” buttons for AI-generated text. This prevents skill atrophy and ensures the child maintains control over their creative process.
-* Context-Sensitive Pacing: The platform distinguishes between transcription pauses (brief typing breaks) and generative pauses (deep thinking). If a child stops after a punctuation mark, the system waits 30 seconds before offering guidance, respecting the cognitive effort needed to plan and develop story arcs.
-* The Spark Protocol: When faced with a blank page, the AI initiates a divergent-to-convergent brainstorming state machine. It begins with a sensory question, transitions to a scenario prompt, and then performs a “handoff” that minimizes AI involvement and refocuses the child’s attention on their own writing.
-These architecture pillars collectively ensure the platform is secure, resilient, and purpose-built for the unique needs of young creators within the Canadian context. The system’s governance structure includes regular audits, transparent data practices, and a commitment to ongoing compliance with evolving national and provincial standards.
-
-
-
-3. Guiding Principles (Risk Governance Lens)
-These principles serve as the "Constitution" for architectural decision-making, ensuring that every technical choice aligns with the values of privacy, responsibility, and oversight.
-* GP-1: Trusted AI Partnership (Data Privacy)
-* Principle: User data is processed by a trusted 3rd party (Cohere) strictly for inference and must not be used for model training. Sensitive Personally Identifiable Information (PII) such as name and email remains local and sovereign within Canadian jurisdiction.
-* Risk Mitigation: Enterprise-grade privacy commitments ensure there is no data persistence on the inference side, reducing exposure and risk.
-* Architectural Implication: The database is server-side encrypted (SQLite in Container), and inference requests require HTTPS egress for secure transmission.
-* GP-2: The "No Ghostwriting" Rule (Responsible AI)
-* Principle: The system shall never generate narrative prose for the user. It may only ask questions, suggest synonyms for review, or provide structural templates to guide the writing process.
-* Risk Mitigation: This approach mitigates "Skill Atrophy" and prevents the generation of harmful or hallucinated content directly into the manuscript.
-* Architectural Implication: System prompts must be hard-coded to refuse generation requests, and the user interface must lack "Insert" buttons for AI-generated text.
-* GP-3: Supervisor Primacy
-* Principle: Configuration of the AI, sensitive settings, and content moderation is the exclusive domain of the Supervisor (Parent/Teacher), not the Child User.
-* Risk Mitigation: This prevents students from disabling safeguards or altering pedagogical parameters, maintaining a safe and structured environment.
-* Architectural Implication: Settings requiring maturity are gated behind a "Teacher Gate," such as a PIN or challenge mechanism.
-
-
-4. Solution Overview
-StoryFort uses a Monolithic Blazor Server architecture. The client (Browser) acts as a "Thin Terminal," rendering UI updates pushed over a persistent SignalR WebSocket connection from the containerized ASP.NET Core process. This design ensures that all business logic and state management remain server-side, enhancing security and simplifying deployment.
-4.1 High Level Diagram
-The user connects via HTTPS/WebSocket to the Canadian Hosting Zone. The App Server manages state and connects securely to the Cohere Intelligence Layer for reasoning tasks. This architecture provides a reliable and secure foundation for supporting real-time educational interactions and advanced AI capabilities within Canadian jurisdiction.
-
-
-
-
-4.2 Application Components (C4 Container Level)
-* Presentation Layer: Includes Editor.razor for rich text editing, TutorPanel.razor for tutor interaction, and the Dashboard for user and supervisor views.
-* Application Logic: Comprises the StoryState (Scoped Service) for session management, TutorOrchestrator for coordinating educational activities, and Activity Monitor via JS Interop for real-time event tracking.
-* Infrastructure: Utilizes AppDbContext (Entity Framework Core) for data persistence, HttpClient Factory for secure API calls, and Serilog Logger for structured logging and diagnostics.
-4.3 Technology Stack
-LayerTechnologyFramework.NET 10 (Preview)Host ModelBlazor Interactive Server (Linux Container)DatabaseSQLite (Microsoft.EntityFrameworkCore.Sqlite) + EncryptionRich TextQuillJS (via Blazored.TextEditor)AI IntegrationSystem.Net.Http.HttpClient ? Cohere APITestingxUnit, Moq, FluentAssertions, Playwright
-
-5. Data Architecture
-The data model centres around two core entities: the Account (User Context) and the Story (Creative Context). Each Account represents a unique user, capturing authentication credentials, preferences, and personal metadata. Stories are linked to Accounts and encapsulate creative content, including text, rich media, and revision history.
-This architecture supports scalable user-generated content, ensuring that each Story remains associated with its creator while enabling collaborative editing and secure data isolation. The model is designed to facilitate efficient querying, encryption at rest, and seamless integration with the underlying SQLite database layer.
-
-Key Attributes
-* Story.Content: Stores the raw HTML of the story. Note: Migrated to continuous scroll model.
-* NotebookEntity.Metadata: A flexible JSON blob allowing custom attributes (e.g., "Strength", "Home Planet") without schema migrations.
-
-
-6. Project Structure & Patterns
-This section describes how the logical architecture is mapped to the physical project structure, ensuring clear separation of concerns and maintainability across the StoryFort platform.
-* ?? \StoryFort\Models\: Contains domain entities (POCOs) representing core data structures such as Account and Story.
-* ?? \StoryFort\Data\: Implements the persistence layer, including AppDbContext for database interactions.
-* ?? \StoryFort\Services\: Hosts business logic and state management services.
-o StoryState.cs: Manages session-scoped logic for story editing and revision.
-o TutorOrchestrator.cs: Coordinates the AI interaction workflow, orchestrating requests and responses.
-o CohereTutorService.cs: Functions as the adapter for AI infrastructure, integrating with external APIs.
-* ?? \StoryFort\Components\: Contains Blazor presentation layer components for user interface rendering.
-* ?? \StoryFort\wwwroot\js\: Includes browser interop scripts supporting features such as rich text scroll events and inactivity timers.
-This structure facilitates modular development, simplifies testing, and supports future scalability as the platform evolves.
-
-
-8. Cross-Cutting Concerns
-8.1 Error Handling
-* Global Boundary: A custom CustomErrorBoundaryLogger wraps key routing points to catch unhandled Blazor circuit exceptions, ensuring robust fault detection and reporting.
-* Fail-Safe: If AI services fail, the application degrades gracefully to an "Offline/Manual" mode, preserving writing capability so users can continue their work without interruption.
-8.2 Observability (Logging)
-* Serilog: Structured logging writes to local files, supporting analysis and troubleshooting while maintaining platform reliability.
-* Privacy Filter: Logs are explicitly configured to exclude Story.Content to prevent leaking creative work into plaintext log files, aligning with privacy best practices.
-8.3 Authentication
-* Current State: The MVP employs a simplified "Single User" assumption, streamlining initial development and user experience.
-* Target State: The roadmap includes multi-account support, enabling a Supervisor to manage multiple Child accounts via ASP.NET Core Identity for scalable, secure authentication and account management.
-
-
-9. AI Orchestration & Prompt Architecture
-The Context-Aware Decision Engine
-The TutorOrchestrator functions as a dynamic factory, intelligently selecting prompt strategies based on the user's current state. For example, it may choose between the "Spark Protocol" for creative nudges or "Grammar Review" for editing, ensuring that AI support is contextually relevant and adaptive.
-9.1 Prompt Construction Data Flow
-1. Trigger: The process initiates when the user stops writing, detected as an Inactivity Event.
-2. Fetch Context: StoryState retrieves key parameters such as Age, Genre, and the last four sentences of the story.
-3. Selection Logic: The Orchestrator determines which workflow to invoke, such as Spark Protocol for creative prompts or Review for grammatical feedback.
-4. Strategy Execution: The chosen PromptStrategy injects contextual information into the System Prompt and appends the user's recent text.
-5. Inference: The fully constructed request is sent to the Cohere API, which returns a JSON response that updates TutorNotes in real time.
-9.2 Key Patterns
-* Late Binding: Contextual details such as Age and Genre are injected at the time of the request, rather than being hardcoded into the client. This allows for greater flexibility and personalization.
-* Strategy Pattern: Prompt generation is modularized using IPromptStrategy implementations, making it easier to extend and maintain different prompting workflows.
-* Context Window Management: To optimize for cost and performance, only the relevant segment of the story is sent to the AI—typically the last four to six sentences during a nudge, and only recent edits when in review or edit mode.
-
-
-Annex A: State Management—The "Anti-Fragile" Circuit
-Mitigating Blazor Server Circuit Risks
-1. Persistence is Truth: C# memory state is inherently volatile. To safeguard user progress, Story Content is automatically saved to SQLite every 2 seconds using a debounce mechanism. In the event of a circuit reset, the risk of data loss is limited to less than 2 seconds of typing, which is considered an acceptable trade-off in favour of data sovereignty.
-2. Ephemeral Chat: TutorNotes (AI conversation) are maintained strictly in memory. If the session disconnects or breaks, the chat history is cleared, reinforcing the "Notebook" metaphor. The AI serves as a transient thinking partner, rather than a permanent record or archive.
-3. Client-Side Continuity: User view preferences such as Theme and Font Size are mirrored to localStorage via JS Interop, ensuring these settings persist across browser refreshes and session interruptions.
-
-
-Annex B: Pilot Deployment Guidance
-This section provides comprehensive guidance for the pilot deployment of StoryFort’s containerized platform, focusing on the rationale, technical requirements, and recommended architecture for supporting up to 500 concurrent child users. The recommendations are targeted at technical architects and developers evaluating options for secure, resilient, and cost-effective hosting within Canadian jurisdiction.
-1. Capacity Planning: Blazor Server Concurrency and RAM Calculations
-* Blazor Server Memory Model: Each connected user session in Blazor Server maintains an active SignalR circuit in server memory. Typical RAM usage per session ranges from 100–200 MB for interactive, real-time apps with moderate state, depending on component complexity and session data.
-* Pilot User Load Calculation: For a 500-user pilot, peak RAM requirements can be estimated as follows:
-* Average session memory: 150 MB × 500 users = 75,000 MB (?73 GB)
-* However, for a pilot where not all users are simultaneously active, and with session timeouts and efficient state management, practical concurrency is closer to 150–200 active users at a time (?30 GB RAM).
-* Additional overhead for .NET runtime, Nginx, and Docker: 2–4 GB
-Minimum recommended RAM for a 500 -user pilot ( 200 concurrent ): 32 GB 
-2. Recommended OVHcloud Configuration
-* Justification for Single VPS or Public Cloud Instance: For a contained pilot, a single node simplifies deployment, reduces operational complexity, and eases monitoring. It aligns with cost controls and allows rapid iteration prior to scaling.
-* OVH VPS-3 (Memory-Optimized):
-* vCPU: 8 vCores
-* RAM: 32 GB ECC
-* Storage: 640 GB NVMe SSD
-* Network: 2.5 Gbps unmetered bandwidth
-* Location: Canadian data centre (Montréal or Toronto)
-* Pricing: As of 2026, approximately $65–$80 CAD/month
-This configuration is sufficient for the projected RAM and CPU requirements , ensures compliance with Canadian data sovereignty , and offers reliability for a pilot cohort.
-* Public Cloud Alternative: For elasticity or integration with additional managed services, OVH Public Cloud’s memory-optimised instances (e.g., r3-32) provide similar specs and can be considered for future growth or hybrid deployments.
-3. Pilot Architecture Overview
-LayerComponentDescriptionReverse ProxyNginxHandles HTTPS termination, static file delivery, and forwards WebSocket/SSE traffic to the Blazor Server container.Application RuntimeDocker (Blazor Server).NET 10 Blazor Server app runs in a Docker container for environment consistency and easy redeployment.Data LayerSQLite (Docker volume)User/session data stored in a persistent Docker volume, with regular backups to external storage for disaster recovery.
-Single-Container Setup: All components run on a single VPS instance. Nginx is configured as a reverse proxy, exposing only required ports, and Docker orchestrates the Blazor app and SQLite storage. This approach maximises simplicity and security for pilot operations.
-4. Risks and Considerations for Scaling Beyond Pilot
-* Sticky Sessions: Blazor Server’s session affinity requirement means horizontal scaling (multiple nodes) must use sticky load balancing or a distributed state store. The pilot’s single-node approach avoids this, but future scaling will require architectural changes.
-* Deployment Downtime: Single-instance deployments have downtime during upgrades or host failures. For production, blue-green deployments and failover strategies should be considered.
-* Latency for Remote Users: While Canadian hosting meets legal requirements and offers low latency for local users, latency may increase for users outside Eastern Canada. CDN integration or edge hosting may be required if user geography expands.
-* Database and Storage: SQLite is suitable for pilot workloads but is not recommended for high concurrency or multi-node clusters. Migrating to a managed PostgreSQL or MySQL service is advised for scaling.
-* Security and Compliance: Regular security patching, access audits, and encrypted backups are essential. Scaling may require additional network segmentation, monitoring, and automated compliance checks.
-5. Recommendation Summary: Why OVH VPS-3 Is Optimal for Pilot
-* Cost-effective, memory-optimised hosting for up to 500 users, with a realistic concurrency of 200 and 32 GB RAM.
-* Canadian data residency ensures full compliance with privacy and sovereignty requirements.
-* Simple, single-node architecture reduces operational risk and accelerates pilot delivery.
-* Clear migration path to scalable, multi-node or cloud-native architectures as user base grows.
-* Containerized Core: The platform’s foundation is a .NET 10 Blazor Server application deployed in a Docker container, exclusively hosted on Canadian infrastructure. This ensures compliance with Canadian privacy and data sovereignty regulations, distinguishing StoryFort from competitors that default to US-based data hosting. For the pilot, deployment on an OVH VPS-3 (memory-optimised tier) is recommended, providing 32 GB RAM and 8 vCPUs—sufficient for up to 500 registered users (200 concurrent) in a secure, single-node environment. This setup leverages Nginx for proxying, Docker for isolation, and SQLite for lightweight persistence, with all data remaining within Canadian jurisdiction.
-Next Steps: For production readiness and scale, evaluate multi-node Blazor Server, session state providers, and migration to a managed RDBMS. Plan for blue-green deployments and enhanced monitoring as part of the transition roadmap.
-* Hybrid Intelligence Layer: StoryFort employs a hybrid AI strategy, integrating Cohere’s Command R+ reasoning models through a secure API. This enables advanced logic and brainstorming capabilities—such as the proprietary “Spark Protocol”—while strictly adhering to a non-training, non-persistent data policy. User data is never retained or used for model training, supporting both privacy and ethical AI commitments.
-These architecture pillars collectively ensure the platform is secure, resilient, and purpose-built for the unique needs of young creators within the Canadian context. The system’s governance structure includes regular audits, transparent data practices, and a commitment to ongoing compliance with evolving national and provincial standards.
-
-
-Annex C: AI Agent Workflow Design
-Overview
-This document outlines the recommended AI agent workflow, tailored specifically for the StoryFort platform. The workflow ensures seamless integration with the Blazor Server application, leverages Cohere’s advanced reasoning and chat APIs, and upholds the Rights-First governance model central to StoryFort’s architecture.
-1. Workflow Context
-* Platform: .NET 10 Blazor Server (Interactive, Dockerized, Canadian Hosting)
-* AI Integration: Cohere API (Command R+ for reasoning, Command Light for chat)
-* State Management: StoryState (Scoped Service, volatile), SQLite (persistent), localStorage (theme)
-* Security: Supervisor Primacy, Teacher Gate, Input Guardrails
-2. Agent Workflow Steps (Adapted)
-1. Trigger
-1. User action (such as inactivity or explicit request) or system event initiates the agent workflow.
-2. Relevant Blazor components (e.g., Editor, TutorPanel) invoke TutorOrchestrator.
-2. Context Assembly
-1. TutorOrchestrator collects context from StoryState, including:
-2. Last N sentences of the story
-3. Current genre, archetype, and age
-4. Linked notebook entities
-5. Tutor session mode (Spark, Review, etc.)
-6. All input is sanitized to filter banned words.
-3. Strategy Selection
-1. TutorOrchestrator chooses an IPromptStrategy implementation based on TutorSession.CurrentMode.
-2. For example, SparkPromptStrategy for brainstorming or ReviewPromptStrategy for feedback.
-4. Prompt Construction
-1. The selected strategy builds a prompt, injecting relevant context and enforcing the “No Ghostwriting” firewall.
-2. Prompt is formatted for submission to Cohere’s API (Command R+ or Light).
-5. API Call
-1. ICohereTutorService sends the prompt to Cohere using the user’s API key.
-2. Service manages endpoint selection and parses the response accordingly.
-6. Response Handling
-1. AI response is parsed and appended to TutorSession.History.
-2. If the response is a Socratic question, it is displayed in TutorPanel.
-3. If the response is a status (e.g., READY_TO_WRITE), the UI updates as needed.
-7. Persistence & Observability
-1. Critical user data is auto-saved to SQLite.
-2. Theme and user preferences are mirrored to localStorage.
-3. Logging (via Serilog) excludes story content to ensure privacy.
-8. Supervisor Controls
-1. Sensitive actions (API key management, settings changes) require a Teacher Gate PIN.
-2. All agent activities are auditable and can be reviewed by a supervisor.
-This workflow promotes transparent, secure, and privacy-focused AI interactions, fully aligned with the principles and technical foundations of the StoryFort platform.
-
-
-4. Rights-First & Security Notes
-* All agent workflows must respect the "No Ghostwriting" rule.
-* Supervisor (Teacher/Parent) can audit and override agent actions.
-* All AI requests are stateless and do not persist user data on the inference side.
-* Critical user data is only stored locally, such as auto-saving to SQLite and mirroring preferences to localStorage, ensuring privacy and transparency in handling sensitive information.
-* Logging systems (e.g., Serilog) intentionally exclude story or content details, maintaining user confidentiality and aligning with privacy-first standards.
-* Any sensitive agent actions, such as API key or settings changes, require supervisor authentication (Teacher Gate PIN), and all activities remain fully auditable.
-This workflow is designed to be extensible for future agent types (e.g., Assignment, Review) and to maintain strict compliance with StoryFort's privacy and educational principles.
-
-

@@ -5,13 +5,11 @@
 @using StoryFort.Components.EditorPanels
 @using Microsoft.EntityFrameworkCore
 @using Serilog
-@inject AppDbContext DbContext
-@inject StoryState StoryState
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Editor - @StoryState.Title</PageTitle>
+<PageTitle>Editor - @StoryContext.Title</PageTitle>
 
 <div class="flex flex-col gap-6">
     <!-- Pixel Card Editor Panel -->
@@ -25,7 +23,7 @@
                         <div class="font-['Press_Start_2P'] text-[10px] text-[var(--primary)]">Story Details</div>
                         @if (!HeaderExpanded)
                         {
-                            <div class="text-xs text-[var(--muted-foreground)] mt-1 truncate max-w-[200px]">@StoryState.Title</div>
+                            <div class="text-xs text-[var(--muted-foreground)] mt-1 truncate max-w-[200px]">@StoryContext.Title</div>
                         }
                     </div>
                 </div>
@@ -37,7 +35,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Story Title</label>
-                            <input type="text" class="w-full bg-[var(--background)] border-2 border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors" style="border-radius: var(--radius)" @bind="StoryState.Title" placeholder="Give your story a title..." />
+                            <input type="text" class="w-full bg-[var(--background)] border-2 border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--primary)] transition-colors" style="border-radius: var(--radius)" @bind="StoryContext.Title" placeholder="Give your story a title..." />
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Quick Font Change</label>
@@ -72,7 +70,7 @@
                         <div class="flex-1 min-w-[250px]">
                             <label class="text-[10px] font-bold text-[var(--muted-foreground)] mb-1 block uppercase">Story Type</label>
                             <div class="flex items-center gap-3">
-                                <select class="flex-1 border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]" @bind="StoryState.Genre">
+                                <select class="flex-1 border-2 border-[var(--border)] bg-[var(--background)] px-2 py-2 text-xs outline-none focus:border-[var(--primary)]" @bind="StoryContext.Genre">
                                     <option value="fantasy">🧙‍♂️ Fantasy</option>
                                     <option value="adventure">🗺️ Adventure</option>
                                     <option value="scifi">🚀 Sci-Fi</option>
@@ -155,148 +153,5 @@
     <TutorPanel CurrentAccount="CurrentAccount" />
 </div>
 
-@code {
-    [Parameter] public int StoryId { get; set; }
-
-    BlazoredTextEditor? QuillHtml;
-    string SaveStatus = "Ready";
-    string InitialContent = "";
-    int WordCount = 0;
-    bool IsNotebookOpen = false;
-    private bool HeaderExpanded = true;
-    private DotNetObjectReference<Editor>? _objRef;
-    private Account? CurrentAccount;
-
-    private void ToggleHeader() => HeaderExpanded = !HeaderExpanded;
-    private void ToggleNotebook() => IsNotebookOpen = !IsNotebookOpen;
-
-    private async Task OnFontChange(ChangeEventArgs e)
-    {
-        var fontClass = e.Value?.ToString();
-        if (!string.IsNullOrWhiteSpace(fontClass))
-        {
-            await JS.InvokeVoidAsync("setBodyClass", $"h-screen flex {fontClass}");
-            StoryState.UpdateThemePreference(p => p.FontClass = fontClass);
-        }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            var story = await DbContext.Stories
-                .Include(s => s.Account)
-                .ThenInclude(acc => acc!.ActiveTheme)
-                .Include(s => s.EntityLinks)
-                .Include(s => s.Account)
-                .ThenInclude(a => a!.Notebooks)
-                .ThenInclude(n => n!.Entities)
-                .ThenInclude(e => e!.Entries)
-                .FirstOrDefaultAsync(s => s.Id == StoryId);
-
-            if (story != null)
-            {
-                CurrentAccount = story.Account;
-                StoryState.Account = story.Account; // ADD THIS to support StoryState persistence
-
-                // Load Theme Preferences
-                if (!string.IsNullOrEmpty(story.Account?.ThemePreferenceJson))
-                {
-                    try 
-                    {
-                        var prefs = System.Text.Json.JsonSerializer.Deserialize<ThemePreference>(story.Account.ThemePreferenceJson);
-                        if (prefs != null) 
-                        {
-                            StoryState.ThemePreference = prefs;
-                            // Apply theme immediately if needed (usually handled by MainLayout binding to StoryState, but font might need JS)
-                        }
-                    }
-                    catch { /* Ignore invalid JSON */ }
-                }
-
-                StoryState.Title = story.Title;
-                StoryState.StoryId = story.Id;
-                
-                if (story.Account?.ActiveTheme != null)
-                {
-                    StoryState.CurrentTheme = story.Account.ActiveTheme;
-                    StoryState.NotifyStateChanged(); 
-                }
-                
-                // Content is now the single source of truth; legacy Pages removed.
-
-                InitialContent = story.Content;
-                StoryState.Content = story.Content;
-                
-                StoryState.Notebooks = story.Account?.Notebooks.ToList() ?? new List<Notebook>();
-                StoryState.LinkedEntityIds = story.EntityLinks.Select(l => l.NotebookEntityId).ToHashSet();
-                StoryState.Genre = story.Genre;
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error loading story {StoryId}", StoryId);
-            SaveStatus = "Error Loading";
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _objRef = DotNetObjectReference.Create(this);
-            // 2000ms debounce as per requirements
-            await JS.InvokeVoidAsync("editorJs.initAutoSave", _objRef, 2000); 
-        }
-    }
-
-    [JSInvokable]
-    public async Task TriggerAutoSave()
-    {
-        await InvokeAsync(async () => 
-        {
-            await SaveContent();
-            StateHasChanged();
-        });
-    }
-
-    private async Task SaveContent()
-    {
-        if (QuillHtml == null) return;
-        
-        SaveStatus = "Saving...";
-        StateHasChanged();
-
-        try 
-        {
-            string html = await QuillHtml.GetHTML();
-            StoryState.Content = html;
-            
-            string text = await QuillHtml.GetText();
-            WordCount = string.IsNullOrWhiteSpace(text) ? 0 : text.Split(new[] { ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
-
-            var story = await DbContext.Stories.FindAsync(StoryId);
-            
-            if (story != null)
-            {
-                story.Content = html;
-                story.Title = StoryState.Title ?? story.Title; // Sync Title
-                story.Genre = StoryState.Genre ?? story.Genre; // Sync Genre
-                story.LastModified = DateTime.Now;
-                await DbContext.SaveChangesAsync();
-                SaveStatus = "Saved"; 
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error saving content");
-            SaveStatus = "Not Saved!";
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _objRef?.Dispose();
-    }
-}
+@* Code moved to Editor.razor.cs partial class *@
 

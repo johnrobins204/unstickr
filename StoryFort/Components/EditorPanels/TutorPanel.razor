@@ -1,9 +1,10 @@
 @using StoryFort.Services
 @using StoryFort.Models
 @using Microsoft.JSInterop
-@inject StoryState StoryState
+@inject StoryContext StoryContext
+@inject SessionState SessionState
+@inject TutorSessionService TutorSessionService
 @inject ICohereTutorService CohereService
-@inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
 @inject TutorOrchestrator TutorOrchestrator
 @implements IAsyncDisposable
@@ -11,14 +12,14 @@
 
 <div class="tutor-overlay">
     <!-- Speech Bubble (Visible when NOT expanded, or explicitly shown) -->
-    @if (!IsExpanded && !string.IsNullOrEmpty(StoryState.TutorNotes))
+    @if (!IsExpanded && !string.IsNullOrEmpty(SessionState.TutorNotes))
     {
         <div class="tutor-bubble">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <small class="fw-bold text-primary">Alice suggestion:</small>
                 <button type="button" class="btn-close btn-sm" aria-label="Close" @onclick="DismissTutorNote"></button>
             </div>
-            <p class="small mb-1 text-truncate" style="max-width: 200px;">@StoryState.TutorNotes</p>
+            <p class="small mb-1 text-truncate" style="max-width: 200px;">@SessionState.TutorNotes</p>
             <div class="text-end">
                 <small class="text-primary" style="cursor: pointer;" @onclick="ToggleExpand">Open Chat</small>
             </div>
@@ -49,11 +50,11 @@
                 else
                 {
                     <!-- Current State / Notes -->
-                     @if (!string.IsNullOrEmpty(StoryState.TutorNotes))
+                     @if (!string.IsNullOrEmpty(SessionState.TutorNotes))
                      {
                         <div class="alert alert-info border-0 shadow-sm">
                             <h6 class="alert-heading h6"><i class="bi bi-lightbulb-fill"></i> Idea:</h6>
-                            <p class="mb-0 small" style="white-space: pre-wrap;">@StoryState.TutorNotes</p>
+                            <p class="mb-0 small" style="white-space: pre-wrap;">@SessionState.TutorNotes</p>
                             <div class="mt-2 text-end">
                                 <button class="btn btn-sm btn-outline-info bg-white" @onclick="DismissTutorNote">Clear</button>
                             </div>
@@ -77,7 +78,7 @@
                             {
                                 <i class="bi bi-stars fs-1 d-block mb-2 text-warning"></i>
                                 <p class="small mb-2">Need a spark?</p>
-                                <button class="btn btn-sm btn-outline-success" @onclick="async () => { StoryState.TutorNotes = string.Empty; await OnHintClick(); }">
+                                <button class="btn btn-sm btn-outline-success" @onclick="async () => { SessionState.TutorNotes = string.Empty; await OnHintClick(); }">
                                     Get a hint
                                 </button>
                             }
@@ -123,6 +124,8 @@
     private TutorState CurrentTutorState = TutorState.Idle;
     private bool IsGlancingUp = false;
     private DotNetObjectReference<TutorPanel>? objRef;
+    private IJSObjectReference? inactivityModule;
+    private IJSObjectReference? editorModule;
 
     private void ToggleExpand() => IsExpanded = !IsExpanded;
 
@@ -130,15 +133,15 @@
     {
         if (e.Key == "Enter" && !e.ShiftKey)
         {
-            if (StoryState.TutorSession.CurrentMode == TutorMode.SparkProtocol)
+            if (TutorSessionService.Session.CurrentMode == TutorMode.SparkProtocol)
             {
                 // Treat input as answer to SparkProtocol
-                StoryState.TutorSession.History.Add(Prompt);
+                TutorSessionService.AddHistory(Prompt);
                 var response = await TutorOrchestrator.RunSparkProtocolAsync();
-                StoryState.TutorNotes = response;
+                SessionState.TutorNotes = response;
                 Prompt = "";
                 // Check for handoff
-                if (StoryState.TutorSession.LastJsonStatus == "READY_TO_WRITE")
+                if (TutorSessionService.LastJsonStatus == "READY_TO_WRITE")
                 {
                     // Try to extract summary from response
                     string? summary = null;
@@ -157,18 +160,21 @@
                             Name = "Spark Idea",
                             Description = summary
                         };
-                        var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Name == "Lore");
+                        var loreNotebook = SessionState.Notebooks.FirstOrDefault(n => n.Name == "Lore");
                         if (loreNotebook != null)
                         {
                             loreNotebook.Entities.Add(entry);
                         }
                     }
 
-                    StoryState.TutorNotes = "You're ready to start writing!";
-                    StoryState.TutorSession.CurrentMode = TutorMode.Idle;
-                    StoryState.TutorSession.History.Clear();
+                    SessionState.TutorNotes = "You're ready to start writing!";
+                    TutorSessionService.SetMode(TutorMode.Idle);
+                    TutorSessionService.ClearHistory();
                     IsExpanded = false;
-                    await JS.InvokeVoidAsync("editorJs.focusEditor");
+                    if (editorModule != null)
+                    {
+                        await editorModule.InvokeVoidAsync("focusEditor");
+                    }
                 }
                 StateHasChanged();
             }
@@ -186,7 +192,9 @@
             objRef = DotNetObjectReference.Create(this);
             try 
             {
-                await JS.InvokeVoidAsync("inactivityTimer.initialize", objRef);
+                inactivityModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/inactivity.js");
+                await inactivityModule.InvokeVoidAsync("initialize", objRef);
+                editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
             }
             catch (Exception)
             {
@@ -208,23 +216,23 @@
         
         try
         {
-            var account = CurrentAccount ?? StoryState.Account;
+            var account = CurrentAccount ?? StoryContext.Account;
             if (account != null)
             {
                 // Note: GetSocraticPromptAsync handles context internally or assumes simple prompt for now.
                 // If strict prompting is needed, we would prepend it here, but instruction says "Use GetSocraticPromptAsync(Prompt...)"
                 var response = await CohereService.GetSocraticPromptAsync(currentPrompt, account, account.UseReasoningModel);
-                StoryState.TutorNotes = response;
+                SessionState.TutorNotes = response;
             }
             else
             {
-                StoryState.TutorNotes = "No account context available.";
+                SessionState.TutorNotes = "No account context available.";
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "AI Error");
-            StoryState.TutorNotes = "I couldn't reach the AI service.";
+            SessionState.TutorNotes = "I couldn't reach the AI service.";
         }
         finally
         {
@@ -237,11 +245,11 @@
 
     private async Task OnHintClick()
     {
-        StoryState.TutorSession.CurrentMode = TutorMode.SparkProtocol;
+                TutorSessionService.SetMode(TutorMode.SparkProtocol);
         var response = await TutorOrchestrator.RunSparkProtocolAsync();
-        StoryState.TutorNotes = response;
+        SessionState.TutorNotes = response;
             // Check for handoff
-            if (StoryState.TutorSession.LastJsonStatus == "READY_TO_WRITE")
+            if (TutorSessionService.LastJsonStatus == "READY_TO_WRITE")
             {
                 string? summary = null;
                 try
@@ -258,27 +266,30 @@
                         Name = "Spark Idea",
                         Description = summary
                     };
-                    var loreNotebook = StoryState.Notebooks.FirstOrDefault(n => n.Name == "Lore");
+                    var loreNotebook = SessionState.Notebooks.FirstOrDefault(n => n.Name == "Lore");
                     if (loreNotebook != null)
                     {
                         loreNotebook.Entities.Add(entry);
                     }
                 }
 
-                StoryState.TutorNotes = "You're ready to start writing!";
-                StoryState.TutorSession.CurrentMode = TutorMode.Idle;
-                StoryState.TutorSession.History.Clear();
+                SessionState.TutorNotes = "You're ready to start writing!";
+                TutorSessionService.SetMode(TutorMode.Idle);
+                TutorSessionService.ClearHistory();
                 IsExpanded = false;
-                await JS.InvokeVoidAsync("editorJs.focusEditor");
+                if (editorModule != null)
+                {
+                    await editorModule.InvokeVoidAsync("focusEditor");
+                }
             }
             StateHasChanged();
     }
 
     private async Task RunReview(ReviewType type)
     {
-        StoryState.TutorSession.CurrentMode = TutorMode.ReviewMode;
+        TutorSessionService.SetMode(TutorMode.ReviewMode);
         var response = await TutorOrchestrator.RunReviewProtocolAsync(type);
-        StoryState.TutorNotes = response;
+        SessionState.TutorNotes = response;
         StateHasChanged();
     }
 
@@ -339,7 +350,7 @@
 
     private void DismissTutorNote()
     {
-        StoryState.TutorNotes = string.Empty;
+        SessionState.TutorNotes = string.Empty;
     }
 
     // Helper
@@ -358,7 +369,15 @@
     {
         if (objRef != null)
         {
-            try { await JS.InvokeVoidAsync("inactivityTimer.dispose"); } catch {}
+            if (inactivityModule != null)
+            {
+                try { await inactivityModule.InvokeVoidAsync("dispose"); } catch {}
+                await inactivityModule.DisposeAsync();
+            }
+            if (editorModule != null)
+            {
+                await editorModule.DisposeAsync();
+            }
             objRef.Dispose();
         }
     }

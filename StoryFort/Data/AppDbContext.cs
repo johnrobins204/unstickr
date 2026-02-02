@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StoryFort.Models;
+using StoryFort.Services;
 
 namespace StoryFort.Data;
 
@@ -21,9 +23,20 @@ public class AppDbContext : DbContext
     public DbSet<Archetype> Archetypes { get; set; }
     public DbSet<ArchetypePoint> ArchetypePoints { get; set; }
     public DbSet<ArchetypeExample> ArchetypeExamples { get; set; }
+    public DbSet<AccountApiKeyHistory> AccountApiKeyHistories { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Encryption Value Converter for sensitive text content
+        var encryptionConverter = new ValueConverter<string, string>(
+            v => StoryFort.Services.StoryEncryptionProvider.Protector != null ? StoryFort.Services.StoryEncryptionProvider.Protector.Protect(v) : v,
+            v => StoryFort.Services.StoryEncryptionProvider.Protector != null ? StoryFort.Services.StoryEncryptionProvider.Protector.Unprotect(v) : v
+        );
+
+        modelBuilder.Entity<Story>().Property(s => s.Content).HasConversion(encryptionConverter);
+        modelBuilder.Entity<NotebookEntity>().Property(e => e.Description).HasConversion(encryptionConverter);
+        modelBuilder.Entity<NotebookEntry>().Property(e => e.Content).HasConversion(encryptionConverter);
 
         // Configure Many-to-Many Link Key
         modelBuilder.Entity<StoryEntityLink>()

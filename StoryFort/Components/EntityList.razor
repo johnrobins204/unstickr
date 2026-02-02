@@ -2,7 +2,6 @@
 @using StoryFort.Components.Shared
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext DbContext
-@inject StoryState StoryState
 
 <EntityEditor @ref="entityEditor" Entity="SelectedEntity" OnSaved="ReloadEntities" />
 

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Thinking: POV Synthesis Wall</title>
+    <link rel="stylesheet" href="personas-common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Permanent+Marker&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        marker: ['Permanent Marker', 'cursive'],
+                        hand: ['Kalam', 'cursive'],
+                    },
+                    colors: {
+                        'tape-white': 'rgba(255,255,255,0.8)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .sticky-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .sticky-card:hover {
+            transform: translateY(-4px) rotate(1deg);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 10;
+        }
+
+        .tape {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 12px;
+            background-color: rgba(255,255,255,0.4);
+            border-left: 1px dashed rgba(0,0,0,0.1);
+            border-right: 1px dashed rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+
+        .needs-highlight {
+            font-weight: 700;
+            color: #1e293b;
+            text-decoration-thickness: 3px;
+            text-decoration-color: rgba(0,0,0,0.1);
+            text-decoration-line: underline; 
+            text-underline-offset: 2px;
+        }
+
+        .insight-highlight {
+            font-style: italic;
+            color: #475569;
+        }
+
+        /* Persona Icons */
+        .icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="p-8 min-h-screen text-slate-800">
+
+    <header class="max-w-7xl mx-auto mb-12 text-center">
+        <div class="inline-block bg-white border-2 border-slate-900 text-slate-900 px-6 py-2 transform -rotate-2 shadow-lg mb-4">
+            <h1 class="font-marker text-3xl tracking-wide">DEFINE PHASE: POV SYNTHESIS</h1>
+        </div>
+        <p class="text-slate-600 font-medium max-w-2xl mx-auto mt-4">
+            We have synthesized the "swirling needs" of the ecosystem into 5 distinct Point of View (POV) statements for each persona. 
+            <br><span class="text-sm text-slate-500 font-normal">Format: [USER] needs to [NEED] because [INSIGHT]</span>
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+        <div class="space-y-12">
+            
+            <section>
+                <div class="flex items-center gap-4 mb-6 border-b-2 border-orange-200 pb-2">
+                    <div class="icon-box bg-orange-100 text-orange-600">💥</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">The Volatile Creator</h2>
+                        <span class="text-xs font-bold uppercase tracking-wider text-orange-600">Child (Age 7)</span>
+                    </div>
+                </div>
+                <div class="grid gap-4">
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs a <span class="needs-highlight">digital valve</span> to release ideas slowly, because <span class="insight-highlight">his mental flood of concepts causes a traffic jam that blocks him from starting.</span>
+                        </p>
+                    </div>
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs <span class="needs-highlight">voice-first capture</span>, because <span class="insight-highlight">his physical hand speed cannot keep up with the velocity of his imagination.</span>
+                        </p>
+                    </div>
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs a <span class="needs-highlight">"narrative container"</span>, because <span class="insight-highlight">his ideas are so explosive that he loses the thread of the story.</span>
+                        </p>
+                    </div>
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs to <span class="needs-highlight">isolate variables</span>, because <span class="insight-highlight">facing a blank canvas with infinite AI possibilities causes cognitive washout.</span>
+                        </p>
+                    </div>
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs <span class="needs-highlight">immediate visual feedback</span>, because <span class="insight-highlight">he thinks in scenes and "movies" rather than in text sentences.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center gap-4 mb-6 border-b-2 border-teal-200 pb-2">
+                    <div class="icon-box bg-teal-100 text-teal-600">🔒</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">The Voice Protector</h2>
+                        <span class="text-xs font-bold uppercase tracking-wider text-teal-600">Teen (Age 14-18)</span>
+                    </div>
+                </div>
+                <div class="grid gap-4">
+                    <div class="bg-teal-50 border-l-4 border-teal-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">"Idea Maps"</span> not text generation, because <span class="insight-highlight">she fears AI phrasing will overwrite her authentic human identity.</span>
+                        </p>
+                    </div>
+                    <div class="bg-teal-50 border-l-4 border-teal-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">incremental scaffolding</span>, because <span class="insight-highlight">she wants the pride of "doing the walking" herself.</span>
+                        </p>
+                    </div>
+                    <div class="bg-teal-50 border-l-4 border-teal-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">high-transparency tools</span>, because <span class="insight-highlight">she is experiencing "identity dread" and needs to know what is hers.</span>
+                        </p>
+                    </div>
+                    <div class="bg-teal-50 border-l-4 border-teal-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">critique, not correction</span>, because <span class="insight-highlight">she wants to improve her skill, not have a machine fix it.</span>
+                        </p>
+                    </div>
+                    <div class="bg-teal-50 border-l-4 border-teal-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">privacy controls</span>, because <span class="insight-highlight">she views her writing as a vulnerable extension of her self.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+            
+             <section>
+                <div class="flex items-center gap-4 mb-6 border-b-2 border-purple-200 pb-2">
+                    <div class="icon-box bg-purple-100 text-purple-600">🍎</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">The Teacher</h2>
+                        <span class="text-xs font-bold uppercase tracking-wider text-purple-600">Educator (The Scaffold)</span>
+                    </div>
+                </div>
+                <div class="grid gap-4">
+                    <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            They need <span class="needs-highlight">process analytics</span>, because <span class="insight-highlight">they can no longer trust the final essay as proof of understanding.</span>
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            They need <span class="needs-highlight">higher-level critique tools</span>, because <span class="insight-highlight">they must shift curriculum from "generating text" to "evaluating arguments."</span>
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            They need <span class="needs-highlight">"Impossible without AI" assignments</span>, because <span class="insight-highlight">they want to leverage the tech for complexity rather than ban it.</span>
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            They need <span class="needs-highlight">customizable constraints</span>, because <span class="insight-highlight">they need to force students to think critically.</span>
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            They need to <span class="needs-highlight">bridge the gap</span> between colleagues, because <span class="insight-highlight">they are carrying the burden of scaffolding this complexity alone.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="space-y-12">
+            
+            <section>
+                <div class="flex items-center gap-4 mb-6 border-b-2 border-blue-200 pb-2">
+                    <div class="icon-box bg-blue-100 text-blue-600">🚀</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">The Curious Accelerator</h2>
+                        <span class="text-xs font-bold uppercase tracking-wider text-blue-600">Parent (Eager)</span>
+                    </div>
+                </div>
+                <div class="grid gap-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs a <span class="needs-highlight">high-stimulation dashboard</span>, because <span class="insight-highlight">his need for speed often outpaces his child's need for slow learning.</span>
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs <span class="needs-highlight">"collaborative parameters"</span>, because <span class="insight-highlight">he wants to be an active participant, not just a supervisor.</span>
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs <span class="needs-highlight">deep-dive learning links</span>, because <span class="insight-highlight">he is driven by the "joy of big concepts" and the underlying tech.</span>
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs <span class="needs-highlight">separate interfaces</span>, because <span class="insight-highlight">his high-energy intervention can accidentally rob the child of "execution" work.</span>
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            He needs <span class="needs-highlight">"Worldbuilder Tools"</span>, because <span class="insight-highlight">he is motivated by the complexity and potential of the technology itself.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center gap-4 mb-6 border-b-2 border-slate-300 pb-2">
+                    <div class="icon-box bg-slate-200 text-slate-600">🧠</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Sarah</h2>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Parent (Process Purist)</span>
+                    </div>
+                </div>
+                <div class="grid gap-4">
+                    <div class="bg-white border-l-4 border-slate-500 p-4 rounded-r-lg sticky-card shadow-sm">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">"artificial friction"</span>, because <span class="insight-highlight">she believes deep learning only happens during the struggle of figuring it out.</span>
+                        </p>
+                    </div>
+                    <div class="bg-white border-l-4 border-slate-500 p-4 rounded-r-lg sticky-card shadow-sm">
+                        <p class="text-sm leading-relaxed">
+                            She needs the <span class="needs-highlight">Socratic Method</span> (questions, not fixes), because <span class="insight-highlight">her core fear is the "cognitive atrophy" of her child.</span>
+                        </p>
+                    </div>
+                    <div class="bg-white border-l-4 border-slate-500 p-4 rounded-r-lg sticky-card shadow-sm">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">process visibility</span>, because <span class="insight-highlight">she values the evolution of the draft more than the perfection of the result.</span>
+                        </p>
+                    </div>
+                    <div class="bg-white border-l-4 border-slate-500 p-4 rounded-r-lg sticky-card shadow-sm">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">"effort metrics"</span>, because <span class="insight-highlight">she views instant AI generation as "cheating."</span>
+                        </p>
+                    </div>
+                    <div class="bg-white border-l-4 border-slate-500 p-4 rounded-r-lg sticky-card shadow-sm">
+                        <p class="text-sm leading-relaxed">
+                            She needs to <span class="needs-highlight">disable "magic buttons"</span>, because <span class="insight-highlight">she prioritizes grammar and logic skills over creative output.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center gap-4 mb-6 border-b-2 border-emerald-200 pb-2">
+                    <div class="icon-box bg-emerald-100 text-emerald-700">🛡️</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">The Reluctant Guardian</h2>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Parent (Skeptic)</span>
+                    </div>
+                </div>
+                <div class="grid gap-4">
+                    <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">zero-setup entry</span>, because <span class="insight-highlight">she fears looking incompetent and will abandon the tool if she encounters friction.</span>
+                        </p>
+                    </div>
+                    <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">"plain language" instructions</span>, because <span class="insight-highlight">she feels alienated by tech jargon.</span>
+                        </p>
+                    </div>
+                    <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">proof of effort</span>, because <span class="insight-highlight">she biases toward "real work" and views digital tasks as inherently lazy.</span>
+                        </p>
+                    </div>
+                    <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs <span class="needs-highlight">analog bridges</span> (printing, physical play), because <span class="insight-highlight">she values nature and non-digital time above screen time.</span>
+                        </p>
+                    </div>
+                    <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg sticky-card">
+                        <p class="text-sm leading-relaxed">
+                            She needs a <span class="needs-highlight">clear "finish line"</span>, because <span class="insight-highlight">she is a "hostage user" who wants the homework done so the family can disconnect.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="mt-16 mb-8 text-center text-slate-400 text-sm">
+        Design Thinking Artefact: Define Phase • Generated by Gemini
+    </footer>
+
+</body>
+</html>

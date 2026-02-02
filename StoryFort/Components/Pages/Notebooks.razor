@@ -9,7 +9,8 @@
 @using StoryFort.Components.EditorPanels
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext DbContext
-@inject StoryState StoryState
+@inject SessionState Session
+@inject StoryContext StoryContext
 
 <PageTitle>StoryFort - Notebooks</PageTitle>
 
@@ -20,7 +21,7 @@
     </div>
     <div class="flex-1 p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
-            @foreach (var nb in StoryState.Notebooks)
+            @foreach (var nb in Session.Notebooks)
             {
                 <div class="pixel-card p-6 cursor-pointer hover:border-[var(--primary)] transition-all group" style="border-radius: var(--radius)">
                     <div class="mb-4">
@@ -62,10 +63,10 @@
                     .ThenInclude(entry => entry.Story)
             .ToListAsync();
             
-        StoryState.Notebooks = notebooks;
+        Session.Notebooks = notebooks;
         
         // Clear linkage (since we are not in a story)
-        StoryState.LinkedEntityIds.Clear();
+        StoryContext.LinkedEntityIds.Clear();
     }
 }
 

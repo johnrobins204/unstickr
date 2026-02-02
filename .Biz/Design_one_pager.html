@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Story Fort: Unified System Blueprint</title>
+    <link rel="stylesheet" href="personas-common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .step-card {
+            transition: all 0.3s ease;
+        }
+        .step-card:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 blueprint-grid min-h-screen">
+
+    <!-- Header Section -->
+    <header class="max-w-6xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-end gap-6">
+        <div>
+            <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold tracking-widest uppercase mb-4">
+                Master System Specification
+            </div>
+            <h1 class="text-5xl font-extrabold text-slate-900 tracking-tight">The Story Fort</h1>
+            <p class="text-xl text-slate-600 mt-2 max-w-2xl font-light">
+                Literacy-as-a-system: Combining <span class="text-indigo-600 font-semibold">Inspiration Mining</span> with <span class="text-indigo-600 font-semibold">Mechanical Drafting</span>.
+            </p>
+        </div>
+        <div class="flex flex-col items-end gap-2 text-right">
+            <div class="no-ai-badge text-white px-4 py-1 rounded-full text-[10px] font-bold">🚫 NO GHOSTWRITING POLICY</div>
+            <div class="flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-slate-200 text-[10px] font-bold text-slate-500 uppercase">
+                <span class="text-red-600">🍁</span> Canadian Sovereign Ecosystem
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- SIDEBAR: Archetype Mapping -->
+        <div class="lg:col-span-3 space-y-4">
+            <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Strategic Fit</h2>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-500">
+                <h4 class="text-xs font-bold text-emerald-700 uppercase">Guardian Proof</h4>
+                <p class="text-[11px] text-slate-500">Manual tagging of literary pins provides "Proof of Effort" she demands.</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500">
+                <h4 class="text-xs font-bold text-amber-700 uppercase">Creator Valve</h4>
+                <p class="text-[11px] text-slate-500">Organizes manic bursts of ideas into structured "World Notebooks".</p>
+            </div>
+            
+            <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl mt-8">
+                <h3 class="text-lg font-bold mb-2">The Reward Fort</h3>
+                <p class="text-xs text-slate-400 mb-4">Writing from the "inside-out." Points from Socratic edits unlock fort customizations.</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="aspect-square bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-xl">🏰</div>
+                    <div class="aspect-square bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-xl">🛡️</div>
+                    <div class="aspect-square bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-xl">🧪</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN PILLARS -->
+        <div class="lg:col-span-9 space-y-8">
+            
+            <!-- SECTION 1: THE INSPIRATION MINE -->
+            <div class="mine-section rounded-3xl p-8 shadow-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">Stage I: The Inspiration Mine</h2>
+                    <span class="px-3 py-1 bg-amber-200 text-amber-800 text-[10px] font-black uppercase rounded">World Building Engine</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white/60 backdrop-blur p-5 rounded-2xl border border-amber-200">
+                        <div class="flex justify-between mb-3"><span class="text-xl">📚</span><span class="mono text-[10px] text-amber-500">#01</span></div>
+                        <h4 class="font-bold text-sm mb-1">Deep Library Access</h4>
+                        <p class="text-[12px] text-slate-600 leading-snug">Mining Project Gutenberg. User highlights gems to seed their own creative soil.</p>
+                    </div>
+
+                    <div class="bg-white/60 backdrop-blur p-5 rounded-2xl border border-amber-200">
+                        <div class="flex justify-between mb-3"><span class="text-xl">📓</span><span class="mono text-[10px] text-amber-500">#02</span></div>
+                        <h4 class="font-bold text-sm mb-1">Extensible Notebooks</h4>
+                        <p class="text-[12px] text-slate-600 leading-snug">The Atlas, The Bestiary, The Codex. User-defined categories for world-logic.</p>
+                    </div>
+
+                    <div class="bg-white/60 backdrop-blur p-5 rounded-2xl border border-amber-200">
+                        <div class="flex justify-between mb-3"><span class="text-xl">📐</span><span class="mono text-[10px] text-amber-500">#03</span></div>
+                        <h4 class="font-bold text-sm mb-1">Visual Story Arcs</h4>
+                        <p class="text-[12px] text-slate-600 leading-snug">Visualizing story shapes (Fichtean, Kishōtenketsu) before a single word is typed.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: THE DRAFTING LOOP -->
+            <div class="space-y-6">
+                <h2 class="text-sm font-bold uppercase text-slate-400 tracking-wider">Stage II: The Mechanical Execution</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-100 p-6 rounded-2xl border-l-8 border-slate-400">
+                        <div class="flex justify-between mb-3"><span class="text-xl">🏗️</span><span class="mono text-[10px] text-slate-400">#04</span></div>
+                        <h4 class="font-bold text-slate-900 mb-2">Wet Cement Drafting</h4>
+                        <p class="text-sm text-slate-600">The <b>Flow-State Guardrail</b>. Previous sentences "dry" and fade as you move forward. Edits require intentionality.</p>
+                        <div class="mt-4 flex items-center gap-2">
+                            <span class="h-2 w-full bg-slate-300 rounded-full overflow-hidden">
+                                <div class="bg-indigo-500 h-full w-2/3"></div>
+                            </span>
+                            <span class="text-[10px] mono text-slate-400">Drying...</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
+                        <div class="flex justify-between mb-3"><span class="text-xl">⛏️</span><span class="mono text-[10px] text-emerald-400">#05</span></div>
+                        <h4 class="font-bold text-slate-900 mb-2">The Mining Sidebar</h4>
+                        <p class="text-sm text-slate-600">AI monitors context and surfacing <b>User's own Pins</b>. It never suggests its own ideas—only your favorites.</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200">
+                        <div class="flex justify-between mb-3"><span class="text-xl">🔍</span><span class="mono text-[10px] text-slate-300">#06</span></div>
+                        <h4 class="font-bold text-slate-900 mb-2">The Error Hunter</h4>
+                        <p class="text-sm text-slate-600">Max points for self-identification of errors. Separates 'In-Curriculum' targets for deep socratic work.</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200">
+                        <div class="flex justify-between mb-3"><span class="text-xl">💬</span><span class="mono text-[10px] text-slate-300">#07</span></div>
+                        <h4 class="font-bold text-slate-900 mb-2">Progressive Nudging</h4>
+                        <p class="text-sm text-slate-600">AI asks: "How might we make this verb stronger?" instead of "Change 'went' to 'sprinted'."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: CANADIAN SOVEREIGN ECOSYSTEM -->
+            <div class="sovereign-section rounded-3xl p-8 shadow-sm">
+                <div class="flex items-center gap-4 mb-6">
+                    <span class="text-4xl">🍁</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Canadian Sovereign Ecosystem</h2>
+                        <p class="text-sm text-blue-700 font-semibold uppercase tracking-widest">Privacy by Design • Sovereign AI</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-blue-100">
+                        <h4 class="font-bold text-xs text-slate-800 mb-2 uppercase tracking-tighter">Stack & Hosting</h4>
+                        <p class="text-[11px] text-slate-600">100% Hosted on Canadian soil. Intelligence powered by <b>Cohere</b> (Canadian LLM).</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-blue-100">
+                        <h4 class="font-bold text-xs text-slate-800 mb-2 uppercase tracking-tighter">Zero PII Capture</h4>
+                        <p class="text-[11px] text-slate-600">No Personally Identifiable Information from children is captured or stored.</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-blue-100">
+                        <h4 class="font-bold text-xs text-slate-800 mb-2 uppercase tracking-tighter">IP & Encryption</h4>
+                        <p class="text-[11px] text-slate-600">Child's IP is encrypted at rest. Decryption keys held <b>only</b> by authorized adults.</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-blue-100">
+                        <h4 class="font-bold text-xs text-slate-800 mb-2 uppercase tracking-tighter">Training Shield</h4>
+                        <p class="text-[11px] text-slate-600">Data is <b>never</b> used to train AI models. Your story remains your exclusive intellectual property.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER INFO: Technical Guardrails -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-indigo-900 p-6 rounded-3xl text-white">
+                    <h5 class="text-xs font-bold uppercase text-indigo-300 mb-4">Locus of Control Audit</h5>
+                    <div class="flex items-center gap-4">
+                        <div class="text-3xl font-black text-emerald-400">95%</div>
+                        <div class="text-[11px] leading-tight text-indigo-100">
+                            Student agency maintained via "Wet Cement" and "Mine-Only" inspiration. AI intervention limited to structural nudges and error detection.
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-200 p-6 rounded-3xl">
+                    <h5 class="text-xs font-bold uppercase text-slate-500 mb-2">Persona Satisfaction</h5>
+                    <ul class="text-[11px] space-y-1 text-slate-600">
+                        <li>✅ <b>Guardian:</b> Canadian data residency + Encryption control.</li>
+                        <li>✅ <b>Creator:</b> Flood-control via Extensible Notebooks.</li>
+                        <li>✅ <b>Protector:</b> Zero-training guarantee on original works.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="max-w-6xl mx-auto mt-12 pb-12 border-t border-slate-200 pt-8 text-center">
+        <div class="text-slate-400 text-[10px] font-bold tracking-widest uppercase mb-4 italic">"Building the fireplace for the creative fire."</div>
+    </footer>
+
+</body>
+</html>

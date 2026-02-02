@@ -1,12 +1,12 @@
 @using StoryFort.Services
-@inject StoryState StoryState
+@inject StoryContext StoryContext
 
 <div class="edit-checklist">
     <h3>Edit Checklist</h3>
     <ul>
-        @if (StoryState.ReviewFlags != null)
+        @if (StoryContext.ReviewFlags != null)
         {
-            var unresolved = StoryState.ReviewFlags.Where(f => !f.IsResolved).ToList();
+            var unresolved = StoryContext.ReviewFlags.Where(f => !f.IsResolved).ToList();
             foreach (var flag in unresolved)
             {
                 <li class="checklist-item" data-index="@flag.TokenIndex">
@@ -28,17 +28,17 @@
 </div>
 
 @code {
-    private int ProgressPercent => (StoryState.ReviewFlags == null || StoryState.ReviewFlags.Count == 0)
+    private int ProgressPercent => (StoryContext.ReviewFlags == null || StoryContext.ReviewFlags.Count == 0)
         ? 0
-        : (int)(100.0 * StoryState.ReviewFlags.Count(f => f.IsResolved) / StoryState.ReviewFlags.Count);
+        : (int)(100.0 * StoryContext.ReviewFlags.Count(f => f.IsResolved) / StoryContext.ReviewFlags.Count);
 
-    private string ProgressText => (StoryState.ReviewFlags == null)
+    private string ProgressText => (StoryContext.ReviewFlags == null)
         ? "0/0 Fixed"
-        : $"{StoryState.ReviewFlags.Count(f => f.IsResolved)}/{StoryState.ReviewFlags.Count} Fixed";
+        : $"{StoryContext.ReviewFlags.Count(f => f.IsResolved)}/{StoryContext.ReviewFlags.Count} Fixed";
 
     private string GetTokenText(int index)
     {
-        var token = StoryState.ReviewTokens?.FirstOrDefault(t => t.Index == index);
+        var token = StoryContext.ReviewTokens?.FirstOrDefault(t => t.Index == index);
         return token?.Text ?? "?";
     }
 

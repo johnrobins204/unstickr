@@ -1,15 +1,15 @@
 @page "/review/{StoryId:int}"
 @using StoryFort.Services
-@inject StoryState StoryState
+@inject StoryContext StoryContext
 @inject TextTokenizer Tokenizer
 
 <div class="lantern-review" style="display:flex;gap:2em;align-items:flex-start;">
     <div style="flex:3;">
         <h2>The Lantern: Review Mode</h2>
         <div class="review-text">
-            @if (StoryState.ReviewTokens != null)
+            @if (StoryContext.ReviewTokens != null)
             {
-                foreach (var token in StoryState.ReviewTokens)
+                foreach (var token in StoryContext.ReviewTokens)
                 {
                     <span class="review-token" data-index="@token.Index" @onclick="() => OnTokenClick(token)">@token.Text </span>
                 }
@@ -44,9 +44,9 @@
     protected override void OnInitialized()
     {
         // Tokenize
-        if (StoryState.ReviewTokens == null)
+        if (StoryContext.ReviewTokens == null)
         {
-            StoryState.ReviewTokens = Tokenizer.TokenizeHtml(StoryState.Content)
+            StoryContext.ReviewTokens = Tokenizer.TokenizeHtml(StoryContext.Content)
                 .Select(t => new ReviewToken {
                     Index = t.Index,
                     Text = t.Text,
@@ -54,8 +54,8 @@
                     IsPunctuation = t.IsPunctuation
                 }).ToList();
         }
-        if (StoryState.ReviewFlags == null)
-            StoryState.ReviewFlags = new List<ReviewFlag>();
+        if (StoryContext.ReviewFlags == null)
+            StoryContext.ReviewFlags = new List<ReviewFlag>();
     }
 
     private void OnTokenClick(ReviewToken token)
@@ -77,13 +77,13 @@
     private void MarkProblem(ReviewToken token)
     {
         token.IsFlagged = true;
-        StoryState.ReviewFlags?.Add(new ReviewFlag { TokenIndex = token.Index, Type = "Unspecified" });
+        StoryContext.ReviewFlags?.Add(new ReviewFlag { TokenIndex = token.Index, Type = "Unspecified" });
         ClosePopover();
     }
 
     private void AddNote(ReviewToken token)
     {
-        StoryState.ReviewFlags?.Add(new ReviewFlag { TokenIndex = token.Index, Type = "Note", Note = "User note" });
+        StoryContext.ReviewFlags?.Add(new ReviewFlag { TokenIndex = token.Index, Type = "Note", Note = "User note" });
         ClosePopover();
     }
 }
