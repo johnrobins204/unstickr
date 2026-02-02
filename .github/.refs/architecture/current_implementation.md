@@ -29,6 +29,11 @@ graph TB
         AchieveSvc[AchievementService - Scoped]
         SafeguardSvc[SafeguardService - Scoped]
         TutorSessionSvc[TutorSessionService - Scoped]
+        PromptSvc[PromptService - Singleton]
+        ReaderHelper[ReaderHtmlHelper - Singleton]
+        LibSeeder[LibrarySeeder - Singleton]
+        ToastSvc[ToastService - Singleton]
+        ContentProtect[StoryContentProtector - Singleton]
     end
     
     subgraph "Data Layer"
@@ -197,7 +202,7 @@ erDiagram
         string Name
         string SupervisorName
         string SupervisorEmail
-        string CohereApiKey
+        string ProtectedCohereApiKey
         bool UseReasoningModel
         string ThemePreferenceJson
     }
@@ -473,5 +478,5 @@ graph TD
 
 ---
 
-**Last Updated**: January 2026  
+**Last Updated**: February 2026  
 **Version**: 0.4 (Draft)

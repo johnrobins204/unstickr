@@ -9,7 +9,8 @@
 
 ## 1. AI & Prompt Engineering
 
-### [ ] Create `SystemPrompt_Spark.md` (The Electric Starter)
+### [✅] Create `SystemPrompt_Spark.md` (The Electric Starter)
+*   **Status**: Implemented as `Prompts/spark_v1.txt` and loaded via `PromptService`/`PromptRepository`.
 *   **Context**: Used when Story.Length == 0 to solve "Blank Page Fear" via the "Henry Protocol."
 *   **Objective**: Execute a "Divergent -> Convergent" brainstorming loop (max 4 turns).
 *   **The Funnel**:
@@ -18,7 +19,8 @@
     3.  The Scenario: "What if" prompt.
 *   **Output Requirement**: The LLM must output valid JSON. When a specific story idea is detected, it must set the flag `{"status": "READY_TO_WRITE"}`.
 
-### [ ] Create `SystemPrompt_ReviewTutor.md` (The Learning Loop)
+### [✅] Create `SystemPrompt_ReviewTutor.md` (The Learning Loop)
+*   **Status**: Implemented as `ReviewPromptStrategy` class with inline prompt logic.
 *   **Context**: Defines the logic for the "Review Mode" trigger.
 *   **Orthographic Coaching**:
     1.  Analyze a specific misspelled word provided by the system.
@@ -36,7 +38,8 @@
 
 ## 2. Frontend & UX Logic
 
-### [x] Update [inactivity.js](../StoryFort/wwwroot/js/inactivity.js) - Frustration Detection
+### [✅] Update [inactivity.js](../StoryFort/wwwroot/js/inactivity.js) - Frustration Detection
+*   **Status**: Implemented with rage click and button mashing detection.
 *   **Context**: "Hyper-activity" is a signal for help.
 *   **Requirement**: Listen for:
     *   **Rage Clicks**: >3 clicks on the same coordinates within 1s.

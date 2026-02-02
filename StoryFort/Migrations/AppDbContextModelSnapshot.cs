@@ -107,6 +107,10 @@ namespace StoryFort.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PlaceOfOrigin")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("SvgPath")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -118,24 +122,155 @@ namespace StoryFort.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "classic",
-                            Description = "A classic rise and fall structure suitable for most stories.",
-                            Name = "Classic Arc (Freytag)",
-                            SvgPath = "M0,320 L100,320 L300,50 L500,320 L800,320"
+                            Id = "hero",
+                            Description = "The common template of stories that involve a hero who goes on an adventure, wins a victory in a decisive crisis, and comes home changed.",
+                            Name = "The Hero's Journey",
+                            PlaceOfOrigin = "Universal",
+                            SvgPath = "M 0,0.8 C 0.2,0.8 0.3,0.5 0.5,0.2 C 0.7,0.5 0.8,0.8 1,0.8"
                         },
                         new
                         {
-                            Id = "hero",
-                            Description = "A circular journey where the hero leaves home and returns changed.",
-                            Name = "Hero's Journey",
-                            SvgPath = "M0,320 L100,320 L250,150 L400,38 L550,150 L700,320 L800,320"
+                            Id = "voyage",
+                            Description = "The protagonist travels to a strange world and, after overcoming the threats it poses or learning important lessons, returns with experience.",
+                            Name = "Voyage and Return",
+                            PlaceOfOrigin = "Universal",
+                            SvgPath = "M 0,0.5 Q 0.5,-0.2 1,0.5"
+                        },
+                        new
+                        {
+                            Id = "classic",
+                            Description = "A five-part dramatic structure: Exposition, Rising Action, Climax, Falling Action, and Resolution.",
+                            Name = "Freytag's Pyramid",
+                            PlaceOfOrigin = "Germany",
+                            SvgPath = "M 0,0.9 L 0.5,0.1 L 1,0.9"
                         },
                         new
                         {
                             Id = "kisho",
-                            Description = "An East Asian structure with four acts: Intro, Development, Twist, and Conclusion.",
-                            Name = "The Twist (Kishōtenketsu)",
-                            SvgPath = "M0,320 L100,320 L300,200 L550,50 L750,320 L800,320"
+                            Description = "A four-act structure common in East Asian narratives. It focuses on a 'twist' or change in perspective rather than a central conflict.",
+                            Name = "Kishōtenketsu",
+                            PlaceOfOrigin = "East Asia",
+                            SvgPath = "M 0,0.7 L 0.33,0.7 L 0.66,0.2 L 1,0.2"
+                        },
+                        new
+                        {
+                            Id = "monster",
+                            Description = "The hero sets out to destroy an evil force which threatens the land. Usually involves a perilous climb and a narrow escape.",
+                            Name = "Overcoming the Monster",
+                            PlaceOfOrigin = "Universal",
+                            SvgPath = "M 0,0.9 L 0.4,0.6 L 0.5,0.1 L 0.6,0.6 L 1,0.9"
+                        },
+                        new
+                        {
+                            Id = "trickster",
+                            Description = "A narrative focused on a clever protagonist who uses wit and deception to solve problems or gain an advantage, often disrupting the status quo.",
+                            Name = "The Trickster's Cycle",
+                            PlaceOfOrigin = "West Africa",
+                            SvgPath = "M 0,0.8 L 0.2,0.3 L 0.4,0.8 L 0.6,0.3 L 0.8,0.8 L 1,0.5"
+                        },
+                        new
+                        {
+                            Id = "dilemma",
+                            Description = "A narrative structure common in African oral tradition that presents a difficult moral or ethical choice, ending with a question for the audience.",
+                            Name = "The Dilemma Tale",
+                            PlaceOfOrigin = "West Africa",
+                            SvgPath = "M 0,0.8 L 0.5,0.2 M 0.5,0.2 L 1,0.1 M 0.5,0.2 L 1,0.4"
+                        },
+                        new
+                        {
+                            Id = "pilgrimage",
+                            Description = "A structure where the protagonist undergoes a long journey involving repeated trials that test and build their spiritual or moral character.",
+                            Name = "The Pilgrimage Arc",
+                            PlaceOfOrigin = "India",
+                            SvgPath = "M 0,0.9 Q 0.1,0.7 0.2,0.9 Q 0.3,0.6 0.4,0.8 Q 0.5,0.4 0.6,0.7 Q 0.8,0.1 1,0.2"
+                        },
+                        new
+                        {
+                            Id = "resistance",
+                            Description = "The story of a protagonist who remains steadfast in their values despite intense suffering and external pressure, leading to eventual vindication.",
+                            Name = "The Virtuous Resistance",
+                            PlaceOfOrigin = "China",
+                            SvgPath = "M 0,0.4 L 0.2,0.4 C 0.3,0.4 0.4,0.9 0.6,0.9 L 0.8,0.9 L 1,0.1"
+                        },
+                        new
+                        {
+                            Id = "wyrd",
+                            Description = "A structure common in Old Norse literature where the protagonist's doom is preordained, and the story focuses on their dignified path toward that end.",
+                            Name = "The Tragic Fate",
+                            PlaceOfOrigin = "Scandinavia",
+                            SvgPath = "M 0,0.2 L 1,0.9"
+                        },
+                        new
+                        {
+                            Id = "ordeal",
+                            Description = "An escalating narrative structure where the hero must face three major, distinct conflicts, often separated by long periods of time.",
+                            Name = "The Triple Ordeal",
+                            PlaceOfOrigin = "Russia",
+                            SvgPath = "M 0,0.8 L 0.2,0.5 L 0.4,0.8 L 0.6,0.3 L 0.8,0.8 L 1,0.1"
+                        },
+                        new
+                        {
+                            Id = "fable",
+                            Description = "A concise narrative, often featuring animals, that leads to a clear ethical or tactical lesson through the use of wit.",
+                            Name = "The Moral Fable",
+                            PlaceOfOrigin = "Greece",
+                            SvgPath = "M 0,0.6 L 0.7,0.6 L 0.8,0.2 L 1,0.2"
+                        },
+                        new
+                        {
+                            Id = "exile_restore",
+                            Description = "A high-status protagonist is unjustly cast out into the wilderness, endures a long period of hardship and loss, and eventually returns to their rightful place.",
+                            Name = "Exile and Restoration",
+                            PlaceOfOrigin = "India",
+                            SvgPath = "M 0,0.2 L 0.2,0.2 C 0.4,0.9 0.6,0.9 0.8,0.2 L 1,0.2"
+                        },
+                        new
+                        {
+                            Id = "sentinel",
+                            Description = "A structure featuring a long period of preparation or stasis, followed by a sudden call to action and a journey to protect the realm.",
+                            Name = "The Heroic Sentinel",
+                            PlaceOfOrigin = "Russia",
+                            SvgPath = "M 0,0.9 L 0.4,0.9 L 0.4,0.5 L 1,0.1"
+                        },
+                        new
+                        {
+                            Id = "iterative",
+                            Description = "The protagonist must complete a series of escalating tasks, usually under the watch of a dangerous supernatural figure, to earn their freedom or a boon.",
+                            Name = "The Iterative Trial",
+                            PlaceOfOrigin = "Russia",
+                            SvgPath = "M 0,0.9 L 0.3,0.9 L 0.3,0.6 L 0.6,0.6 L 0.6,0.3 L 1,0.3"
+                        },
+                        new
+                        {
+                            Id = "light_bringer",
+                            Description = "A structure where a trickster figure infiltrates a restricted domain to retrieve a vital element (light, fire, water) for the world's benefit.",
+                            Name = "The Bringer of Light",
+                            PlaceOfOrigin = "Pacific Northwest",
+                            SvgPath = "M 0,0.8 Q 0.3,0.9 0.5,0.8 Q 0.7,0.8 0.8,0.2 L 1,0.1"
+                        },
+                        new
+                        {
+                            Id = "transformation",
+                            Description = "A narrative of fundamental change where a protagonist descends into a new element or state of being, establishing a new order of nature.",
+                            Name = "The Deep Transformation",
+                            PlaceOfOrigin = "Greece",
+                            SvgPath = "M 0,0.2 L 0.4,0.2 L 0.5,1.0 L 1,1.0"
+                        },
+                        new
+                        {
+                            Id = "rags_riches",
+                            Description = "A protagonist from humble beginnings rises to great heights, suffers a temporary loss or crisis, and finally achieves permanent success.",
+                            Name = "Rags to Riches",
+                            PlaceOfOrigin = "Universal",
+                            SvgPath = "M 0,0.9 L 0.3,0.7 L 0.5,0.2 L 0.7,0.6 L 1,0.1"
+                        },
+                        new
+                        {
+                            Id = "quest",
+                            Description = "A hero and their companions set out to find a specific person or object, overcoming a series of trials until the goal is achieved.",
+                            Name = "The Quest",
+                            PlaceOfOrigin = "Universal",
+                            SvgPath = "M 0,0.8 L 0.2,0.8 L 0.4,0.6 L 0.6,0.6 L 0.8,0.3 L 1,0.1"
                         });
                 });
 
@@ -166,44 +301,275 @@ namespace StoryFort.Migrations
                         new
                         {
                             Id = 1,
-                            ArchetypePointId = 7,
-                            Content = "Dorothy lives on a gray, dry prairie in Kansas with Aunt Em and Uncle Henry. Her life is dull, and she dreams of 'Somewhere Over the Rainbow'.",
-                            Title = "The Wizard of Oz"
+                            ArchetypePointId = 1,
+                            Content = "Dorothy lives in a gray, dry Kansas with Aunt Em and Uncle Henry, feeling bored and out of place.",
+                            Title = "The Wonderful Wizard of Oz"
                         },
                         new
                         {
                             Id = 2,
-                            ArchetypePointId = 8,
-                            Content = "The mean Miss Gulch takes Toto away with a sheriff's order to be destroyed. Toto escapes, but Dorothy decides she must run away to keep him safe.",
-                            Title = "The Wizard of Oz"
+                            ArchetypePointId = 2,
+                            Content = "A cyclone arrives, lifting the house with Dorothy and Toto inside into the sky.",
+                            Title = "The Wonderful Wizard of Oz"
                         },
                         new
                         {
                             Id = 3,
-                            ArchetypePointId = 9,
-                            Content = "A cyclone rips the farmhouse from the ground and deposits it in the colorful Land of Oz. Dorothy opens the door to a technicolor world, leaving the black-and-white Kansas behind.",
-                            Title = "The Wizard of Oz"
+                            ArchetypePointId = 4,
+                            Content = "Dorothy is captured by the Wicked Witch of the West and must find a way to destroy her to save her friends.",
+                            Title = "The Wonderful Wizard of Oz"
                         },
                         new
                         {
                             Id = 4,
-                            ArchetypePointId = 10,
-                            Content = "Dorothy and her friends are captured by Flying Monkeys and trapped in the Wicked Witch's castle. The hour glass is running out!",
-                            Title = "The Wizard of Oz"
+                            ArchetypePointId = 6,
+                            Content = "Alice follows the White Rabbit and falls down a deep rabbit hole into a bizarre world.",
+                            Title = "Alice in Wonderland"
                         },
                         new
                         {
                             Id = 5,
-                            ArchetypePointId = 11,
-                            Content = "The Wizard offers to take Dorothy home in his balloon, but it accidentally launches while she is chasing Toto, leaving her stranded again.",
-                            Title = "The Wizard of Oz"
+                            ArchetypePointId = 8,
+                            Content = "The Queen of Hearts demands Alice's execution. Alice realizes the creatures are 'nothing but a pack of cards' and wakes up.",
+                            Title = "Alice in Wonderland"
                         },
                         new
                         {
                             Id = 6,
-                            ArchetypePointId = 12,
-                            Content = "Dorothy learns she had the power all along. She taps her ruby slippers three times, says 'There's no place like home', and wakes up in her own bed surrounded by her family.",
-                            Title = "The Wizard of Oz"
+                            ArchetypePointId = 9,
+                            Content = "An old bamboo cutter finds a tiny, glowing baby girl inside a bamboo stalk and raises her as Princess Kaguya.",
+                            Title = "The Tale of the Bamboo Cutter"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            ArchetypePointId = 11,
+                            Content = "Despite many suitors and great wealth, Kaguya reveals she is not from this world but from the Moon, and her people are coming to take her back.",
+                            Title = "The Tale of the Bamboo Cutter"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            ArchetypePointId = 13,
+                            Content = "A giant lives at the top of a massive beanstalk and has stolen the wealth of Jack's family.",
+                            Title = "Jack and the Beanstalk"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            ArchetypePointId = 15,
+                            Content = "Jack steals the Giant's golden-egg-laying hen and chops down the beanstalk as the Giant chases him, defeating the monster.",
+                            Title = "Jack and the Beanstalk"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            ArchetypePointId = 16,
+                            Content = "Anansi the Spider wants to buy the stories owned by Nyame the Sky God, but the price is high.",
+                            Title = "Anansi and the Box of Stories"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            ArchetypePointId = 17,
+                            Content = "Anansi tricks a hornets' nest, a python, and a leopard into capture using only his wits and some simple tools.",
+                            Title = "Anansi and the Box of Stories"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            ArchetypePointId = 20,
+                            Content = "A King offers his daughter's hand to whoever can perform an impossible task. Three suitors succeed in different ways.",
+                            Title = "The King's Daughter and the Suitors"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            ArchetypePointId = 22,
+                            Content = "The story ends by asking: 'Which of the three suitors truly deserves the reward?'",
+                            Title = "The King's Daughter and the Suitors"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            ArchetypePointId = 23,
+                            Content = "The monk Xuanzang is tasked by the Tang Emperor and the Bodhisattva Guanyin to travel to India to retrieve sacred Buddhist scriptures.",
+                            Title = "Journey to the West"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            ArchetypePointId = 24,
+                            Content = "Sun Wukong (The Monkey King) and the other disciples protect the monk from 81 tribulations, including demons who want to eat his flesh.",
+                            Title = "Journey to the West"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            ArchetypePointId = 26,
+                            Content = "Chunhyang and Mongryong fall deeply in love and secretly marry, promising eternal fidelity before Mongryong must leave for the capital.",
+                            Title = "The Story of Chunhyang"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            ArchetypePointId = 27,
+                            Content = "The corrupt official Byeon demands Chunhyang become his mistress. She refuses and is brutally tortured and imprisoned, facing death for her virtue.",
+                            Title = "The Story of Chunhyang"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            ArchetypePointId = 29,
+                            Content = "Sigurd is born into a line of heroes but is warned by prophecies and his uncle that he is destined for a life of great glory followed by an early, tragic death.",
+                            Title = "The Saga of the Volsungs"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            ArchetypePointId = 31,
+                            Content = "Despite knowing the betrayal is coming, Sigurd maintains his honor. He is killed in his bed, fulfilling the 'Wyrd' of the Volsung line.",
+                            Title = "The Saga of the Volsungs"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            ArchetypePointId = 32,
+                            Content = "As a young warrior, Beowulf travels to Denmark to defeat the monster Grendel, who has been terrorizing King Hrothgar's hall, Heorot.",
+                            Title = "Beowulf"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            ArchetypePointId = 34,
+                            Content = "Fifty years after his first battles, King Beowulf must face a final, massive dragon. He slays the beast but sustains a mortal wound, dying to save his kingdom.",
+                            Title = "Beowulf"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            ArchetypePointId = 35,
+                            Content = "A hungry lion named Bhasuraka is terrorizing the forest. To stop the slaughter, the animals agree to send one animal each day to be his meal.",
+                            Title = "The Lion and the Hare"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            ArchetypePointId = 37,
+                            Content = "A tiny hare leads the lion to a deep well, claiming another lion lives inside. The lion jumps in to fight his reflection and drowns. Moral: Wit is superior to brute force.",
+                            Title = "The Lion and the Hare"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            ArchetypePointId = 38,
+                            Content = "Prince Rama is about to be crowned King, but his stepmother Kaikeyi demands he be exiled to the Dandaka forest for 14 years so her own son can rule.",
+                            Title = "The Ramayana"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            ArchetypePointId = 40,
+                            Content = "After 14 years and defeating the demon king Ravana, Rama returns to Ayodhya. The citizens light lamps to celebrate his return, and he is finally crowned King.",
+                            Title = "The Ramayana"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            ArchetypePointId = 41,
+                            Content = "Ilya sits on the stove for thirty-three years, unable to move his hands or feet, until two passing pilgrims heal him and give him heroic strength.",
+                            Title = "Ilya Muromets and Nightingale the Robber"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            ArchetypePointId = 43,
+                            Content = "Ilya journeys to Kiev, clearing the road of the monster Nightingale the Robber and standing guard at the city gates as the premier bogatyr (sentinel).",
+                            Title = "Ilya Muromets and Nightingale the Robber"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            ArchetypePointId = 44,
+                            Content = "Vasilisa is sent by her cruel stepmother into the woods to fetch light from the hut of the witch Baba Yaga.",
+                            Title = "Vasilisa the Beautiful"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            ArchetypePointId = 45,
+                            Content = "Baba Yaga forces Vasilisa to sort massive piles of wheat and poppy seeds by night. Vasilisa succeeds each time with the help of her magical doll.",
+                            Title = "Vasilisa the Beautiful"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            ArchetypePointId = 46,
+                            Content = "After Vasilisa answers Baba Yaga's questions about her virtue, the witch gives her a skull lantern and allows her to leave, freeing her from service.",
+                            Title = "Vasilisa the Beautiful"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            ArchetypePointId = 47,
+                            Content = "The world is in total darkness because an old man keeps the light in a box. Raven turns himself into a pine needle, is swallowed by the man's daughter, and is born as a baby boy.",
+                            Title = "Raven Steals the Light"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            ArchetypePointId = 49,
+                            Content = "As a toddler, Raven cries for the boxes. He opens them one by one, releasing the stars and moon. Finally, he grabs the sun, turns back into a bird, and flies through the smoke hole, placing the sun in the sky.",
+                            Title = "Raven Steals the Light"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            ArchetypePointId = 50,
+                            Content = "Sedna is thrown overboard by her father during a storm. When she tries to climb back in, he cuts off her fingers. As she sinks, her fingers become the seals, walruses, and whales.",
+                            Title = "The Legend of Sedna"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            ArchetypePointId = 52,
+                            Content = "Sedna becomes the Mother of the Sea, ruling all marine life from her home at the bottom of the ocean. Hunters must now respect her to ensure a successful hunt.",
+                            Title = "The Legend of Sedna"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            ArchetypePointId = 53,
+                            Content = "Cinderella is forced into servitude by her stepmother and stepsisters, living among the ashes and performing backbreaking chores.",
+                            Title = "Cinderella"
+                        },
+                        new
+                        {
+                            Id = 36,
+                            ArchetypePointId = 54,
+                            Content = "With the help of her fairy godmother, she attends the Royal Ball in a magical gown and glass slippers, dancing with the Prince.",
+                            Title = "Cinderella"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            ArchetypePointId = 55,
+                            Content = "At midnight, the magic fades. She flees, leaving only a single glass slipper behind, and returns to her life of rags.",
+                            Title = "Cinderella"
+                        },
+                        new
+                        {
+                            Id = 38,
+                            ArchetypePointId = 57,
+                            Content = "Jason is commanded by King Pelias to retrieve the legendary Golden Fleece from the distant land of Colchis to reclaim his throne.",
+                            Title = "Jason and the Golden Fleece"
+                        },
+                        new
+                        {
+                            Id = 39,
+                            ArchetypePointId = 60,
+                            Content = "After surviving the Symplegades and completing the impossible tasks set by King Aeetes, Jason retrieves the Fleece from the sleeping dragon.",
+                            Title = "Jason and the Golden Fleece"
                         });
                 });
 
@@ -248,178 +614,662 @@ namespace StoryFort.Migrations
                         new
                         {
                             Id = 1,
-                            Align = "center",
-                            ArchetypeId = "classic",
-                            Label = "Beginning",
-                            Prompt = "How does the story start? Describe the normal world.",
+                            Align = "left",
+                            ArchetypeId = "hero",
+                            Label = "Ordinary World",
+                            Prompt = "Describe your protagonist's daily life before the adventure begins.",
                             StepId = 1,
-                            X = 50.0,
-                            Y = 308.0
+                            X = 0.0,
+                            Y = 0.80000000000000004
                         },
                         new
                         {
                             Id = 2,
-                            Align = "center",
-                            ArchetypeId = "classic",
-                            Label = "Inciting Incident",
-                            Prompt = "What event changes everything for the hero?",
+                            Align = "top",
+                            ArchetypeId = "hero",
+                            Label = "Call to Adventure",
+                            Prompt = "What event disrupts the hero's world and presents a challenge?",
                             StepId = 2,
-                            X = 150.0,
-                            Y = 250.0
+                            X = 0.14999999999999999,
+                            Y = 0.69999999999999996
                         },
                         new
                         {
                             Id = 3,
-                            Align = "right",
-                            ArchetypeId = "classic",
-                            Label = "Rising Action",
-                            Prompt = "What obstacles does the hero face along the way?",
+                            Align = "top",
+                            ArchetypeId = "hero",
+                            Label = "Crossing the Threshold",
+                            Prompt = "The hero leaves the known world. What is the point of no return?",
                             StepId = 3,
-                            X = 225.0,
-                            Y = 150.0
+                            X = 0.34999999999999998,
+                            Y = 0.45000000000000001
                         },
                         new
                         {
                             Id = 4,
                             Align = "center",
-                            ArchetypeId = "classic",
-                            Label = "The Climax",
-                            Prompt = "The biggest battle or challenge!",
+                            ArchetypeId = "hero",
+                            Label = "The Ordeal",
+                            Prompt = "The greatest challenge. What is the 'lowest point' for your hero?",
                             StepId = 4,
-                            X = 300.0,
-                            Y = 38.0
+                            X = 0.5,
+                            Y = 0.10000000000000001
                         },
                         new
                         {
                             Id = 5,
-                            Align = "left",
-                            ArchetypeId = "classic",
-                            Label = "Falling Action",
-                            Prompt = "What happens immediately after the climax?",
+                            Align = "right",
+                            ArchetypeId = "hero",
+                            Label = "Return with Elixir",
+                            Prompt = "How is the hero changed? What do they bring back to their world?",
                             StepId = 5,
-                            X = 400.0,
-                            Y = 185.0
+                            X = 1.0,
+                            Y = 0.80000000000000004
                         },
                         new
                         {
                             Id = 6,
-                            Align = "center",
-                            ArchetypeId = "classic",
-                            Label = "Resolution",
-                            Prompt = "How does the story end? What is the new normal?",
-                            StepId = 6,
-                            X = 650.0,
-                            Y = 308.0
+                            Align = "left",
+                            ArchetypeId = "voyage",
+                            Label = "Falling into the Unknown",
+                            Prompt = "How does the character enter the strange new world?",
+                            StepId = 1,
+                            X = 0.050000000000000003,
+                            Y = 0.5
                         },
                         new
                         {
                             Id = 7,
-                            Align = "center",
-                            ArchetypeId = "hero",
-                            Label = "Ordinary World",
-                            Prompt = "Describe the hero's life before the adventure.",
-                            StepId = 1,
-                            X = 50.0,
-                            Y = 308.0
+                            Align = "top",
+                            ArchetypeId = "voyage",
+                            Label = "The Strange World",
+                            Prompt = "Describe the initial wonders and confusing rules of this new place.",
+                            StepId = 2,
+                            X = 0.29999999999999999,
+                            Y = 0.20000000000000001
                         },
                         new
                         {
                             Id = 8,
-                            Align = "right",
-                            ArchetypeId = "hero",
-                            Label = "Call to Adventure",
-                            Prompt = "Who or what calls them to action?",
-                            StepId = 2,
-                            X = 175.0,
-                            Y = 235.0
+                            Align = "bottom",
+                            ArchetypeId = "voyage",
+                            Label = "The Great Escape",
+                            Prompt = "A threat arises. How does the hero find their way back home?",
+                            StepId = 3,
+                            X = 0.80000000000000004,
+                            Y = 0.29999999999999999
                         },
                         new
                         {
                             Id = 9,
-                            Align = "right",
-                            ArchetypeId = "hero",
-                            Label = "Threshold",
-                            Prompt = "The hero leaves home and enters the unknown.",
-                            StepId = 3,
-                            X = 250.0,
-                            Y = 150.0
+                            Align = "left",
+                            ArchetypeId = "kisho",
+                            Label = "Ki (Introduction)",
+                            Prompt = "Introduce the characters and their peaceful environment.",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.69999999999999996
                         },
                         new
                         {
                             Id = 10,
-                            Align = "center",
-                            ArchetypeId = "hero",
-                            Label = "The Ordeal",
-                            Prompt = "The central crisis where the hero faces their greatest fear.",
-                            StepId = 4,
-                            X = 400.0,
-                            Y = 38.0
+                            Align = "bottom",
+                            ArchetypeId = "kisho",
+                            Label = "Shō (Development)",
+                            Prompt = "Expand on the world. What are the characters doing day-to-day?",
+                            StepId = 2,
+                            X = 0.33000000000000002,
+                            Y = 0.69999999999999996
                         },
                         new
                         {
                             Id = 11,
-                            Align = "left",
-                            ArchetypeId = "hero",
-                            Label = "The Road Back",
-                            Prompt = "The hero must return home with what they learned.",
-                            StepId = 5,
-                            X = 550.0,
-                            Y = 150.0
+                            Align = "top",
+                            ArchetypeId = "kisho",
+                            Label = "Ten (Twist)",
+                            Prompt = "Introduce a surprise or a change in perspective unrelated to the main plot.",
+                            StepId = 3,
+                            X = 0.66000000000000003,
+                            Y = 0.20000000000000001
                         },
                         new
                         {
                             Id = 12,
-                            Align = "center",
-                            ArchetypeId = "hero",
-                            Label = "Return w/ Elixir",
-                            Prompt = "The hero returns home, changed forever.",
-                            StepId = 6,
-                            X = 700.0,
-                            Y = 308.0
+                            Align = "right",
+                            ArchetypeId = "kisho",
+                            Label = "Ketsu (Conclusion)",
+                            Prompt = "How does the twist resolve the story in a new, unified way?",
+                            StepId = 4,
+                            X = 1.0,
+                            Y = 0.20000000000000001
                         },
                         new
                         {
                             Id = 13,
-                            Align = "center",
-                            ArchetypeId = "kisho",
-                            Label = "Introduction (Ki)",
-                            Prompt = "Introduce the characters and their world.",
+                            Align = "left",
+                            ArchetypeId = "monster",
+                            Label = "The Threat",
+                            Prompt = "Identify the monster and the danger it poses to the community.",
                             StepId = 1,
-                            X = 50.0,
-                            Y = 308.0
+                            X = 0.10000000000000001,
+                            Y = 0.90000000000000002
                         },
                         new
                         {
                             Id = 14,
-                            Align = "center",
-                            ArchetypeId = "kisho",
-                            Label = "Development (Shō)",
-                            Prompt = "Deepen the story. What are they doing? (No major conflict yet)",
+                            Align = "top",
+                            ArchetypeId = "monster",
+                            Label = "The Ascent",
+                            Prompt = "The hero approaches the monster's lair. What obstacles do they face?",
                             StepId = 2,
-                            X = 200.0,
-                            Y = 250.0
+                            X = 0.40000000000000002,
+                            Y = 0.5
                         },
                         new
                         {
                             Id = 15,
                             Align = "center",
-                            ArchetypeId = "kisho",
-                            Label = "The Twist (Ten)",
-                            Prompt = "Surprise! Something unexpected happens that changes everything.",
+                            ArchetypeId = "monster",
+                            Label = "The Final Battle",
+                            Prompt = "The hero confronts the monster. This is the peak of the action.",
                             StepId = 3,
-                            X = 550.0,
-                            Y = 50.0
+                            X = 0.5,
+                            Y = 0.10000000000000001
                         },
                         new
                         {
                             Id = 16,
-                            Align = "center",
-                            ArchetypeId = "kisho",
-                            Label = "Conclusion (Ketsu)",
-                            Prompt = "How does the story settle after the twist?",
+                            Align = "left",
+                            ArchetypeId = "trickster",
+                            Label = "The Ambition",
+                            Prompt = "What does the trickster want, and what clever plan do they devise?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.80000000000000004
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Align = "top",
+                            ArchetypeId = "trickster",
+                            Label = "The Deception",
+                            Prompt = "Describe the trick played on the unsuspecting target.",
+                            StepId = 2,
+                            X = 0.20000000000000001,
+                            Y = 0.29999999999999999
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Align = "bottom",
+                            ArchetypeId = "trickster",
+                            Label = "The Complication",
+                            Prompt = "What goes wrong or makes the scheme nearly fail?",
+                            StepId = 3,
+                            X = 0.40000000000000002,
+                            Y = 0.80000000000000004
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Align = "right",
+                            ArchetypeId = "trickster",
+                            Label = "The Narrow Escape",
+                            Prompt = "How does the trickster get away with the prize (or just their life)?",
                             StepId = 4,
-                            X = 750.0,
-                            Y = 308.0
+                            X = 1.0,
+                            Y = 0.5
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Align = "left",
+                            ArchetypeId = "dilemma",
+                            Label = "The Scenario",
+                            Prompt = "Introduce the characters and the conflict that leads to the choice.",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.80000000000000004
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Align = "center",
+                            ArchetypeId = "dilemma",
+                            Label = "The Choice",
+                            Prompt = "What are the conflicting moral paths or difficult decisions presented?",
+                            StepId = 2,
+                            X = 0.5,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Align = "right",
+                            ArchetypeId = "dilemma",
+                            Label = "The Unresolved End",
+                            Prompt = "Leave the story open. Ask the audience: What should happen next?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.25
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Align = "left",
+                            ArchetypeId = "pilgrimage",
+                            Label = "Spiritual Call",
+                            Prompt = "What higher purpose or mission motivates the journey?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.90000000000000002
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Align = "top",
+                            ArchetypeId = "pilgrimage",
+                            Label = "Cyclical Trials",
+                            Prompt = "Describe a recurring challenge that tests the hero's resolve.",
+                            StepId = 2,
+                            X = 0.29999999999999999,
+                            Y = 0.59999999999999998
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Align = "right",
+                            ArchetypeId = "pilgrimage",
+                            Label = "Enlightenment",
+                            Prompt = "The journey reaches its end. What profound truth is attained?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 26,
+                            Align = "left",
+                            ArchetypeId = "resistance",
+                            Label = "Unbreakable Bond",
+                            Prompt = "What promise or relationship defines the hero's virtue?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.40000000000000002
+                        },
+                        new
+                        {
+                            Id = 27,
+                            Align = "bottom",
+                            ArchetypeId = "resistance",
+                            Label = "Deepest Ordeal",
+                            Prompt = "The hero is imprisoned or pressured to betray their values. Describe their suffering.",
+                            StepId = 2,
+                            X = 0.59999999999999998,
+                            Y = 0.90000000000000002
+                        },
+                        new
+                        {
+                            Id = 28,
+                            Align = "right",
+                            ArchetypeId = "resistance",
+                            Label = "Justice & Reunion",
+                            Prompt = "The truth is revealed. How is the hero vindicated?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.10000000000000001
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Align = "left",
+                            ArchetypeId = "wyrd",
+                            Label = "The Prophecy",
+                            Prompt = "What knowledge of their inevitable end does the hero possess?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Align = "center",
+                            ArchetypeId = "wyrd",
+                            Label = "The Choice of Honor",
+                            Prompt = "Knowing the end is near, what action does the hero take to ensure their legacy?",
+                            StepId = 2,
+                            X = 0.5,
+                            Y = 0.55000000000000004
+                        },
+                        new
+                        {
+                            Id = 31,
+                            Align = "right",
+                            ArchetypeId = "wyrd",
+                            Label = "Final Doom",
+                            Prompt = "The fate is met. Describe the hero's final stand.",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.90000000000000002
+                        },
+                        new
+                        {
+                            Id = 32,
+                            Align = "top",
+                            ArchetypeId = "ordeal",
+                            Label = "First Great Deed",
+                            Prompt = "The hero's first major challenge. What proves their worth?",
+                            StepId = 1,
+                            X = 0.20000000000000001,
+                            Y = 0.5
+                        },
+                        new
+                        {
+                            Id = 33,
+                            Align = "top",
+                            ArchetypeId = "ordeal",
+                            Label = "The Shadow Trial",
+                            Prompt = "A more dangerous, hidden foe emerges. How do they survive?",
+                            StepId = 2,
+                            X = 0.59999999999999998,
+                            Y = 0.29999999999999999
+                        },
+                        new
+                        {
+                            Id = 34,
+                            Align = "right",
+                            ArchetypeId = "ordeal",
+                            Label = "The Last Battle",
+                            Prompt = "Decades later, a final threat arrives. What is the hero's ultimate sacrifice?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.10000000000000001
+                        },
+                        new
+                        {
+                            Id = 35,
+                            Align = "left",
+                            ArchetypeId = "fable",
+                            Label = "The Clever Setup",
+                            Prompt = "Introduce the characters and a tactical problem they must solve.",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.59999999999999998
+                        },
+                        new
+                        {
+                            Id = 36,
+                            Align = "bottom",
+                            ArchetypeId = "fable",
+                            Label = "The Turning Point",
+                            Prompt = "A clever trick or realization occurs. How does the character outsmart the problem?",
+                            StepId = 2,
+                            X = 0.69999999999999996,
+                            Y = 0.59999999999999998
+                        },
+                        new
+                        {
+                            Id = 37,
+                            Align = "right",
+                            ArchetypeId = "fable",
+                            Label = "The Moral",
+                            Prompt = "State the lesson learned. How should this change the reader's behavior?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 38,
+                            Align = "left",
+                            ArchetypeId = "exile_restore",
+                            Label = "The Fall from Grace",
+                            Prompt = "What injustice leads the protagonist to lose their home and status?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 39,
+                            Align = "bottom",
+                            ArchetypeId = "exile_restore",
+                            Label = "The Forest Years",
+                            Prompt = "Describe the long period of wandering and survival in the wilderness.",
+                            StepId = 2,
+                            X = 0.5,
+                            Y = 0.90000000000000002
+                        },
+                        new
+                        {
+                            Id = 40,
+                            Align = "right",
+                            ArchetypeId = "exile_restore",
+                            Label = "The Rightful Return",
+                            Prompt = "The protagonist reclaims their place. How is order finally restored?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 41,
+                            Align = "left",
+                            ArchetypeId = "sentinel",
+                            Label = "The Long Stasis",
+                            Prompt = "Describe the hero's period of inactivity. Why are they unable or unwilling to act?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.90000000000000002
+                        },
+                        new
+                        {
+                            Id = 42,
+                            Align = "top",
+                            ArchetypeId = "sentinel",
+                            Label = "The Sudden Strength",
+                            Prompt = "What supernatural or external force grants the hero the power to move?",
+                            StepId = 2,
+                            X = 0.40000000000000002,
+                            Y = 0.5
+                        },
+                        new
+                        {
+                            Id = 43,
+                            Align = "right",
+                            ArchetypeId = "sentinel",
+                            Label = "The Vigil",
+                            Prompt = "The hero stands guard at a critical location. Who or what do they defend?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.10000000000000001
+                        },
+                        new
+                        {
+                            Id = 44,
+                            Align = "bottom",
+                            ArchetypeId = "iterative",
+                            Label = "The First Task",
+                            Prompt = "The introductory test. What simple but crucial instruction is given?",
+                            StepId = 1,
+                            X = 0.29999999999999999,
+                            Y = 0.90000000000000002
+                        },
+                        new
+                        {
+                            Id = 45,
+                            Align = "center",
+                            ArchetypeId = "iterative",
+                            Label = "The Midnight Test",
+                            Prompt = "A more difficult task requiring magical aid. What happens when the world is asleep?",
+                            StepId = 2,
+                            X = 0.59999999999999998,
+                            Y = 0.59999999999999998
+                        },
+                        new
+                        {
+                            Id = 46,
+                            Align = "right",
+                            ArchetypeId = "iterative",
+                            Label = "The Final Freedom",
+                            Prompt = "The hardest task. How does the hero escape the master's power?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.29999999999999999
+                        },
+                        new
+                        {
+                            Id = 47,
+                            Align = "left",
+                            ArchetypeId = "light_bringer",
+                            Label = "The Infiltration",
+                            Prompt = "How does the trickster sneak into the place where the light is hidden?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.80000000000000004
+                        },
+                        new
+                        {
+                            Id = 48,
+                            Align = "bottom",
+                            ArchetypeId = "light_bringer",
+                            Label = "The Hidden Treasure",
+                            Prompt = "Describe the moment the trickster finds the sun, moon, or fire.",
+                            StepId = 2,
+                            X = 0.5,
+                            Y = 0.80000000000000004
+                        },
+                        new
+                        {
+                            Id = 49,
+                            Align = "right",
+                            ArchetypeId = "light_bringer",
+                            Label = "The Flight of Light",
+                            Prompt = "The trickster escapes and releases the light into the world. What is the impact?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 0.10000000000000001
+                        },
+                        new
+                        {
+                            Id = 50,
+                            Align = "left",
+                            ArchetypeId = "transformation",
+                            Label = "The Sacrifice",
+                            Prompt = "What tragic event or betrayal forces the protagonist into a new realm?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 51,
+                            Align = "bottom",
+                            ArchetypeId = "transformation",
+                            Label = "The Deep Change",
+                            Prompt = "Describe the physical or spiritual transformation as they descend.",
+                            StepId = 2,
+                            X = 0.5,
+                            Y = 1.0
+                        },
+                        new
+                        {
+                            Id = 52,
+                            Align = "right",
+                            ArchetypeId = "transformation",
+                            Label = "The New Order",
+                            Prompt = "The protagonist now rules a new domain. How does this provide for the world?",
+                            StepId = 3,
+                            X = 1.0,
+                            Y = 1.0
+                        },
+                        new
+                        {
+                            Id = 53,
+                            Align = "left",
+                            ArchetypeId = "rags_riches",
+                            Label = "Initial Misery",
+                            Prompt = "Describe the protagonist's humble or oppressed starting condition.",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.90000000000000002
+                        },
+                        new
+                        {
+                            Id = 54,
+                            Align = "top",
+                            ArchetypeId = "rags_riches",
+                            Label = "The False Peak",
+                            Prompt = "The character achieves a sudden, temporary success. What magic or luck makes this happen?",
+                            StepId = 2,
+                            X = 0.5,
+                            Y = 0.20000000000000001
+                        },
+                        new
+                        {
+                            Id = 55,
+                            Align = "bottom",
+                            ArchetypeId = "rags_riches",
+                            Label = "The Midnight Crisis",
+                            Prompt = "The success is lost or threatened. What is the turning point?",
+                            StepId = 3,
+                            X = 0.69999999999999996,
+                            Y = 0.59999999999999998
+                        },
+                        new
+                        {
+                            Id = 56,
+                            Align = "right",
+                            ArchetypeId = "rags_riches",
+                            Label = "Permanent Rise",
+                            Prompt = "The character is vindicated. How is their success made permanent and authentic?",
+                            StepId = 4,
+                            X = 1.0,
+                            Y = 0.10000000000000001
+                        },
+                        new
+                        {
+                            Id = 57,
+                            Align = "left",
+                            ArchetypeId = "quest",
+                            Label = "The Call & Mission",
+                            Prompt = "What specific object or person must the hero retrieve, and why?",
+                            StepId = 1,
+                            X = 0.0,
+                            Y = 0.80000000000000004
+                        },
+                        new
+                        {
+                            Id = 58,
+                            Align = "top",
+                            ArchetypeId = "quest",
+                            Label = "The First Guardian",
+                            Prompt = "The first major obstacle blocking the path. How do they overcome it?",
+                            StepId = 2,
+                            X = 0.40000000000000002,
+                            Y = 0.59999999999999998
+                        },
+                        new
+                        {
+                            Id = 59,
+                            Align = "top",
+                            ArchetypeId = "quest",
+                            Label = "The Final Trial",
+                            Prompt = "The most dangerous test right before the goal. What is sacrificed?",
+                            StepId = 3,
+                            X = 0.80000000000000004,
+                            Y = 0.29999999999999999
+                        },
+                        new
+                        {
+                            Id = 60,
+                            Align = "right",
+                            ArchetypeId = "quest",
+                            Label = "The Retrieval",
+                            Prompt = "The goal is achieved. Describe the moment the prize is secured.",
+                            StepId = 4,
+                            X = 1.0,
+                            Y = 0.10000000000000001
                         });
                 });
 

@@ -1,6 +1,6 @@
 # AI System Card: StoryFort (Pilot Phase)
 
-**Date:** January 24, 2026  
+**Date:** February 1, 2026  
 **Model:** Cohere Command R+ (Reasoning)  
 **Role:** Creative Writing Tutor
 
@@ -19,7 +19,7 @@ We employ a "Defense in Depth" strategy:
 
 | Layer | Control | Status |
 |-------|---------|--------|
-| **Input Filter** | Blocks patterns like "Ignore previous instructions" (Prompt Injection) and potential PII (email addresses). | ✅ Active (Pilot Patch) |
+| **Input Filter** | Blocks patterns like "Ignore previous instructions" (Prompt Injection), potential PII (email addresses), and inappropriate content via BannedWordsPatterns regex. | ✅ Active (SafeguardService implemented with configurable patterns in appsettings.json) |
 | **System Prompt** | Instructions to the AI to be polite, Socratic (ask questions rather than answer), and refuse harmful requests. | ✅ Active |
 | **Data Privacy** | PII stripping before transmission. No user data used for model training (Cohere Enterprise Policy). | ✅ Active |
 | **Human Oversight** | "Supervisor Primacy" principle—Teachers can review AI interaction logs. | ⚠️ Planned (Post-Pilot) |
@@ -30,5 +30,4 @@ We employ a "Defense in Depth" strategy:
 *   **Training:** Data sent via StoryFort is **excluded** from Cohere's training sets.
 
 ## 5. Feedback Mechanism
-If the AI produces inappropriate or unhelpful content, please report it immediately via the "Flag Interaction" button (or email support at [contact info]) so we can tune the System Prompts.
-
+Extensive controls make it extremely unlikely that any unintended AI output is displayed on screen, however a "Report AI Output" button will be available that will alert StoryFort engineers who will investigate, remediate, and report back to the originator.

@@ -49,6 +49,7 @@ The AI **never** generates story prose. It only asks leading questions using Soc
 - **Visual Presentation**: Uses CSS Columns (`column-width`) to present text in a side-by-side "Open Book" spread.
 - **Navigation**: Horizontal scrolling simulates turning pages without breaking the text stream.
 - Target: Simulates a physical notebook while maintaining a continuous writing stream.
+- **Implementation Note (2026-02):** The `StoryPage` model has been deprecated. All story content is stored in `Story.Content` as a single HTML document. The page-based database model was replaced with a continuous-scroll editor experience.
 
 **FR-2.2: Rich Text Editing**
 - Basic formatting: Bold, Italic, Underline, Font Size

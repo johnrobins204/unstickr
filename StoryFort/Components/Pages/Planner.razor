@@ -1,4 +1,5 @@
 @page "/planner/{StoryId:int}"
+@rendermode InteractiveServer
 @using StoryFort.Models
 @using StoryFort.Services
 @using Microsoft.EntityFrameworkCore
@@ -18,11 +19,16 @@
                 <div>
                     <label class="text-[10px] font-bold text-[var(--muted-foreground)] uppercase block mb-2">Story Shape</label>
                     <select class="w-full border-2 border-[var(--border)] bg-[var(--background)] p-2 text-sm outline-none focus:border-[var(--primary)]"
-                            @bind="CurrentArchetypeId" 
-                            @bind:after="OnArchetypeChanged">
-                        @foreach (var arc in ArchetypeService.GetArchetypes())
+                            value="@CurrentArchetypeId"
+                            @onchange="OnArchetypeSelectChanged">
+                        @foreach (var group in AllArchetypes.GroupBy(a => a.PlaceOfOrigin).OrderBy(g => g.Key))
                         {
-                            <option value="@arc.Id">@arc.Name</option>
+                            <optgroup label="@group.Key">
+                                @foreach (var arc in group.OrderBy(a => a.Name))
+                                {
+                                    <option value="@arc.Id">@arc.Name</option>
+                                }
+                            </optgroup>
                         }
                     </select>
                 </div>
@@ -64,12 +70,12 @@
             @if (CurrentArchetype != null)
             {
                 <div class="relative w-full max-w-4xl aspect-[2/1]">
-                    <svg viewBox="0 0 800 400" class="w-full h-full drop-shadow-xl">
+                    <svg viewBox="0 0 1 1" preserveAspectRatio="xMidYMid meet" class="w-full h-full drop-shadow-xl">
                         <!-- Path -->
                         <path d="@CurrentArchetype.Path" 
                               fill="none" 
                               stroke="var(--foreground)" 
-                              stroke-width="4" 
+                              stroke-width="0.004" 
                               stroke-linecap="round" 
                               class="opacity-80" />
 
@@ -80,32 +86,34 @@
                             var userPoint = GetUserPoint(point.Id);
                             var hasData = !string.IsNullOrWhiteSpace(userPoint?.Notes);
 
-                                     <g transform="translate(@point.X, @point.Y)" 
-                                         class="map-point cursor-pointer"
-                                         @onclick="() => SelectPoint(point.Id)">
+                            <g class="map-point cursor-pointer"
+                               @onclick="() => SelectPoint(point.Id)">
                                 
                                 <!-- Halo for selection -->
                                 @if (isSelected) 
                                 {
-                                    <circle r="20" fill="var(--primary)" opacity="0.2" class="animate-pulse" />
+                                    <circle cx="@point.X.ToString("F4")" cy="@point.Y.ToString("F4")" r="0.02" fill="var(--primary)" opacity="0.2" class="animate-pulse" />
                                 }
 
                                 <!-- Main Dot -->
-                                <circle r="12" 
+                                <circle cx="@point.X.ToString("F4")" cy="@point.Y.ToString("F4")" r="0.012" 
                                     class="map-dot transition-transform duration-200 hover:scale-110 @(isSelected ? "scale-125" : "")"
                                     fill="@(hasData ? "var(--primary)" : "var(--background)")" 
                                     stroke="var(--foreground)" 
-                                    stroke-width="3" />
+                                    stroke-width="0.003" />
                                 
-                                <text y="0" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="@(hasData ? "var(--background)" : "var(--foreground)")" class="pointer-events-none">
+                                <text x="@point.X.ToString("F4")" y="@point.Y.ToString("F4")" 
+                                      dominant-baseline="middle" text-anchor="middle" font-size="0.01" font-weight="bold" 
+                                      fill="@(hasData ? "var(--background)" : "var(--foreground)")" class="pointer-events-none">
                                     @point.Id
                                 </text>
 
                                 <!-- Label -->
-                                <text y="-20" 
+                                <text x="@point.X.ToString("F4")" y="@((point.Y - 0.02).ToString("F4"))" 
                                       text-anchor="middle" 
-                                      class="text-[10px] uppercase font-bold fill-[var(--muted-foreground)] pointer-events-none select-none"
-                                      style="text-shadow: 0 1px 2px var(--background);">
+                                      font-size="0.01" font-weight="bold"
+                                      class="uppercase fill-[var(--muted-foreground)] pointer-events-none select-none"
+                                      style="text-shadow: 0 0.001 0.002 var(--background);">
                                     @point.Label
                                 </text>
                             </g>

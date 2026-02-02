@@ -161,12 +161,12 @@ This section highlights discrepancies between the documented architecture and th
 
 | ID | Feature | Target State | Current State | Risk Level |
 |----|---------|--------------|---------------|------------|
-| G-01 | **Teacher Gate** | Sensitive settings protected by PIN/Challenge. | ✅ **Resolved** - Implemented in Settings.razor with 4-digit PIN gate (lines 32-57). API keys and account settings locked behind supervisor unlock. | **Closed** |
-| G-02 | **Input Guardrails** | "Bad Word" regex filter on AI inputs. | 🚧 **In Progress** - Being implemented in SafeguardService with configurable banned word patterns. | **Med** |
+| G-01 | **Teacher Gate** | Sensitive settings protected by PIN/Challenge. | ✅ **RESOLVED** - Implemented in Settings.razor with 4-digit PIN gate (lines 125-150). API keys and account settings locked behind supervisor unlock. | **Closed** |
+| G-02 | **Input Guardrails** | "Bad Word" regex filter on AI inputs. | ✅ **RESOLVED** - Implemented in SafeguardService with configurable BannedWordsPatterns loaded from appsettings.json (Safeguards section). | **Closed** |
 | G-03 | **Age Gating** | Onboarding calculates age for themes. | Onboarding UI exists but logic checks are minimal. | **Low** |
 | G-04 | **Assignment Mode** | "Curriculum Workflow" & Split-view Assignments. | Not started. | **Feature Gap** |
 | G-05 | **Cohere Integration** | HttpClient targeting `api.cohere.com`. | ✅ **Resolved** - Named HttpClient "LLM" configured (Program.cs:75-79). CohereTutorService integrated with TutorOrchestrator. | **Closed** |
-| G-06 | **Automated Tests** | Full pyramid (Unit/Int/E2E). | ✅ **Strong Coverage** - 18 tests passing across 3 test projects. Line coverage: 79% (10,868/13,744 lines). Core services well-tested: SafeguardService (71.4%), TutorOrchestrator (71.4%), StoryPersistenceService (84.9%), ApiKeyProtector (76.9%). | **Resolved** |
+| G-06 | **Automated Tests** | Full pyramid (Unit/Int/E2E). | ✅ **STRONG COVERAGE** - 39 tests passing across 3 test projects (34 unit + 5 integration). Line coverage: 81.1% (11,158/13,744 lines), Branch coverage: 16.4% (183/1,111). Core services well-tested: SafeguardService, TutorOrchestrator, PromptService, ArchetypeService, ThemeService, TextTokenizer, ReaderHtmlHelper, AchievementService, ApiKeyProtector. | **Resolved** |
 
 ---
 
@@ -275,6 +275,6 @@ sequenceDiagram
 
 ### 13.2 Key Architectural Patterns
 1.  **Late Binding of Context**: We do not bake user details into the HttpClient. The TutorOrchestrator injects Age, Genre, and Archetype at the *moment of request*, ensuring the AI adapts immediately if settings change.
-2.  **Strategy Pattern (Implemented)**: Prompt generation uses the `IPromptStrategy` interface with concrete implementations (`SparkPromptStrategy`, `ReviewPromptStrategy`), allowing the `TutorOrchestrator` to switch behavior polymorphically based on `StoryContext.CurrentMode`. Both strategies are registered in Program.cs and injected into the orchestrator constructor.
+2.  **Strategy Pattern (Implemented)**: Prompt generation uses the `IPromptStrategy` interface with concrete implementations (`SparkPromptStrategy`, `ReviewPromptStrategy`), allowing the `TutorOrchestrator` to switch behavior polymorphically based on `StoryContext.CurrentMode`. Both strategies are registered in Program.cs (lines 53-56) and injected into the orchestrator constructor. This pattern is fully operational in the current implementation.
 3.  **The "Context Window" Management**: To maintain speed and lower costs, we only send the *relevant tail* of the story (last ~4-6 paragraphs) rather than the full manuscript, unless a specific "Whole Story Review" is requested.
 

@@ -9,6 +9,7 @@ using StoryFort.Data;
 using StoryFort.Services;
 using System.Text.Json;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace StoryFort.Components.Pages
 {
@@ -18,7 +19,9 @@ namespace StoryFort.Components.Pages
         [Inject] public StoryPersistenceService StoryPersistenceService { get; set; } = null!;
         [Inject] public StoryContext StoryContext { get; set; } = null!;
         [Inject] public ArchetypeService ArchetypeService { get; set; } = null!;
+        [Inject] public ILogger<Planner> Logger { get; set; } = null!;
         
+        private List<ArchetypeDefinition> AllArchetypes = new();
         private string CurrentArchetypeId { get; set; } = "hero";
         private ArchetypeDefinition? CurrentArchetype;
         private Story? CurrentStory;
@@ -35,6 +38,7 @@ namespace StoryFort.Components.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            AllArchetypes = ArchetypeService.GetArchetypes();
             await LoadStory();
             _autoSaveTimer = new System.Threading.Timer(async _ => await InvokeAsync(SavePlan), null, 5000, 5000);
         }
@@ -64,20 +68,34 @@ namespace StoryFort.Components.Pages
             }
         }
 
+        private async Task OnArchetypeSelectChanged(ChangeEventArgs e)
+        {
+            var newId = e.Value?.ToString() ?? "hero";
+            CurrentArchetypeId = newId;
+            LoadArchetype(CurrentArchetypeId);
+            PlanData.ArchetypeId = CurrentArchetypeId;
+            SelectedPointId = -1;
+            CurrentNoteText = "";
+            await SavePlan();
+        }
+
         private async Task OnArchetypeChanged()
         {
             LoadArchetype(CurrentArchetypeId);
             PlanData.ArchetypeId = CurrentArchetypeId;
+            SelectedPointId = -1; // Reset selection when changing archetype
+            CurrentNoteText = "";
             await SavePlan();
+            StateHasChanged(); // Force UI update
         }
 
         private void LoadArchetype(string id)
         {
-            CurrentArchetype = ArchetypeService.GetArchetypes().FirstOrDefault(a => a.Id == id);
+            CurrentArchetype = AllArchetypes.FirstOrDefault(a => a.Id == id);
             // Fallback if not found
             if (CurrentArchetype == null)
             {
-                CurrentArchetype = ArchetypeService.GetArchetypes().FirstOrDefault();
+                CurrentArchetype = AllArchetypes.FirstOrDefault();
                 if (CurrentArchetype != null) CurrentArchetypeId = CurrentArchetype.Id;
             }
         }

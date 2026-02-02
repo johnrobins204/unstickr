@@ -18,32 +18,51 @@ public class ArchetypeService
 
     public List<ArchetypeDefinition> GetArchetypes()
     {
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        var archetypes = db.Archetypes
-            .Include(a => a.Points)
-            .ThenInclude(p => p.Examples)
-            .ToList();
-
-        // Convert DB Models to DTOs for UI
-        return archetypes.Select(a => new ArchetypeDefinition 
+        try
         {
-            Id = a.Id,
-            Name = a.Name,
-            Description = a.Description,
-            Path = a.SvgPath,
-            Points = a.Points.Select(p => new StoryPlotPoint 
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var archetypes = db.Archetypes
+                .Include(a => a.Points)
+                .ThenInclude(p => p.Examples)
+                .ToList();
+
+            // Convert DB Models to DTOs for UI
+            return archetypes.Select(a => new ArchetypeDefinition 
             {
-                Id = p.StepId, // Use StepId for the UI logic
-                Label = p.Label,
-                Prompt = p.Prompt,
-                X = p.X,
-                Y = p.Y,
-                Align = p.Align,
-                Examples = p.Examples?.ToList() ?? new List<ArchetypeExample>()
-            }).OrderBy(p => p.Id).ToList()
-        }).ToList();
+                Id = a.Id ?? string.Empty,
+                Name = a.Name ?? string.Empty,
+                Description = a.Description ?? string.Empty,
+                Path = a.SvgPath ?? string.Empty,
+                PlaceOfOrigin = a.PlaceOfOrigin ?? string.Empty,
+                Points = (a.Points ?? new List<ArchetypePoint>())
+                    .Select(p => new StoryPlotPoint 
+                    {
+                        Id = p.StepId,
+                        Label = p.Label ?? string.Empty,
+                        Prompt = p.Prompt ?? string.Empty,
+                        X = p.X,
+                        Y = p.Y,
+                        Align = p.Align ?? string.Empty,
+                        Examples = p.Examples?.ToList() ?? new List<ArchetypeExample>()
+                    }).OrderBy(p => p.Id).ToList()
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            // On any error reading archetypes (malformed seed, DB issues), fail safe to empty list
+            // Log the exception for observability (in production, use ILogger)
+            System.Diagnostics.Debug.WriteLine($"ArchetypeService.GetArchetypes failed: {ex.Message}");
+            return new List<ArchetypeDefinition>();
+        }
+    }
+
+    public ArchetypeDefinition? GetArchetypeById(string? id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        var list = GetArchetypes();
+        return list.FirstOrDefault(a => string.Equals(a.Id, id, StringComparison.OrdinalIgnoreCase));
     }
 }
 
@@ -53,6 +72,7 @@ public class ArchetypeDefinition
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
+    public string PlaceOfOrigin { get; set; } = string.Empty;
     public List<StoryPlotPoint> Points { get; set; } = new();
 }
 

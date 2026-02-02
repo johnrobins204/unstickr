@@ -1,13 +1,117 @@
 # Test Development Plan - Wave 2
 **Date:** February 1, 2026  
-**Current Coverage:** 79% (10,868/13,744 lines)  
-**Branch Coverage:** 9.9% (111/1,111 branches)  
+**Updated:** February 2, 2026 (Spec-Driven Pivot)  
+**Current Coverage:** 81.1% (11,158/13,744 lines)  
+**Branch Coverage:** 16.4% (183/1,111 branches)  
 **Method Coverage:** 36.9% (200/541 methods)
 
 **Target Coverage:** 90%+ line coverage, 50%+ branch coverage  
 **Estimated Effort:** 3-4 sprints
 
-**Status Update (Phase 1):** Phase 1 is complete (Feb 1, 2026). Implemented and committed unit tests for `CohereTutorService`, `PromptService`, and `ReviewPromptStrategy`. All unit tests pass locally. Proceeding to Phase 2 (ArchetypeService, SessionState).
+**Status Update (Phase 4):** Phases 1-4 complete (Feb 1, 2026). Implemented and committed unit tests for AI integration layer (CohereTutorService, PromptService, ReviewPromptStrategy), business logic (ArchetypeService, SessionState, TextTokenizer, ThemeService), helper services (ReaderHtmlHelper, AchievementService), and model/data layer (ModelValidationTests, ApiKeyProtectorTests, NotebookEntityTests). Integration tests added for ArchetypeService. All 39 tests pass locally (34 unit + 5 integration).
+
+**Methodology Pivot (Feb 2, 2026):** Adopting spec-driven testing to prevent "Green Tick Drift" (tests that pass but prove nothing). All new tests will follow the Red-Agent-Green loop with developer-approved behavior specs.
+
+---
+
+## Spec-Driven Testing Methodology (2026 Standard)
+
+### The Problem: Green Tick Drift
+Tests written by the same agent that wrote the production code risk validating implementation details rather than actual behavior. This creates false confidence.
+
+### The Solution: Human-Approved Specs
+Before writing any test, the AI must:
+1. **Explain** what is being tested and where it fits in the workflow
+2. **Request** the authoritative spec from the developer
+3. **Document** the spec in standardized format
+4. **Generate** failing tests based on the spec
+5. **Implement** code to pass the tests
+
+### Standardized Spec Format
+
+```markdown
+## Spec: [Feature/Component Name]
+**File:** [Path to test file]
+**Type:** [Unit | Integration | E2E]
+**Priority:** [Critical | High | Medium | Low]
+**Estimated Tests:** [Number]
+
+### Context
+[Brief description of what this component does and where it fits in the application workflow]
+
+### Behavior Requirements
+
+#### Happy Path
+- **GIVEN** [Initial state/precondition]
+- **WHEN** [Action performed]
+- **THEN** [Expected outcome]
+
+#### Edge Cases
+- **GIVEN** [Edge condition]
+- **WHEN** [Action performed]
+- **THEN** [Expected handling]
+
+#### Error Cases
+- **GIVEN** [Error condition]
+- **WHEN** [Action performed]
+- **THEN** [Expected error handling]
+
+### Non-Functional Requirements
+- Performance: [Response time, throughput]
+- Security: [Auth, validation, sanitization]
+- Resilience: [Retry logic, fallbacks]
+
+### Test Data Examples
+```
+[Concrete examples of input/output]
+```
+
+### Success Criteria
+- [ ] All behavior requirements covered
+- [ ] Edge cases handled gracefully
+- [ ] Error messages are user-friendly
+- [ ] No security vulnerabilities
+```
+
+### Workflow for New Tests
+
+1. **AI Proposes Test Target**
+   - "I want to test [Component]. This component [brief description]. It fits into the workflow at [landmark location]. It interacts with [dependencies]."
+   
+2. **Developer Provides Authoritative Spec**
+   - Developer writes or approves the behavior requirements using the standardized format above
+   
+3. **AI Documents Spec**
+   - Spec is saved to `/specs/[component-name].md`
+   
+4. **AI Generates Failing Tests**
+   - Tests are written to match the spec, not the current implementation
+   - Tests run and fail (Red)
+   
+5. **AI Implements Code**
+   - Code is written/fixed to pass the tests (Green)
+   
+6. **AI Refactors**
+   - Code is cleaned up while tests remain green (Refactor)
+
+### Test Type Guidelines
+
+**Favor Integration Tests for:**
+- Workflows involving multiple services
+- Database interactions
+- State management
+- API contracts
+
+**Use Unit Tests for:**
+- Pure functions (no I/O, no state)
+- Complex algorithms
+- Validation logic
+- Utility helpers
+
+**Reserve E2E Tests for:**
+- Critical user journeys (3-5 max)
+- Cross-cutting concerns (auth, security)
+- Accessibility requirements
 
 ---
 
@@ -29,14 +133,14 @@ This plan prioritizes **high-risk, high-value** areas first, following the testi
 
 | Service/Component | Current | Priority | Risk Impact |
 |-------------------|---------|----------|-------------|
-| CohereTutorService | 0% | **CRITICAL** | Core AI integration; failure breaks tutor |
-| ArchetypeService | 0% | **HIGH** | Planner feature; data integrity risk |
-| SessionState | 27.5% | **HIGH** | Session management; data loss risk |
-| PromptService | 0% | **HIGH** | AI prompt generation; quality risk |
-| TextTokenizer | 0% | **MEDIUM** | Token counting; cost overrun risk |
-| ReviewPromptStrategy | 0% | **MEDIUM** | Review mode functionality |
-| ThemeService | 0% | **LOW** | Theme persistence; cosmetic |
-| AchievementService | 0% | **LOW** | Badge system; non-critical |
+| CohereTutorService | ✅ TESTED | **CRITICAL** | Core AI integration; failure breaks tutor |
+| ArchetypeService | ✅ TESTED | **HIGH** | Planner feature; data integrity risk |
+| SessionState | ✅ TESTED | **HIGH** | Session management; data loss risk |
+| PromptService | ✅ TESTED | **HIGH** | AI prompt generation; quality risk |
+| TextTokenizer | ✅ TESTED | **MEDIUM** | Token counting; cost overrun risk |
+| ReviewPromptStrategy | ✅ TESTED | **MEDIUM** | Review mode functionality |
+| ThemeService | ✅ TESTED | **LOW** | Theme persistence; cosmetic |
+| AchievementService | ✅ TESTED | **LOW** | Badge system; non-critical |
 
 ### 🟡 **Partial Coverage (< 50%)**
 
@@ -418,10 +522,22 @@ public static class StoryAssertions
 
 ## Implementation Guidelines
 
+### Spec-First Process (REQUIRED)
+
+**Before writing any test:**
+1. AI explains component context and workflow position
+2. Developer provides authoritative spec
+3. Spec is documented in `/specs/[component-name].md`
+4. Tests are written from spec (not from implementation)
+
 ### Unit Test Template
 ```csharp
 namespace StoryFort.Tests.Unit;
 
+/// <summary>
+/// Tests for [ComponentName]
+/// Spec: /specs/[component-name].md
+/// </summary>
 public class ServiceNameTests
 {
     [Fact]
@@ -441,7 +557,7 @@ public class ServiceNameTests
 }
 ```
 
-### Integration Test Template
+### Integration Test Template (PREFERRED for Prototypes)
 ```csharp
 namespace StoryFort.Tests.Integration;
 
@@ -551,10 +667,16 @@ This will verify tests are actually catching bugs, not just hitting lines.
 
 ## Next Steps
 
-1. **Review & Approve Plan** (This document)
-2. **Create GitHub Issues** (1 issue per test file)
-3. **Assign to Sprint 1** (Phases 1-2)
-4. **Start with CohereTutorServiceTests.cs** (Highest priority)
+1. **Review & Approve Plan** (This document) ✅
+2. **Adopt Spec-Driven Workflow** (Feb 2, 2026) ✅
+3. **Create `/specs/` Directory** for behavior specifications
+4. **Audit Existing Tests** for Green Tick Drift (3-5 files)
+5. **Start Next Feature Spec-First** 
+   - AI explains context and workflow position
+   - Developer provides authoritative spec
+   - Document spec in standardized format
+   - Generate failing tests from spec
+   - Implement to pass tests
 
 ---
 

@@ -24,7 +24,10 @@ public class TextTokenizer
             {
                 if (index == targetIndex)
                 {
-                    words[i] = newText;
+                    // HTML-encode user-supplied replacement to avoid injecting raw HTML
+                    var encoded = System.Net.WebUtility.HtmlEncode(newText);
+                    words[i] = encoded;
+                    // Set the text content safely by assigning encoded HTML
                     node.InnerHtml = string.Join(" ", words);
                     return true; // Patched
                 }

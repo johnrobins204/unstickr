@@ -9,6 +9,7 @@ public class Archetype
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string SvgPath { get; set; } = string.Empty;
+    public string PlaceOfOrigin { get; set; } = string.Empty;
     
     public ICollection<ArchetypePoint> Points { get; set; } = new List<ArchetypePoint>();
 }

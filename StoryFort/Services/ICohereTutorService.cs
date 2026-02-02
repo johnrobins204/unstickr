@@ -37,29 +37,49 @@ public class CohereTutorService : ICohereTutorService
         object payload = useReasoningModel
             ? new { message = prompt, model = "command-r-plus" }
             : new { prompt = prompt, model = "command-light" };
-
-        var response = await client.PostAsJsonAsync($"https://api.cohere.com/{endpoint}", payload);
-        if (!response.IsSuccessStatusCode) return "AI service error.";
-
-        var json = await response.Content.ReadAsStringAsync();
         try
         {
-            if (useReasoningModel)
+            var response = await client.PostAsJsonAsync($"https://api.cohere.com/{endpoint}", payload);
+
+            // Handle 429 with one retry
+            if (response.StatusCode == (System.Net.HttpStatusCode)429)
             {
-                var chat = System.Text.Json.JsonSerializer.Deserialize<CohereChatResponse>(json);
-                var msg = chat?.Message?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
-                return msg ?? "No response.";
+                var retryAfter = response.Headers.RetryAfter?.Delta ?? TimeSpan.FromSeconds(1);
+                await Task.Delay(retryAfter);
+                response = await client.PostAsJsonAsync($"https://api.cohere.com/{endpoint}", payload);
             }
-            else
+
+            if (!response.IsSuccessStatusCode) return "AI service error.";
+
+            var json = await response.Content.ReadAsStringAsync();
+            try
             {
-                var gen = System.Text.Json.JsonSerializer.Deserialize<CohereGenerateResponse>(json);
-                var text = gen?.Generations?.FirstOrDefault()?.Text;
-                return text ?? "No response.";
+                if (useReasoningModel)
+                {
+                    var chat = System.Text.Json.JsonSerializer.Deserialize<CohereChatResponse>(json);
+                    var msg = chat?.Message?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
+                    return msg ?? "No response.";
+                }
+                else
+                {
+                    var gen = System.Text.Json.JsonSerializer.Deserialize<CohereGenerateResponse>(json);
+                    var text = gen?.Generations?.FirstOrDefault()?.Text;
+                    return text ?? "No response.";
+                }
+            }
+            catch
+            {
+                return "AI service error (invalid response format).";
             }
         }
-        catch
+        catch (TaskCanceledException)
         {
-            return "AI service error (invalid response format).";
+            // Timeout/network cancellation
+            return "AI service error.";
+        }
+        catch (HttpRequestException)
+        {
+            return "AI service error.";
         }
     }
 

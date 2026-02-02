@@ -41,7 +41,45 @@ public class StoryPersistenceService
         var story = await db.Stories.FindAsync(storyId);
         if (story == null) return;
 
-        story.Content = html;
+        // Defense-in-depth sanitization
+        try
+        {
+            // First, escape dangerous structural tags (html, head, body) in the raw HTML
+            var sanitized = html ?? string.Empty;
+            sanitized = System.Text.RegularExpressions.Regex.Replace(
+                sanitized, 
+                @"<(/?)(?:html|head|body)([^>]*)>", 
+                m => System.Net.WebUtility.HtmlEncode(m.Value),
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            );
+
+            // Then use HtmlAgilityPack to remove script/style nodes and event handlers
+            var doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(sanitized);
+
+            // Remove script and style nodes entirely
+            var scripts = doc.DocumentNode.SelectNodes("//script|//style");
+            if (scripts != null)
+            {
+                foreach (var s in scripts)
+                    s.Remove();
+            }
+
+            // Remove inline event handler attributes (attributes starting with 'on')
+            foreach (var node in doc.DocumentNode.SelectNodes("//*") ?? Enumerable.Empty<HtmlAgilityPack.HtmlNode>())
+            {
+                var attrs = node.Attributes.Where(a => a.Name.StartsWith("on", StringComparison.OrdinalIgnoreCase)).ToList();
+                foreach (var a in attrs)
+                    node.Attributes.Remove(a);
+            }
+
+            story.Content = doc.DocumentNode.OuterHtml;
+        }
+        catch
+        {
+            // If sanitization fails for some reason, fall back to HTML-encoding the entire input
+            story.Content = System.Net.WebUtility.HtmlEncode(html ?? string.Empty);
+        }
         if (!string.IsNullOrWhiteSpace(title)) story.Title = title!;
         if (!string.IsNullOrWhiteSpace(genre)) story.Genre = genre!;
         story.LastModified = DateTime.Now;
