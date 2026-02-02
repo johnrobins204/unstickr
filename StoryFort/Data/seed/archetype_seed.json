@@ -1,146 +1,956 @@
-[
-  {
-    "title": "The Wonderful Wizard of Oz",
-    "author_translator": "L. Frank Baum",
-    "region": "Western",
-    "source_name": "Project Gutenberg",
-    "url": "https://www.gutenberg.org/ebooks/55",
-    "place_of_origin": "USA"
-  },
-  {
-    "title": "Alice's Adventures in Wonderland",
-    "author_translator": "Lewis Carroll",
-    "region": "Western",
-    "source_name": "Project Gutenberg",
-    "url": "https://www.gutenberg.org/ebooks/11",
-    "place_of_origin": "United Kingdom"
-  },
-  {
-    "title": "Jack and the Beanstalk",
-    "author_translator": "Joseph Jacobs",
-    "region": "Western",
-    "source_name": "Project Gutenberg",
-    "url": "https://www.gutenberg.org/ebooks/25545",
-    "place_of_origin": "United Kingdom"
-  },
-  {
-    "title": "Cinderella",
-    "author_translator": "The Brothers Grimm",
-    "region": "Western",
-    "source_name": "Project Gutenberg",
-    "url": "https://www.gutenberg.org/ebooks/2591",
-    "place_of_origin": "Germany"
-  },
-  {
-    "title": "Jason and the Golden Fleece",
-    "author_translator": "Padraic Colum",
-    "region": "Western",
-    "source_name": "Project Gutenberg",
-    "url": "https://www.gutenberg.org/ebooks/34154",
-    "place_of_origin": "Greece"
-  },
-  {
-    "title": "The Tale of the Bamboo Cutter",
-    "author_translator": "Japanese Folklore",
-    "region": "East Asian",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/shi/ftjs/ftjs10.htm",
-    "place_of_origin": "Japan"
-  },
-  {
-    "title": "Journey to the West",
-    "author_translator": "Wu Cheng'en, Trans. Timothy Richard",
-    "region": "East Asian",
-    "source_name": "Archive.org",
-    "url": "https://archive.org/details/missiontoheavenm00wuchuoft",
-    "place_of_origin": "China"
-  },
-  {
-    "title": "The Story of Chunhyang",
-    "author_translator": "Korean Folklore",
-    "region": "East Asian",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/asia/kft/index.htm",
-    "place_of_origin": "South Korea"
-  },
-  {
-    "title": "Anansi and the Box of Stories",
-    "author_translator": "West African Folk Tales",
-    "region": "African",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/afr/waft/index.htm",
-    "place_of_origin": "Ghana"
-  },
-  {
-    "title": "The King's Daughter and the Suitors",
-    "author_translator": "African Dilemma Tales",
-    "region": "African",
-    "source_name": "Archive.org",
-    "url": "https://archive.org/details/notesonfolklore00denngoog",
-    "place_of_origin": "Republic of the Congo"
-  },
-  {
-    "title": "The Saga of the Volsungs",
-    "author_translator": "Old Norse, Trans. Morris/Magnusson",
-    "region": "Northern European",
-    "source_name": "Project Gutenberg",
-    "url": "https://www.gutenberg.org/ebooks/1152",
-    "place_of_origin": "Iceland"
-  },
-  {
-    "title": "Beowulf",
-    "author_translator": "Old English, Trans. Lesslie Hall",
-    "region": "Northern European",
-    "source_name": "Project Gutenberg",
-    "url": "https://www.gutenberg.org/ebooks/16328",
-    "place_of_origin": "United Kingdom"
-  },
-  {
-    "title": "Ilya Muromets and Nightingale the Robber",
-    "author_translator": "Russian Bylina",
-    "region": "Eastern European",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/neu/ftr/index.htm",
-    "place_of_origin": "Russia"
-  },
-  {
-    "title": "Vasilisa the Beautiful",
-    "author_translator": "Russian Folklore",
-    "region": "Eastern European",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/neu/raft/index.htm",
-    "place_of_origin": "Russia"
-  },
-  {
-    "title": "The Lion and the Hare",
-    "author_translator": "Panchatantra, Trans. Arthur W. Ryder",
-    "region": "South Asian",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/hin/panc/index.htm",
-    "place_of_origin": "India"
-  },
-  {
-    "title": "The Ramayana",
-    "author_translator": "Valmiki, Trans. Ralph T. H. Griffith",
-    "region": "South Asian",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/hin/rama/index.htm",
-    "place_of_origin": "India"
-  },
-  {
-    "title": "Raven Steals the Light",
-    "author_translator": "Tlingit/Haida, Trans. John Swanton",
-    "region": "Indigenous North American",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/nam/nw/tmt/index.htm",
-    "place_of_origin": "Canada"
-  },
-  {
-    "title": "The Legend of Sedna",
-    "author_translator": "Inuit, Franz Boas collection",
-    "region": "Indigenous North American",
-    "source_name": "Sacred Texts",
-    "url": "https://www.sacred-texts.com/nam/inu/ice/index.htm",
-    "place_of_origin": "Canada"
-  }
-]
+{
+  "archetypes": [
+    {
+      "id": "hero",
+      "name": "The Hero's Journey",
+      "description": "The common template of stories that involve a hero who goes on an adventure, wins a victory in a decisive crisis, and comes home changed.",
+      "svgPath": "M 0,0.8 C 0.2,0.8 0.3,0.5 0.5,0.2 C 0.7,0.5 0.8,0.8 1,0.8"
+    },
+    {
+      "id": "voyage",
+      "name": "Voyage and Return",
+      "description": "The protagonist travels to a strange world and, after overcoming the threats it poses or learning important lessons, returns with experience.",
+      "svgPath": "M 0,0.5 Q 0.5,-0.2 1,0.5"
+    },
+    {
+      "id": "classic",
+      "name": "Freytag's Pyramid",
+      "description": "A five-part dramatic structure: Exposition, Rising Action, Climax, Falling Action, and Resolution.",
+      "svgPath": "M 0,0.9 L 0.5,0.1 L 1,0.9"
+    },
+    {
+      "id": "kisho",
+      "name": "Kishōtenketsu",
+      "description": "A four-act structure common in East Asian narratives. It focuses on a 'twist' or change in perspective rather than a central conflict.",
+      "svgPath": "M 0,0.7 L 0.33,0.7 L 0.66,0.2 L 1,0.2"
+    },
+    {
+      "id": "monster",
+      "name": "Overcoming the Monster",
+      "description": "The hero sets out to destroy an evil force which threatens the land. Usually involves a perilous climb and a narrow escape.",
+      "svgPath": "M 0,0.9 L 0.4,0.6 L 0.5,0.1 L 0.6,0.6 L 1,0.9"
+    },
+    {
+      "id": "trickster",
+      "name": "The Trickster's Cycle",
+      "description": "A narrative focused on a clever protagonist who uses wit and deception to solve problems or gain an advantage, often disrupting the status quo.",
+      "svgPath": "M 0,0.8 L 0.2,0.3 L 0.4,0.8 L 0.6,0.3 L 0.8,0.8 L 1,0.5"
+    },
+    {
+      "id": "dilemma",
+      "name": "The Dilemma Tale",
+      "description": "A narrative structure common in African oral tradition that presents a difficult moral or ethical choice, ending with a question for the audience.",
+      "svgPath": "M 0,0.8 L 0.5,0.2 M 0.5,0.2 L 1,0.1 M 0.5,0.2 L 1,0.4"
+    },
+    {
+      "id": "pilgrimage",
+      "name": "The Pilgrimage Arc",
+      "description": "A structure where the protagonist undergoes a long journey involving repeated trials that test and build their spiritual or moral character.",
+      "svgPath": "M 0,0.9 Q 0.1,0.7 0.2,0.9 Q 0.3,0.6 0.4,0.8 Q 0.5,0.4 0.6,0.7 Q 0.8,0.1 1,0.2"
+    },
+    {
+      "id": "resistance",
+      "name": "The Virtuous Resistance",
+      "description": "The story of a protagonist who remains steadfast in their values despite intense suffering and external pressure, leading to eventual vindication.",
+      "svgPath": "M 0,0.4 L 0.2,0.4 C 0.3,0.4 0.4,0.9 0.6,0.9 L 0.8,0.9 L 1,0.1"
+    },
+    {
+      "id": "wyrd",
+      "name": "The Tragic Fate",
+      "description": "A structure common in Old Norse literature where the protagonist's doom is preordained, and the story focuses on their dignified path toward that end.",
+      "svgPath": "M 0,0.2 L 1,0.9"
+    },
+    {
+      "id": "ordeal",
+      "name": "The Triple Ordeal",
+      "description": "An escalating narrative structure where the hero must face three major, distinct conflicts, often separated by long periods of time.",
+      "svgPath": "M 0,0.8 L 0.2,0.5 L 0.4,0.8 L 0.6,0.3 L 0.8,0.8 L 1,0.1"
+    },
+    {
+      "id": "fable",
+      "name": "The Moral Fable",
+      "description": "A concise narrative, often featuring animals, that leads to a clear ethical or tactical lesson through the use of wit.",
+      "svgPath": "M 0,0.6 L 0.7,0.6 L 0.8,0.2 L 1,0.2"
+    },
+    {
+      "id": "exile_restore",
+      "name": "Exile and Restoration",
+      "description": "A high-status protagonist is unjustly cast out into the wilderness, endures a long period of hardship and loss, and eventually returns to their rightful place.",
+      "svgPath": "M 0,0.2 L 0.2,0.2 C 0.4,0.9 0.6,0.9 0.8,0.2 L 1,0.2"
+    },
+    {
+      "id": "sentinel",
+      "name": "The Heroic Sentinel",
+      "description": "A structure featuring a long period of preparation or stasis, followed by a sudden call to action and a journey to protect the realm.",
+      "svgPath": "M 0,0.9 L 0.4,0.9 L 0.4,0.5 L 1,0.1"
+    },
+    {
+      "id": "iterative",
+      "name": "The Iterative Trial",
+      "description": "The protagonist must complete a series of escalating tasks, usually under the watch of a dangerous supernatural figure, to earn their freedom or a boon.",
+      "svgPath": "M 0,0.9 L 0.3,0.9 L 0.3,0.6 L 0.6,0.6 L 0.6,0.3 L 1,0.3"
+    },
+    {
+      "id": "light_bringer",
+      "name": "The Bringer of Light",
+      "description": "A structure where a trickster figure infiltrates a restricted domain to retrieve a vital element (light, fire, water) for the world's benefit.",
+      "svgPath": "M 0,0.8 Q 0.3,0.9 0.5,0.8 Q 0.7,0.8 0.8,0.2 L 1,0.1"
+    },
+    {
+      "id": "transformation",
+      "name": "The Deep Transformation",
+      "description": "A narrative of fundamental change where a protagonist descends into a new element or state of being, establishing a new order of nature.",
+      "svgPath": "M 0,0.2 L 0.4,0.2 L 0.5,1.0 L 1,1.0"
+    },
+    {
+      "id": "rags_riches",
+      "name": "Rags to Riches",
+      "description": "A protagonist from humble beginnings rises to great heights, suffers a temporary loss or crisis, and finally achieves permanent success.",
+      "svgPath": "M 0,0.9 L 0.3,0.7 L 0.5,0.2 L 0.7,0.6 L 1,0.1"
+    },
+    {
+      "id": "quest",
+      "name": "The Quest",
+      "description": "A hero and their companions set out to find a specific person or object, overcoming a series of trials until the goal is achieved.",
+      "svgPath": "M 0,0.8 L 0.2,0.8 L 0.4,0.6 L 0.6,0.6 L 0.8,0.3 L 1,0.1"
+    }
+  ],
+  "archetypePoints": [
+    {
+      "id": 1,
+      "archetypeId": "hero",
+      "stepId": 1,
+      "label": "Ordinary World",
+      "prompt": "Describe your protagonist's daily life before the adventure begins.",
+      "x": 0.0,
+      "y": 0.8,
+      "align": "left"
+    },
+    {
+      "id": 2,
+      "archetypeId": "hero",
+      "stepId": 2,
+      "label": "Call to Adventure",
+      "prompt": "What event disrupts the hero's world and presents a challenge?",
+      "x": 0.15,
+      "y": 0.7,
+      "align": "top"
+    },
+    {
+      "id": 3,
+      "archetypeId": "hero",
+      "stepId": 3,
+      "label": "Crossing the Threshold",
+      "prompt": "The hero leaves the known world. What is the point of no return?",
+      "x": 0.35,
+      "y": 0.45,
+      "align": "top"
+    },
+    {
+      "id": 4,
+      "archetypeId": "hero",
+      "stepId": 4,
+      "label": "The Ordeal",
+      "prompt": "The greatest challenge. What is the 'lowest point' for your hero?",
+      "x": 0.5,
+      "y": 0.1,
+      "align": "center"
+    },
+    {
+      "id": 5,
+      "archetypeId": "hero",
+      "stepId": 5,
+      "label": "Return with Elixir",
+      "prompt": "How is the hero changed? What do they bring back to their world?",
+      "x": 1.0,
+      "y": 0.8,
+      "align": "right"
+    },
+    {
+      "id": 6,
+      "archetypeId": "voyage",
+      "stepId": 1,
+      "label": "Falling into the Unknown",
+      "prompt": "How does the character enter the strange new world?",
+      "x": 0.05,
+      "y": 0.5,
+      "align": "left"
+    },
+    {
+      "id": 7,
+      "archetypeId": "voyage",
+      "stepId": 2,
+      "label": "The Strange World",
+      "prompt": "Describe the initial wonders and confusing rules of this new place.",
+      "x": 0.3,
+      "y": 0.2,
+      "align": "top"
+    },
+    {
+      "id": 8,
+      "archetypeId": "voyage",
+      "stepId": 3,
+      "label": "The Great Escape",
+      "prompt": "A threat arises. How does the hero find their way back home?",
+      "x": 0.8,
+      "y": 0.3,
+      "align": "bottom"
+    },
+    {
+      "id": 9,
+      "archetypeId": "kisho",
+      "stepId": 1,
+      "label": "Ki (Introduction)",
+      "prompt": "Introduce the characters and their peaceful environment.",
+      "x": 0.0,
+      "y": 0.7,
+      "align": "left"
+    },
+    {
+      "id": 10,
+      "archetypeId": "kisho",
+      "stepId": 2,
+      "label": "Shō (Development)",
+      "prompt": "Expand on the world. What are the characters doing day-to-day?",
+      "x": 0.33,
+      "y": 0.7,
+      "align": "bottom"
+    },
+    {
+      "id": 11,
+      "archetypeId": "kisho",
+      "stepId": 3,
+      "label": "Ten (Twist)",
+      "prompt": "Introduce a surprise or a change in perspective unrelated to the main plot.",
+      "x": 0.66,
+      "y": 0.2,
+      "align": "top"
+    },
+    {
+      "id": 12,
+      "archetypeId": "kisho",
+      "stepId": 4,
+      "label": "Ketsu (Conclusion)",
+      "prompt": "How does the twist resolve the story in a new, unified way?",
+      "x": 1.0,
+      "y": 0.2,
+      "align": "right"
+    },
+    {
+      "id": 13,
+      "archetypeId": "monster",
+      "stepId": 1,
+      "label": "The Threat",
+      "prompt": "Identify the monster and the danger it poses to the community.",
+      "x": 0.1,
+      "y": 0.9,
+      "align": "left"
+    },
+    {
+      "id": 14,
+      "archetypeId": "monster",
+      "stepId": 2,
+      "label": "The Ascent",
+      "prompt": "The hero approaches the monster's lair. What obstacles do they face?",
+      "x": 0.4,
+      "y": 0.5,
+      "align": "top"
+    },
+    {
+      "id": 15,
+      "archetypeId": "monster",
+      "stepId": 3,
+      "label": "The Final Battle",
+      "prompt": "The hero confronts the monster. This is the peak of the action.",
+      "x": 0.5,
+      "y": 0.1,
+      "align": "center"
+    },
+    {
+      "id": 16,
+      "archetypeId": "trickster",
+      "stepId": 1,
+      "label": "The Ambition",
+      "prompt": "What does the trickster want, and what clever plan do they devise?",
+      "x": 0.0,
+      "y": 0.8,
+      "align": "left"
+    },
+    {
+      "id": 17,
+      "archetypeId": "trickster",
+      "stepId": 2,
+      "label": "The Deception",
+      "prompt": "Describe the trick played on the unsuspecting target.",
+      "x": 0.2,
+      "y": 0.3,
+      "align": "top"
+    },
+    {
+      "id": 18,
+      "archetypeId": "trickster",
+      "stepId": 3,
+      "label": "The Complication",
+      "prompt": "What goes wrong or makes the scheme nearly fail?",
+      "x": 0.4,
+      "y": 0.8,
+      "align": "bottom"
+    },
+    {
+      "id": 19,
+      "archetypeId": "trickster",
+      "stepId": 4,
+      "label": "The Narrow Escape",
+      "prompt": "How does the trickster get away with the prize (or just their life)?",
+      "x": 1.0,
+      "y": 0.5,
+      "align": "right"
+    },
+    {
+      "id": 20,
+      "archetypeId": "dilemma",
+      "stepId": 1,
+      "label": "The Scenario",
+      "prompt": "Introduce the characters and the conflict that leads to the choice.",
+      "x": 0.0,
+      "y": 0.8,
+      "align": "left"
+    },
+    {
+      "id": 21,
+      "archetypeId": "dilemma",
+      "stepId": 2,
+      "label": "The Choice",
+      "prompt": "What are the conflicting moral paths or difficult decisions presented?",
+      "x": 0.5,
+      "y": 0.2,
+      "align": "center"
+    },
+    {
+      "id": 22,
+      "archetypeId": "dilemma",
+      "stepId": 3,
+      "label": "The Unresolved End",
+      "prompt": "Leave the story open. Ask the audience: What should happen next?",
+      "x": 1.0,
+      "y": 0.25,
+      "align": "right"
+    },
+    {
+      "id": 23,
+      "archetypeId": "pilgrimage",
+      "stepId": 1,
+      "label": "Spiritual Call",
+      "prompt": "What higher purpose or mission motivates the journey?",
+      "x": 0.0,
+      "y": 0.9,
+      "align": "left"
+    },
+    {
+      "id": 24,
+      "archetypeId": "pilgrimage",
+      "stepId": 2,
+      "label": "Cyclical Trials",
+      "prompt": "Describe a recurring challenge that tests the hero's resolve.",
+      "x": 0.3,
+      "y": 0.6,
+      "align": "top"
+    },
+    {
+      "id": 25,
+      "archetypeId": "pilgrimage",
+      "stepId": 3,
+      "label": "Enlightenment",
+      "prompt": "The journey reaches its end. What profound truth is attained?",
+      "x": 1.0,
+      "y": 0.2,
+      "align": "right"
+    },
+    {
+      "id": 26,
+      "archetypeId": "resistance",
+      "stepId": 1,
+      "label": "Unbreakable Bond",
+      "prompt": "What promise or relationship defines the hero's virtue?",
+      "x": 0.0,
+      "y": 0.4,
+      "align": "left"
+    },
+    {
+      "id": 27,
+      "archetypeId": "resistance",
+      "stepId": 2,
+      "label": "Deepest Ordeal",
+      "prompt": "The hero is imprisoned or pressured to betray their values. Describe their suffering.",
+      "x": 0.6,
+      "y": 0.9,
+      "align": "bottom"
+    },
+    {
+      "id": 28,
+      "archetypeId": "resistance",
+      "stepId": 3,
+      "label": "Justice & Reunion",
+      "prompt": "The truth is revealed. How is the hero vindicated?",
+      "x": 1.0,
+      "y": 0.1,
+      "align": "right"
+    },
+    {
+      "id": 29,
+      "archetypeId": "wyrd",
+      "stepId": 1,
+      "label": "The Prophecy",
+      "prompt": "What knowledge of their inevitable end does the hero possess?",
+      "x": 0.0,
+      "y": 0.2,
+      "align": "left"
+    },
+    {
+      "id": 30,
+      "archetypeId": "wyrd",
+      "stepId": 2,
+      "label": "The Choice of Honor",
+      "prompt": "Knowing the end is near, what action does the hero take to ensure their legacy?",
+      "x": 0.5,
+      "y": 0.55,
+      "align": "center"
+    },
+    {
+      "id": 31,
+      "archetypeId": "wyrd",
+      "stepId": 3,
+      "label": "Final Doom",
+      "prompt": "The fate is met. Describe the hero's final stand.",
+      "x": 1.0,
+      "y": 0.9,
+      "align": "right"
+    },
+    {
+      "id": 32,
+      "archetypeId": "ordeal",
+      "stepId": 1,
+      "label": "First Great Deed",
+      "prompt": "The hero's first major challenge. What proves their worth?",
+      "x": 0.2,
+      "y": 0.5,
+      "align": "top"
+    },
+    {
+      "id": 33,
+      "archetypeId": "ordeal",
+      "stepId": 2,
+      "label": "The Shadow Trial",
+      "prompt": "A more dangerous, hidden foe emerges. How do they survive?",
+      "x": 0.6,
+      "y": 0.3,
+      "align": "top"
+    },
+    {
+      "id": 34,
+      "archetypeId": "ordeal",
+      "stepId": 3,
+      "label": "The Last Battle",
+      "prompt": "Decades later, a final threat arrives. What is the hero's ultimate sacrifice?",
+      "x": 1.0,
+      "y": 0.1,
+      "align": "right"
+    },
+    {
+      "id": 35,
+      "archetypeId": "fable",
+      "stepId": 1,
+      "label": "The Clever Setup",
+      "prompt": "Introduce the characters and a tactical problem they must solve.",
+      "x": 0.0,
+      "y": 0.6,
+      "align": "left"
+    },
+    {
+      "id": 36,
+      "archetypeId": "fable",
+      "stepId": 2,
+      "label": "The Turning Point",
+      "prompt": "A clever trick or realization occurs. How does the character outsmart the problem?",
+      "x": 0.7,
+      "y": 0.6,
+      "align": "bottom"
+    },
+    {
+      "id": 37,
+      "archetypeId": "fable",
+      "stepId": 3,
+      "label": "The Moral",
+      "prompt": "State the lesson learned. How should this change the reader's behavior?",
+      "x": 1.0,
+      "y": 0.2,
+      "align": "right"
+    },
+    {
+      "id": 38,
+      "archetypeId": "exile_restore",
+      "stepId": 1,
+      "label": "The Fall from Grace",
+      "prompt": "What injustice leads the protagonist to lose their home and status?",
+      "x": 0.0,
+      "y": 0.2,
+      "align": "left"
+    },
+    {
+      "id": 39,
+      "archetypeId": "exile_restore",
+      "stepId": 2,
+      "label": "The Forest Years",
+      "prompt": "Describe the long period of wandering and survival in the wilderness.",
+      "x": 0.5,
+      "y": 0.9,
+      "align": "bottom"
+    },
+    {
+      "id": 40,
+      "archetypeId": "exile_restore",
+      "stepId": 3,
+      "label": "The Rightful Return",
+      "prompt": "The protagonist reclaims their place. How is order finally restored?",
+      "x": 1.0,
+      "y": 0.2,
+      "align": "right"
+    },
+    {
+      "id": 41,
+      "archetypeId": "sentinel",
+      "stepId": 1,
+      "label": "The Long Stasis",
+      "prompt": "Describe the hero's period of inactivity. Why are they unable or unwilling to act?",
+      "x": 0.0,
+      "y": 0.9,
+      "align": "left"
+    },
+    {
+      "id": 42,
+      "archetypeId": "sentinel",
+      "stepId": 2,
+      "label": "The Sudden Strength",
+      "prompt": "What supernatural or external force grants the hero the power to move?",
+      "x": 0.4,
+      "y": 0.5,
+      "align": "top"
+    },
+    {
+      "id": 43,
+      "archetypeId": "sentinel",
+      "stepId": 3,
+      "label": "The Vigil",
+      "prompt": "The hero stands guard at a critical location. Who or what do they defend?",
+      "x": 1.0,
+      "y": 0.1,
+      "align": "right"
+    },
+    {
+      "id": 44,
+      "archetypeId": "iterative",
+      "stepId": 1,
+      "label": "The First Task",
+      "prompt": "The introductory test. What simple but crucial instruction is given?",
+      "x": 0.3,
+      "y": 0.9,
+      "align": "bottom"
+    },
+    {
+      "id": 45,
+      "archetypeId": "iterative",
+      "stepId": 2,
+      "label": "The Midnight Test",
+      "prompt": "A more difficult task requiring magical aid. What happens when the world is asleep?",
+      "x": 0.6,
+      "y": 0.6,
+      "align": "center"
+    },
+    {
+      "id": 46,
+      "archetypeId": "iterative",
+      "stepId": 3,
+      "label": "The Final Freedom",
+      "prompt": "The hardest task. How does the hero escape the master's power?",
+      "x": 1.0,
+      "y": 0.3,
+      "align": "right"
+    },
+    {
+      "id": 47,
+      "archetypeId": "light_bringer",
+      "stepId": 1,
+      "label": "The Infiltration",
+      "prompt": "How does the trickster sneak into the place where the light is hidden?",
+      "x": 0.0,
+      "y": 0.8,
+      "align": "left"
+    },
+    {
+      "id": 48,
+      "archetypeId": "light_bringer",
+      "stepId": 2,
+      "label": "The Hidden Treasure",
+      "prompt": "Describe the moment the trickster finds the sun, moon, or fire.",
+      "x": 0.5,
+      "y": 0.8,
+      "align": "bottom"
+    },
+    {
+      "id": 49,
+      "archetypeId": "light_bringer",
+      "stepId": 3,
+      "label": "The Flight of Light",
+      "prompt": "The trickster escapes and releases the light into the world. What is the impact?",
+      "x": 1.0,
+      "y": 0.1,
+      "align": "right"
+    },
+    {
+      "id": 50,
+      "archetypeId": "transformation",
+      "stepId": 1,
+      "label": "The Sacrifice",
+      "prompt": "What tragic event or betrayal forces the protagonist into a new realm?",
+      "x": 0.0,
+      "y": 0.2,
+      "align": "left"
+    },
+    {
+      "id": 51,
+      "archetypeId": "transformation",
+      "stepId": 2,
+      "label": "The Deep Change",
+      "prompt": "Describe the physical or spiritual transformation as they descend.",
+      "x": 0.5,
+      "y": 1.0,
+      "align": "bottom"
+    },
+    {
+      "id": 52,
+      "archetypeId": "transformation",
+      "stepId": 3,
+      "label": "The New Order",
+      "prompt": "The protagonist now rules a new domain. How does this provide for the world?",
+      "x": 1.0,
+      "y": 1.0,
+      "align": "right"
+    },
+    {
+      "id": 53,
+      "archetypeId": "rags_riches",
+      "stepId": 1,
+      "label": "Initial Misery",
+      "prompt": "Describe the protagonist's humble or oppressed starting condition.",
+      "x": 0.0,
+      "y": 0.9,
+      "align": "left"
+    },
+    {
+      "id": 54,
+      "archetypeId": "rags_riches",
+      "stepId": 2,
+      "label": "The False Peak",
+      "prompt": "The character achieves a sudden, temporary success. What magic or luck makes this happen?",
+      "x": 0.5,
+      "y": 0.2,
+      "align": "top"
+    },
+    {
+      "id": 55,
+      "archetypeId": "rags_riches",
+      "stepId": 3,
+      "label": "The Midnight Crisis",
+      "prompt": "The success is lost or threatened. What is the turning point?",
+      "x": 0.7,
+      "y": 0.6,
+      "align": "bottom"
+    },
+    {
+      "id": 56,
+      "archetypeId": "rags_riches",
+      "stepId": 4,
+      "label": "Permanent Rise",
+      "prompt": "The character is vindicated. How is their success made permanent and authentic?",
+      "x": 1.0,
+      "y": 0.1,
+      "align": "right"
+    },
+    {
+      "id": 57,
+      "archetypeId": "quest",
+      "stepId": 1,
+      "label": "The Call & Mission",
+      "prompt": "What specific object or person must the hero retrieve, and why?",
+      "x": 0.0,
+      "y": 0.8,
+      "align": "left"
+    },
+    {
+      "id": 58,
+      "archetypeId": "quest",
+      "stepId": 2,
+      "label": "The First Guardian",
+      "prompt": "The first major obstacle blocking the path. How do they overcome it?",
+      "x": 0.4,
+      "y": 0.6,
+      "align": "top"
+    },
+    {
+      "id": 59,
+      "archetypeId": "quest",
+      "stepId": 3,
+      "label": "The Final Trial",
+      "prompt": "The most dangerous test right before the goal. What is sacrificed?",
+      "x": 0.8,
+      "y": 0.3,
+      "align": "top"
+    },
+    {
+      "id": 60,
+      "archetypeId": "quest",
+      "stepId": 4,
+      "label": "The Retrieval",
+      "prompt": "The goal is achieved. Describe the moment the prize is secured.",
+      "x": 1.0,
+      "y": 0.1,
+      "align": "right"
+    }
+  ],
+  "archetypeExamples": [
+    {
+      "id": 1,
+      "archetypePointId": 1,
+      "title": "The Wonderful Wizard of Oz",
+      "content": "Dorothy lives in a gray, dry Kansas with Aunt Em and Uncle Henry, feeling bored and out of place."
+    },
+    {
+      "id": 2,
+      "archetypePointId": 2,
+      "title": "The Wonderful Wizard of Oz",
+      "content": "A cyclone arrives, lifting the house with Dorothy and Toto inside into the sky."
+    },
+    {
+      "id": 3,
+      "archetypePointId": 4,
+      "title": "The Wonderful Wizard of Oz",
+      "content": "Dorothy is captured by the Wicked Witch of the West and must find a way to destroy her to save her friends."
+    },
+    {
+      "id": 4,
+      "archetypePointId": 6,
+      "title": "Alice in Wonderland",
+      "content": "Alice follows the White Rabbit and falls down a deep rabbit hole into a bizarre world."
+    },
+    {
+      "id": 5,
+      "archetypePointId": 8,
+      "title": "Alice in Wonderland",
+      "content": "The Queen of Hearts demands Alice's execution. Alice realizes the creatures are 'nothing but a pack of cards' and wakes up."
+    },
+    {
+      "id": 6,
+      "archetypePointId": 9,
+      "title": "The Tale of the Bamboo Cutter",
+      "content": "An old bamboo cutter finds a tiny, glowing baby girl inside a bamboo stalk and raises her as Princess Kaguya."
+    },
+    {
+      "id": 7,
+      "archetypePointId": 11,
+      "title": "The Tale of the Bamboo Cutter",
+      "content": "Despite many suitors and great wealth, Kaguya reveals she is not from this world but from the Moon, and her people are coming to take her back."
+    },
+    {
+      "id": 8,
+      "archetypePointId": 13,
+      "title": "Jack and the Beanstalk",
+      "content": "A giant lives at the top of a massive beanstalk and has stolen the wealth of Jack's family."
+    },
+    {
+      "id": 9,
+      "archetypePointId": 15,
+      "title": "Jack and the Beanstalk",
+      "content": "Jack steals the Giant's golden-egg-laying hen and chops down the beanstalk as the Giant chases him, defeating the monster."
+    },
+    {
+      "id": 10,
+      "archetypePointId": 16,
+      "title": "Anansi and the Box of Stories",
+      "content": "Anansi the Spider wants to buy the stories owned by Nyame the Sky God, but the price is high."
+    },
+    {
+      "id": 11,
+      "archetypePointId": 17,
+      "title": "Anansi and the Box of Stories",
+      "content": "Anansi tricks a hornets' nest, a python, and a leopard into capture using only his wits and some simple tools."
+    },
+    {
+      "id": 12,
+      "archetypePointId": 20,
+      "title": "The King's Daughter and the Suitors",
+      "content": "A King offers his daughter's hand to whoever can perform an impossible task. Three suitors succeed in different ways."
+    },
+    {
+      "id": 13,
+      "archetypePointId": 22,
+      "title": "The King's Daughter and the Suitors",
+      "content": "The story ends by asking: 'Which of the three suitors truly deserves the reward?'"
+    },
+    {
+      "id": 14,
+      "archetypePointId": 23,
+      "title": "Journey to the West",
+      "content": "The monk Xuanzang is tasked by the Tang Emperor and the Bodhisattva Guanyin to travel to India to retrieve sacred Buddhist scriptures."
+    },
+    {
+      "id": 15,
+      "archetypePointId": 24,
+      "title": "Journey to the West",
+      "content": "Sun Wukong (The Monkey King) and the other disciples protect the monk from 81 tribulations, including demons who want to eat his flesh."
+    },
+    {
+      "id": 16,
+      "archetypePointId": 26,
+      "title": "The Story of Chunhyang",
+      "content": "Chunhyang and Mongryong fall deeply in love and secretly marry, promising eternal fidelity before Mongryong must leave for the capital."
+    },
+    {
+      "id": 17,
+      "archetypePointId": 27,
+      "title": "The Story of Chunhyang",
+      "content": "The corrupt official Byeon demands Chunhyang become his mistress. She refuses and is brutally tortured and imprisoned, facing death for her virtue."
+    },
+    {
+      "id": 18,
+      "archetypePointId": 29,
+      "title": "The Saga of the Volsungs",
+      "content": "Sigurd is born into a line of heroes but is warned by prophecies and his uncle that he is destined for a life of great glory followed by an early, tragic death."
+    },
+    {
+      "id": 19,
+      "archetypePointId": 31,
+      "title": "The Saga of the Volsungs",
+      "content": "Despite knowing the betrayal is coming, Sigurd maintains his honor. He is killed in his bed, fulfilling the 'Wyrd' of the Volsung line."
+    },
+    {
+      "id": 20,
+      "archetypePointId": 32,
+      "title": "Beowulf",
+      "content": "As a young warrior, Beowulf travels to Denmark to defeat the monster Grendel, who has been terrorizing King Hrothgar's hall, Heorot."
+    },
+    {
+      "id": 21,
+      "archetypePointId": 34,
+      "title": "Beowulf",
+      "content": "Fifty years after his first battles, King Beowulf must face a final, massive dragon. He slays the beast but sustains a mortal wound, dying to save his kingdom."
+    },
+    {
+      "id": 22,
+      "archetypePointId": 35,
+      "title": "The Lion and the Hare",
+      "content": "A hungry lion named Bhasuraka is terrorizing the forest. To stop the slaughter, the animals agree to send one animal each day to be his meal."
+    },
+    {
+      "id": 23,
+      "archetypePointId": 37,
+      "title": "The Lion and the Hare",
+      "content": "A tiny hare leads the lion to a deep well, claiming another lion lives inside. The lion jumps in to fight his reflection and drowns. Moral: Wit is superior to brute force."
+    },
+    {
+      "id": 24,
+      "archetypePointId": 38,
+      "title": "The Ramayana",
+      "content": "Prince Rama is about to be crowned King, but his stepmother Kaikeyi demands he be exiled to the Dandaka forest for 14 years so her own son can rule."
+    },
+    {
+      "id": 25,
+      "archetypePointId": 40,
+      "title": "The Ramayana",
+      "content": "After 14 years and defeating the demon king Ravana, Rama returns to Ayodhya. The citizens light lamps to celebrate his return, and he is finally crowned King."
+    },
+    {
+      "id": 26,
+      "archetypePointId": 41,
+      "title": "Ilya Muromets and Nightingale the Robber",
+      "content": "Ilya sits on the stove for thirty-three years, unable to move his hands or feet, until two passing pilgrims heal him and give him heroic strength."
+    },
+    {
+      "id": 27,
+      "archetypePointId": 43,
+      "title": "Ilya Muromets and Nightingale the Robber",
+      "content": "Ilya journeys to Kiev, clearing the road of the monster Nightingale the Robber and standing guard at the city gates as the premier bogatyr (sentinel)."
+    },
+    {
+      "id": 28,
+      "archetypePointId": 44,
+      "title": "Vasilisa the Beautiful",
+      "content": "Vasilisa is sent by her cruel stepmother into the woods to fetch light from the hut of the witch Baba Yaga."
+    },
+    {
+      "id": 29,
+      "archetypePointId": 45,
+      "title": "Vasilisa the Beautiful",
+      "content": "Baba Yaga forces Vasilisa to sort massive piles of wheat and poppy seeds by night. Vasilisa succeeds each time with the help of her magical doll."
+    },
+    {
+      "id": 30,
+      "archetypePointId": 46,
+      "title": "Vasilisa the Beautiful",
+      "content": "After Vasilisa answers Baba Yaga's questions about her virtue, the witch gives her a skull lantern and allows her to leave, freeing her from service."
+    },
+    {
+      "id": 31,
+      "archetypePointId": 47,
+      "title": "Raven Steals the Light",
+      "content": "The world is in total darkness because an old man keeps the light in a box. Raven turns himself into a pine needle, is swallowed by the man's daughter, and is born as a baby boy."
+    },
+    {
+      "id": 32,
+      "archetypePointId": 49,
+      "title": "Raven Steals the Light",
+      "content": "As a toddler, Raven cries for the boxes. He opens them one by one, releasing the stars and moon. Finally, he grabs the sun, turns back into a bird, and flies through the smoke hole, placing the sun in the sky."
+    },
+    {
+      "id": 33,
+      "archetypePointId": 50,
+      "title": "The Legend of Sedna",
+      "content": "Sedna is thrown overboard by her father during a storm. When she tries to climb back in, he cuts off her fingers. As she sinks, her fingers become the seals, walruses, and whales."
+    },
+    {
+      "id": 34,
+      "archetypePointId": 52,
+      "title": "The Legend of Sedna",
+      "content": "Sedna becomes the Mother of the Sea, ruling all marine life from her home at the bottom of the ocean. Hunters must now respect her to ensure a successful hunt."
+    },
+    {
+      "id": 35,
+      "archetypePointId": 53,
+      "title": "Cinderella",
+      "content": "Cinderella is forced into servitude by her stepmother and stepsisters, living among the ashes and performing backbreaking chores."
+    },
+    {
+      "id": 36,
+      "archetypePointId": 54,
+      "title": "Cinderella",
+      "content": "With the help of her fairy godmother, she attends the Royal Ball in a magical gown and glass slippers, dancing with the Prince."
+    },
+    {
+      "id": 37,
+      "archetypePointId": 55,
+      "title": "Cinderella",
+      "content": "At midnight, the magic fades. She flees, leaving only a single glass slipper behind, and returns to her life of rags."
+    },
+    {
+      "id": 38,
+      "archetypePointId": 57,
+      "title": "Jason and the Golden Fleece",
+      "content": "Jason is commanded by King Pelias to retrieve the legendary Golden Fleece from the distant land of Colchis to reclaim his throne."
+    },
+    {
+      "id": 39,
+      "archetypePointId": 60,
+      "title": "Jason and the Golden Fleece",
+      "content": "After surviving the Symplegades and completing the impossible tasks set by King Aeetes, Jason retrieves the Fleece from the sleeping dragon."
+    }
+  ]
+}

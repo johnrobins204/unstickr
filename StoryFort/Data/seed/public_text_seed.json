@@ -1,0 +1,146 @@
+[
+  {
+    "title": "The Wonderful Wizard of Oz",
+    "author_translator": "L. Frank Baum",
+    "region": "Western",
+    "source_name": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/55",
+    "place_of_origin": "USA"
+  },
+  {
+    "title": "Alice's Adventures in Wonderland",
+    "author_translator": "Lewis Carroll",
+    "region": "Western",
+    "source_name": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/11",
+    "place_of_origin": "United Kingdom"
+  },
+  {
+    "title": "Jack and the Beanstalk",
+    "author_translator": "Joseph Jacobs",
+    "region": "Western",
+    "source_name": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/25545",
+    "place_of_origin": "United Kingdom"
+  },
+  {
+    "title": "Cinderella",
+    "author_translator": "The Brothers Grimm",
+    "region": "Western",
+    "source_name": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/2591",
+    "place_of_origin": "Germany"
+  },
+  {
+    "title": "Jason and the Golden Fleece",
+    "author_translator": "Padraic Colum",
+    "region": "Western",
+    "source_name": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/34154",
+    "place_of_origin": "Greece"
+  },
+  {
+    "title": "The Tale of the Bamboo Cutter",
+    "author_translator": "Japanese Folklore",
+    "region": "East Asian",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/shi/ftjs/ftjs10.htm",
+    "place_of_origin": "Japan"
+  },
+  {
+    "title": "Journey to the West",
+    "author_translator": "Wu Cheng'en, Trans. Timothy Richard",
+    "region": "East Asian",
+    "source_name": "Archive.org",
+    "url": "https://archive.org/details/missiontoheavenm00wuchuoft",
+    "place_of_origin": "China"
+  },
+  {
+    "title": "The Story of Chunhyang",
+    "author_translator": "Korean Folklore",
+    "region": "East Asian",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/asia/kft/index.htm",
+    "place_of_origin": "South Korea"
+  },
+  {
+    "title": "Anansi and the Box of Stories",
+    "author_translator": "West African Folk Tales",
+    "region": "African",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/afr/waft/index.htm",
+    "place_of_origin": "Ghana"
+  },
+  {
+    "title": "The King's Daughter and the Suitors",
+    "author_translator": "African Dilemma Tales",
+    "region": "African",
+    "source_name": "Archive.org",
+    "url": "https://archive.org/details/notesonfolklore00denngoog",
+    "place_of_origin": "Republic of the Congo"
+  },
+  {
+    "title": "The Saga of the Volsungs",
+    "author_translator": "Old Norse, Trans. Morris/Magnusson",
+    "region": "Northern European",
+    "source_name": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/1152",
+    "place_of_origin": "Iceland"
+  },
+  {
+    "title": "Beowulf",
+    "author_translator": "Old English, Trans. Lesslie Hall",
+    "region": "Northern European",
+    "source_name": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/16328",
+    "place_of_origin": "United Kingdom"
+  },
+  {
+    "title": "Ilya Muromets and Nightingale the Robber",
+    "author_translator": "Russian Bylina",
+    "region": "Eastern European",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/neu/ftr/index.htm",
+    "place_of_origin": "Russia"
+  },
+  {
+    "title": "Vasilisa the Beautiful",
+    "author_translator": "Russian Folklore",
+    "region": "Eastern European",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/neu/raft/index.htm",
+    "place_of_origin": "Russia"
+  },
+  {
+    "title": "The Lion and the Hare",
+    "author_translator": "Panchatantra, Trans. Arthur W. Ryder",
+    "region": "South Asian",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/hin/panc/index.htm",
+    "place_of_origin": "India"
+  },
+  {
+    "title": "The Ramayana",
+    "author_translator": "Valmiki, Trans. Ralph T. H. Griffith",
+    "region": "South Asian",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/hin/rama/index.htm",
+    "place_of_origin": "India"
+  },
+  {
+    "title": "Raven Steals the Light",
+    "author_translator": "Tlingit/Haida, Trans. John Swanton",
+    "region": "Indigenous North American",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/nam/nw/tmt/index.htm",
+    "place_of_origin": "Canada"
+  },
+  {
+    "title": "The Legend of Sedna",
+    "author_translator": "Inuit, Franz Boas collection",
+    "region": "Indigenous North American",
+    "source_name": "Sacred Texts",
+    "url": "https://www.sacred-texts.com/nam/inu/ice/index.htm",
+    "place_of_origin": "Canada"
+  }
+]
